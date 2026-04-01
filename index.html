@@ -1800,7 +1800,7 @@ input[type=range].vol-sl{
 // INDEXEDDB
 // ═══════════════════════════════════════════════════════════════════
 const DB_NAME = 'PodcastStudio';
-const DB_VERSION = 1;
+const DB_VERSION = 3;   // v3: store music usa Blob nativo (sem ArrayBuffer)
 let db;
 
 function openDB() {
@@ -1815,6 +1815,10 @@ function openDB() {
       if (!d.objectStoreNames.contains('recordings')) {
         d.createObjectStore('recordings', { keyPath: 'id', autoIncrement: true })
           .createIndex('episodeId', 'episodeId', { unique: false });
+      }
+      // Store de música: guarda Blob diretamente (IndexedDB suporta Blob nativo)
+      if (!d.objectStoreNames.contains('music')) {
+        d.createObjectStore('music', { keyPath: 'id', autoIncrement: true });
       }
     };
     req.onsuccess = e => { db = e.target.result; res(db); };
@@ -2513,8 +2517,10 @@ function stopBgMusic() {
     try { URL.revokeObjectURL(state._bgObjectUrl); } catch(e){}
     state._bgObjectUrl = null;
   }
-  if (_currentTrackSource) { try { _currentTrackSource.stop(); } catch(e){} _currentTrackSource = null; }
-  if (state.bgAudioCtx)    { try { state.bgAudioCtx.close(); }  catch(e){} state.bgAudioCtx = null; }
+  if (state.bgAudioCtx) {
+    try { state.bgAudioCtx.close(); } catch(e){}
+    state.bgAudioCtx = null;
+  }
   state.bgGain = null;
 }
 
@@ -2565,7 +2571,7 @@ function renderMusicGrid() {
   empty.style.display = 'none';
   grid.innerHTML = _musicTracks.map((tr, i) => {
     const isActive = state.activeBgMusic === tr.id;
-    const mb  = ((tr.data || tr).byteLength / 1024 / 1024).toFixed(1);
+    const mb  = ((tr.blob ? tr.blob.size : (tr.size || 0)) / 1024 / 1024).toFixed(1);
     const dur = tr.duration ? formatTime2(tr.duration) : '--:--';
     const origMB = tr.origSize ? (tr.origSize / 1024 / 1024).toFixed(1) : null;
     const typeLabel = tr.sourceType === 'video' ? 'VÍDEO→ÁUDIO' : 'ÁUDIO';
@@ -2605,54 +2611,46 @@ async function selectBgMusic(id) {
   toast('🎵 ' + track.name + ' tocando', 'success');
 }
 
-// ── Reproduz trilha salva em loop — via blob URL (sem re-decode na RAM) ─
+// ── Reprodução via streaming nativo — zero carga na RAM ─────────────
+// O browser faz seeking/buffering sozinho, igual ao Spotify Web Player.
 function playStoredTrack(track) {
   stopBgMusic();
 
-  // Criar blob URL a partir do ArrayBuffer salvo
-  const blob = new Blob([track.data], { type: track.mimeType || 'audio/webm' });
-  const url  = URL.createObjectURL(blob);
+  // track.blob é um Blob real salvo no IndexedDB — createObjectURL é instantâneo
+  const url   = URL.createObjectURL(track.blob);
+  const audio = new Audio();
+  audio.preload = 'none';          // não pré-carrega nada até o play
+  audio.src     = url;
+  audio.loop    = true;
 
-  // Usar <audio> element para reprodução — inicia quase imediatamente
-  const audio  = new Audio(url);
-  audio.loop   = true;
-  audio.volume = (parseInt(document.getElementById('bgVolSlider').value) / 100) * 0.15;
+  state._bgAudioEl   = audio;
+  state._bgObjectUrl = url;
 
-  // Encaminhar ao AudioContext para controle de volume via gainNode
+  // AudioContext só para controle de volume (gain node)
   const ctx    = new (window.AudioContext || window.webkitAudioContext)();
-  state.bgAudioCtx = ctx;
+  state.bgAudioCtx   = ctx;
   const master = ctx.createGain();
-  master.gain.value = audio.volume;
+  const volPct = parseInt(document.getElementById('bgVolSlider').value) / 100;
+  master.gain.value  = volPct * 0.15;
   master.connect(ctx.destination);
   state.bgGain = master;
 
-  // Conectar o elemento ao grafo de áudio
   const srcNode = ctx.createMediaElementSource(audio);
   srcNode.connect(master);
-  audio.volume = 1; // volume controlado pelo gainNode
 
-  // Revogar URL quando parar para liberar memória
-  audio.onended = () => URL.revokeObjectURL(url);
-
-  state._bgAudioEl  = audio;
-  state._bgObjectUrl = url;
-
-  audio.play().catch(e => {
+  return audio.play().catch(e => {
     URL.revokeObjectURL(url);
     toast('Erro ao reproduzir: ' + e.message, 'error');
     stopBgMusic();
     state.activeBgMusic = null;
     renderMusicGrid();
   });
-
-  return Promise.resolve();
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// IMPORTAÇÃO UNIVERSAL — RÁPIDA
-// Filosofia: NÃO converter em tempo real. O browser já reproduz
-// MP3/AAC/OGG/WAV/WebM nativamente. Salvar o original comprimido.
-// Só transcodificar formatos que o <audio> não aceita (ex: FLAC).
+// IMPORTAÇÃO — RÁPIDA, SEM CARREGAR O ARQUIVO NA RAM
+// Salva o Blob original no IndexedDB. O browser faz streaming nativo.
+// Transcodificação zero — funciona com qualquer formato reproduzível.
 // ═══════════════════════════════════════════════════════════════════
 
 function bestAudioMime() {
@@ -2661,28 +2659,18 @@ function bestAudioMime() {
     || 'audio/webm';
 }
 
-// Formatos que o browser reproduz diretamente sem conversão
-function browserCanPlay(file) {
-  const a = document.createElement('audio');
-  // Tenta pelo MIME type declarado
-  if (file.type && a.canPlayType(file.type) !== '') return true;
-  // Tenta pela extensão
-  const ext = (file.name.split('.').pop() || '').toLowerCase();
-  const extMime = {
-    mp3:'audio/mpeg', mp4:'video/mp4', m4a:'audio/mp4',
-    aac:'audio/aac', ogg:'audio/ogg', oga:'audio/ogg',
-    wav:'audio/wav', wave:'audio/wav', webm:'audio/webm',
-    opus:'audio/ogg;codecs=opus', flac:'audio/flac',
-    mkv:'video/webm', mov:'video/mp4', avi:'video/x-msvideo',
-  };
-  if (extMime[ext] && a.canPlayType(extMime[ext]) !== '') return true;
-  return false;
-}
-
 function isVideoFile(file) {
   if (file.type && file.type.startsWith('video/')) return true;
   const ext = (file.name.split('.').pop() || '').toLowerCase();
   return ['mp4','mkv','avi','mov','m4v','flv','wmv','ts','3gp','ogv','divx'].includes(ext);
+}
+
+function guessMime(filename) {
+  const ext = (filename.split('.').pop() || '').toLowerCase();
+  return { mp3:'audio/mpeg', mp4:'video/mp4', m4a:'audio/mp4', aac:'audio/aac',
+    ogg:'audio/ogg', oga:'audio/ogg', wav:'audio/wav', wave:'audio/wav',
+    webm:'audio/webm', opus:'audio/ogg', flac:'audio/flac',
+    mkv:'video/webm', mov:'video/mp4' }[ext] || 'audio/mpeg';
 }
 
 function handleMusicDrop(event) {
@@ -2695,6 +2683,37 @@ function importMedia(input) {
   const files = Array.from(input.files);
   if (files.length) processMediaFiles(files);
   input.value = '';
+}
+
+// ── Verifica se o browser consegue reproduzir o arquivo ──────────────
+function probeCanPlay(file) {
+  return new Promise(resolve => {
+    const mime = file.type || guessMime(file.name);
+    const url  = URL.createObjectURL(file);
+    const a    = new Audio();
+    a.preload  = 'metadata';
+    a.src      = url;
+    // canplay = browser consegue decodificar pelo menos um frame
+    const done = (ok) => { a.src = ''; URL.revokeObjectURL(url); resolve(ok); };
+    a.oncanplay     = () => done(true);
+    a.onloadeddata  = () => done(true);
+    a.onerror       = () => done(false);
+    // Timeout de 4s — se não respondeu, assume suportado e tenta mesmo assim
+    setTimeout(() => done(true), 4000);
+  });
+}
+
+// ── Obtém duração lendo apenas metadados (< 1s) ───────────────────────
+function getMetaDuration(file) {
+  return new Promise(resolve => {
+    const url = URL.createObjectURL(file);
+    const a   = new Audio();
+    a.preload  = 'metadata';
+    a.src      = url;
+    a.onloadedmetadata = () => { URL.revokeObjectURL(url); resolve(isFinite(a.duration) ? a.duration : 0); };
+    a.onerror          = () => { URL.revokeObjectURL(url); resolve(0); };
+    setTimeout(() => { URL.revokeObjectURL(url); resolve(0); }, 5000);
+  });
 }
 
 // ── Pipeline principal ────────────────────────────────────────────────
@@ -2710,191 +2729,62 @@ async function processMediaFiles(files) {
     const name   = file.name.replace(/\.[^.]+$/, '');
     const origMB = (file.size / 1024 / 1024).toFixed(1);
 
-    label.textContent  = `⚙️ [${fi+1}/${files.length}] "${name}"`;
-    bar.style.width    = '8%';
-    detail.textContent = `${origMB} MB — detectando formato...`;
+    label.textContent  = `[${fi+1}/${files.length}] "${name}"`;
+    bar.style.width    = '10%';
+    detail.textContent = `${origMB} MB — verificando compatibilidade...`;
 
     try {
-      let data, mimeType, duration, converted = false;
+      // 1. Verificar se o browser reproduz (rápido, só metadados)
+      bar.style.width = '20%';
+      const canPlay = await probeCanPlay(file);
 
-      if (browserCanPlay(file)) {
-        // ── Caminho rápido: salvar original sem conversão ────────────
-        detail.textContent = 'Formato compatível — salvando direto...';
-        bar.style.width = '40%';
-        data     = await readFileAsArrayBuffer(file, pct => {
-          bar.style.width = (40 + pct * 40) + '%';
-          detail.textContent = `Lendo arquivo... ${Math.round(pct*100)}%`;
-        });
-        mimeType = file.type || guessMime(file.name);
-        duration = await getAudioDuration(file);
-        bar.style.width = '90%';
-        detail.textContent = 'Salvando no banco de dados...';
-
-      } else {
-        // ── Caminho de transcodificação: decode → encode WebM ────────
-        detail.textContent = 'Transcodificando para WebM/Opus...';
-        bar.style.width = '15%';
-        const result = await transcodeToWebM(file, (pct, msg) => {
-          bar.style.width = (15 + pct * 75) + '%';
-          detail.textContent = msg;
-        });
-        data     = result.data;
-        mimeType = result.mimeType;
-        duration = result.duration;
-        converted = true;
+      if (!canPlay) {
+        throw new Error('Formato não suportado pelo navegador. Use MP3, AAC, OGG, WAV, MP4 ou WebM.');
       }
 
-      // Salvar no IndexedDB
+      // 2. Ler duração dos metadados (sem carregar o áudio)
+      bar.style.width    = '40%';
+      detail.textContent = 'Lendo metadados...';
+      const duration = await getMetaDuration(file);
+
+      // 3. Salvar o Blob ORIGINAL no IndexedDB — sem copiar na RAM
+      bar.style.width    = '65%';
+      detail.textContent = 'Salvando no banco de dados...';
+
+      const mimeType  = file.type || guessMime(file.name);
+      const blob      = file.slice(0, file.size, mimeType); // Blob sem cópia
       const trackData = {
-        name, mimeType, duration,
+        name,
+        blob,                                       // Blob nativo — IndexedDB suporta
+        mimeType,
+        duration,
         sourceType: isVideoFile(file) ? 'video' : 'audio',
-        data, converted,
-        createdAt: Date.now(),
-        origSize:  file.size,
-        size:      data.byteLength,
+        origSize:   file.size,
+        size:       file.size,
+        createdAt:  Date.now(),
       };
+
+      bar.style.width    = '85%';
       const id = await musicDbAdd(trackData);
       trackData.id = id;
       _musicTracks.push(trackData);
 
-      bar.style.width = '100%';
-      const savedMB = (data.byteLength / 1024 / 1024).toFixed(1);
-      const info    = converted
-        ? `convertido: ${origMB}MB → ${savedMB}MB`
-        : `${savedMB}MB salvo sem conversão`;
-      detail.textContent = `✓ ${info}`;
-      toast(`✓ "${name}" importado (${info})`, 'success');
-      await new Promise(r => setTimeout(r, 500));
+      bar.style.width    = '100%';
+      detail.textContent = `✓ Pronto — ${origMB} MB`;
+      toast(`✓ "${name}" importado (${origMB} MB)`, 'success');
+      await new Promise(r => setTimeout(r, 400));
 
     } catch(err) {
-      bar.style.width = '0%';
+      bar.style.width    = '0%';
       detail.textContent = '✗ ' + err.message;
       toast(`Erro: "${name}" — ${err.message}`, 'error');
       console.error('[import]', err);
-      await new Promise(r => setTimeout(r, 1800));
+      await new Promise(r => setTimeout(r, 1500));
     }
   }
 
   statusDiv.style.display = 'none';
   renderMusicGrid();
-}
-
-// ── Lê ArrayBuffer com progresso ──────────────────────────────────────
-function readFileAsArrayBuffer(file, onProgress) {
-  return new Promise((resolve, reject) => {
-    // Para arquivos pequenos (<50MB) usa arrayBuffer direto
-    if (file.size < 50 * 1024 * 1024) {
-      onProgress && onProgress(0.5);
-      file.arrayBuffer()
-        .then(buf => { onProgress && onProgress(1); resolve(buf); })
-        .catch(reject);
-      return;
-    }
-    // Para arquivos grandes usa FileReader com progresso
-    const reader = new FileReader();
-    reader.onprogress = e => { if (e.lengthComputable) onProgress && onProgress(e.loaded / e.total); };
-    reader.onload    = e => { onProgress && onProgress(1); resolve(e.target.result); };
-    reader.onerror   = () => reject(new Error('Falha ao ler arquivo'));
-    reader.readAsArrayBuffer(file);
-  });
-}
-
-// ── Obtém duração sem decodificar o arquivo inteiro ───────────────────
-function getAudioDuration(file) {
-  return new Promise(resolve => {
-    const url = URL.createObjectURL(file);
-    const el  = document.createElement('audio');
-    el.preload = 'metadata';
-    el.src     = url;
-    el.onloadedmetadata = () => { URL.revokeObjectURL(url); resolve(el.duration || 0); };
-    el.onerror = () => { URL.revokeObjectURL(url); resolve(0); };
-  });
-}
-
-// ── Adivinha MIME pela extensão ───────────────────────────────────────
-function guessMime(filename) {
-  const ext = (filename.split('.').pop() || '').toLowerCase();
-  return {
-    mp3:'audio/mpeg', mp4:'video/mp4', m4a:'audio/mp4', aac:'audio/aac',
-    ogg:'audio/ogg', oga:'audio/ogg', wav:'audio/wav', webm:'audio/webm',
-    opus:'audio/ogg', flac:'audio/flac', mkv:'video/webm', mov:'video/mp4',
-  }[ext] || 'audio/webm';
-}
-
-// ── Transcodificação para WebM/Opus via OfflineAudioContext ───────────
-// Usado APENAS para formatos não suportados nativamente.
-// Mais rápido que tempo real (processa a ~10x velocidade).
-async function transcodeToWebM(file, onProgress) {
-  onProgress(0, 'Decodificando áudio...');
-  const buf = await file.arrayBuffer();
-
-  const tmpCtx = new (window.AudioContext || window.webkitAudioContext)();
-  let decoded;
-  try {
-    decoded = await tmpCtx.decodeAudioData(buf.slice(0));
-    await tmpCtx.close();
-  } catch(e) {
-    await tmpCtx.close();
-    throw new Error('Formato não suportado: ' + (e.message || 'codec desconhecido'));
-  }
-
-  onProgress(0.3, 'Preparando codificador...');
-  const mime = bestAudioMime();
-  const data = await encodeBufferRealtime(decoded, mime, 96000, p => {
-    onProgress(0.3 + p * 0.65, `Codificando... ${Math.round(p * 100)}%`);
-  });
-
-  return { data, mimeType: mime.split(';')[0], duration: decoded.duration };
-}
-
-// ── Encode AudioBuffer via MediaRecorder (mais rápido que tempo real) ─
-function encodeBufferRealtime(audioBuffer, mimeType, bitrate, onProgress) {
-  return new Promise((resolve, reject) => {
-    const sr   = 44100;
-    const ctx  = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: sr });
-    const dest = ctx.createMediaStreamDestination();
-    const src  = ctx.createBufferSource();
-
-    // Re-sample se necessário via OfflineAudioContext inline
-    let bufferToPlay = audioBuffer;
-
-    src.buffer = bufferToPlay;
-    src.connect(dest);
-
-    const rec    = new MediaRecorder(dest.stream, { mimeType, audioBitsPerSecond: bitrate });
-    const chunks = [];
-    let   startedAt;
-
-    rec.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
-    rec.onstart = () => { startedAt = Date.now(); };
-    rec.onstop  = async () => {
-      try { ctx.close(); } catch(e){}
-      const blob = new Blob(chunks, { type: mimeType });
-      if (blob.size < 500) { reject(new Error('Encoder produziu saída vazia')); return; }
-      resolve(await blob.arrayBuffer());
-    };
-    rec.onerror = () => { try { ctx.close(); } catch(e){} reject(new Error('Falha no encoder')); };
-
-    rec.start(300);
-    src.start(0);
-
-    const dur = audioBuffer.duration;
-    const progTimer = setInterval(() => {
-      if (!startedAt) return;
-      const elapsed = (Date.now() - startedAt) / 1000;
-      onProgress && onProgress(Math.min(0.95, elapsed / dur));
-    }, 400);
-
-    src.onended = () => {
-      clearInterval(progTimer);
-      onProgress && onProgress(1);
-      setTimeout(() => { if (rec.state !== 'inactive') rec.stop(); }, 500);
-    };
-    setTimeout(() => {
-      clearInterval(progTimer);
-      if (rec.state !== 'inactive') rec.stop();
-    }, (dur + 8) * 1000);
-  });
 }
 
 // ── Limpar todas ──────────────────────────────────────────────────────
@@ -2908,27 +2798,6 @@ async function clearAllTracks() {
   toast('Todas as trilhas removidas', 'success');
 }
 
-
-// ── Deletar trilha do DB e lista ─────────────────────────────────────
-async function deleteTrack(id) {
-  if (!confirm('Excluir esta trilha permanentemente?')) return;
-  if (state.activeBgMusic === id) { stopBgMusic(); state.activeBgMusic = null; }
-  await musicDbDelete(id);
-  _musicTracks = _musicTracks.filter(t => t.id !== id);
-  renderMusicGrid();
-  toast('Trilha excluída', 'success');
-}
-
-function updateBgVol() {
-  const v   = parseInt(document.getElementById('bgVolSlider').value);
-  const vol = (v / 100) * 0.15;
-  document.getElementById('bgVolVal').textContent = v + '%';
-  if (state.bgGain)    state.bgGain.gain.value = vol;
-  if (state._bgAudioEl) state._bgAudioEl.volume = Math.min(1, vol);
-}
-
-// ── Stub para compatibilidade (selectBgMusic agora usa IDs do DB) ────
-function playBgTrack() {}
 
 
 
