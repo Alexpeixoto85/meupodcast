@@ -1,0 +1,2138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PodcastStudio — Estúdio Online</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --bg2: #111118;
+    --bg3: #1a1a24;
+    --bg4: #22222f;
+    --surface: #1e1e2e;
+    --surface2: #252538;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --accent: #7c6ff7;
+    --accent2: #a78bfa;
+    --accent3: #c4b5fd;
+    --green: #34d399;
+    --red: #f87171;
+    --amber: #fbbf24;
+    --cyan: #22d3ee;
+    --pink: #f472b6;
+    --text: #f0effe;
+    --text2: #a8a3c9;
+    --text3: #6b6894;
+    --radius: 12px;
+    --radius2: 8px;
+    --radius3: 6px;
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ─── TOPBAR ─────────────────────────────────────── */
+  .topbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    height: 64px;
+    background: rgba(10,10,15,0.92);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 0;
+    padding: 0 24px;
+  }
+  .logo {
+    font-family: var(--font-display);
+    font-size: 20px; font-weight: 800;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, var(--accent2), var(--cyan));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-right: auto;
+  }
+  .logo span { color: var(--text3); -webkit-text-fill-color: var(--text3); font-weight: 400; font-size: 12px; display: block; letter-spacing: 0; margin-top: -2px; }
+
+  .nav-tabs { display: flex; gap: 2px; }
+  .nav-tab {
+    font-family: var(--font-body);
+    font-size: 13px; font-weight: 500;
+    padding: 7px 16px;
+    border-radius: var(--radius3);
+    border: none; cursor: pointer;
+    background: transparent; color: var(--text3);
+    transition: var(--transition);
+  }
+  .nav-tab:hover { color: var(--text2); background: var(--bg3); }
+  .nav-tab.active { color: var(--accent2); background: rgba(124,111,247,0.12); }
+
+  .topbar-right { display: flex; align-items: center; gap: 10px; margin-left: 24px; }
+  .status-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--text3); transition: var(--transition);
+  }
+  .status-dot.recording { background: var(--red); box-shadow: 0 0 8px var(--red); animation: pulse 1s infinite; }
+  .status-dot.paused { background: var(--amber); }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* ─── LAYOUT ─────────────────────────────────────── */
+  .app {
+    padding-top: 64px;
+    display: grid;
+    grid-template-columns: 260px 1fr 300px;
+    grid-template-rows: calc(100vh - 64px - 120px) 120px;
+    height: 100vh;
+  }
+
+  /* ─── SIDEBAR ─────────────────────────────────────── */
+  .sidebar {
+    grid-row: 1;
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 20px 16px;
+    background: var(--bg2);
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 4px; }
+
+  .sidebar-section { margin-bottom: 24px; }
+  .sidebar-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 1.2px;
+    text-transform: uppercase; color: var(--text3);
+    padding: 0 8px; margin-bottom: 8px;
+  }
+
+  .episode-card {
+    padding: 10px 12px;
+    border-radius: var(--radius2);
+    cursor: pointer; transition: var(--transition);
+    border: 1px solid transparent;
+    margin-bottom: 4px;
+  }
+  .episode-card:hover { background: var(--bg3); }
+  .episode-card.active { background: rgba(124,111,247,0.1); border-color: rgba(124,111,247,0.2); }
+  .episode-card .ep-title { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .episode-card .ep-meta { font-size: 11px; color: var(--text3); margin-top: 2px; display: flex; gap: 8px; }
+  .ep-badge {
+    font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600;
+  }
+  .ep-badge.draft { background: rgba(251,191,36,0.15); color: var(--amber); }
+  .ep-badge.ready { background: rgba(52,211,153,0.15); color: var(--green); }
+  .ep-badge.recording { background: rgba(248,113,113,0.15); color: var(--red); }
+
+  .btn-new-ep {
+    width: 100%; padding: 10px; border-radius: var(--radius2);
+    border: 1px dashed var(--border2); background: transparent;
+    color: var(--text3); font-size: 13px; cursor: pointer;
+    transition: var(--transition); font-family: var(--font-body);
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .btn-new-ep:hover { border-color: var(--accent); color: var(--accent2); background: rgba(124,111,247,0.06); }
+
+  /* ─── MAIN AREA ─────────────────────────────────────── */
+  .main {
+    grid-row: 1;
+    overflow-y: auto;
+    display: flex; flex-direction: column;
+  }
+  .main::-webkit-scrollbar { width: 4px; }
+  .main::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 4px; }
+
+  /* ─── PAGES ─────────────────────────────────────── */
+  .page { display: none; flex-direction: column; flex: 1; }
+  .page.active { display: flex; }
+
+  /* ─── STUDIO PAGE ─────────────────────────────────────── */
+  .studio-header {
+    padding: 28px 32px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .ep-name-input {
+    font-family: var(--font-display);
+    font-size: 28px; font-weight: 700;
+    background: none; border: none; color: var(--text);
+    width: 100%; outline: none;
+    letter-spacing: -0.5px;
+  }
+  .ep-name-input::placeholder { color: var(--text3); }
+  .ep-desc-input {
+    margin-top: 8px; font-size: 14px; color: var(--text2);
+    background: none; border: none; width: 100%; outline: none;
+    font-family: var(--font-body); resize: none; height: 40px;
+  }
+  .ep-desc-input::placeholder { color: var(--text3); }
+
+  .studio-body { padding: 24px 32px; display: flex; flex-direction: column; gap: 20px; flex: 1; }
+
+  /* ─── VIS CANVAS ─────────────────────────────────────── */
+  .visualizer-wrap {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden; position: relative;
+    height: 140px;
+  }
+  #vizCanvas { width: 100%; height: 100%; display: block; }
+
+  .rec-overlay {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    text-align: center; pointer-events: none;
+    transition: var(--transition);
+  }
+  .rec-overlay.hidden { opacity: 0; }
+  .rec-overlay p { font-size: 13px; color: var(--text3); margin-top: 4px; }
+
+  /* ─── CONTROLS ─────────────────────────────────────── */
+  .rec-controls {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 10px 18px; border-radius: var(--radius2);
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    border: 1px solid transparent; transition: var(--transition);
+    font-family: var(--font-body); white-space: nowrap;
+  }
+  .btn-primary {
+    background: var(--accent); border-color: var(--accent); color: #fff;
+  }
+  .btn-primary:hover { background: var(--accent2); border-color: var(--accent2); }
+
+  .btn-danger {
+    background: rgba(248,113,113,0.15); border-color: rgba(248,113,113,0.3);
+    color: var(--red);
+  }
+  .btn-danger:hover { background: rgba(248,113,113,0.25); }
+
+  .btn-ghost {
+    background: var(--bg3); border-color: var(--border2); color: var(--text2);
+  }
+  .btn-ghost:hover { background: var(--bg4); color: var(--text); }
+
+  .btn-success {
+    background: rgba(52,211,153,0.15); border-color: rgba(52,211,153,0.3);
+    color: var(--green);
+  }
+  .btn-success:hover { background: rgba(52,211,153,0.25); }
+
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .timer-display {
+    font-family: var(--font-display);
+    font-size: 32px; font-weight: 700;
+    letter-spacing: 2px; color: var(--text);
+    min-width: 120px; text-align: center;
+  }
+  .timer-display.recording { color: var(--red); }
+
+  /* ─── MODE SELECTOR ─────────────────────────────────────── */
+  .mode-selector { display: flex; gap: 8px; }
+  .mode-btn {
+    padding: 7px 14px; border-radius: var(--radius2);
+    font-size: 12px; font-weight: 500; cursor: pointer;
+    border: 1px solid var(--border2); background: transparent;
+    color: var(--text3); transition: var(--transition);
+    font-family: var(--font-body);
+  }
+  .mode-btn.active { background: var(--bg4); color: var(--text); border-color: var(--accent); }
+  .mode-btn:hover:not(.active) { color: var(--text2); background: var(--bg3); }
+
+  /* ─── TRACKS ─────────────────────────────────────── */
+  .tracks-section { display: flex; flex-direction: column; gap: 10px; }
+  .section-title {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--text3); margin-bottom: 4px;
+  }
+
+  .track {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius2); padding: 12px 14px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .track-type { width: 8px; height: 40px; border-radius: 4px; flex-shrink: 0; }
+  .track-type.voice { background: var(--accent); }
+  .track-type.music { background: var(--cyan); }
+  .track-type.fx { background: var(--pink); }
+  .track-info { flex: 1; min-width: 0; }
+  .track-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .track-dur { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+  .track-waveform { flex: 1; height: 36px; border-radius: 4px; background: var(--bg3); overflow: hidden; }
+  .track-controls { display: flex; gap: 6px; }
+  .icon-btn {
+    width: 30px; height: 30px; border-radius: 6px; border: 1px solid var(--border2);
+    background: transparent; color: var(--text2); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; transition: var(--transition);
+  }
+  .icon-btn:hover { background: var(--bg4); color: var(--text); }
+
+  .volume-sl { width: 60px; accent-color: var(--accent); cursor: pointer; }
+
+  /* ─── VOICE FX PANEL ─────────────────────────────────────── */
+  .fx-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .fx-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius2); padding: 14px;
+  }
+  .fx-card-title { font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 10px; }
+  .fx-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 8px; }
+  .fx-label { font-size: 11px; color: var(--text3); flex-shrink: 0; width: 70px; }
+  .fx-slider { flex: 1; accent-color: var(--accent); cursor: pointer; }
+  .fx-val { font-size: 11px; color: var(--text2); width: 30px; text-align: right; }
+
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .toggle-label { font-size: 12px; color: var(--text2); }
+  .toggle {
+    width: 36px; height: 20px; border-radius: 10px;
+    background: var(--bg4); border: none; cursor: pointer;
+    position: relative; transition: var(--transition);
+  }
+  .toggle.on { background: var(--accent); }
+  .toggle::after {
+    content: ''; position: absolute;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: white; top: 3px; left: 3px;
+    transition: var(--transition);
+  }
+  .toggle.on::after { left: 19px; }
+
+  /* ─── MUSIC PANEL ─────────────────────────────────────── */
+  .music-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+  .music-item {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius2); padding: 10px;
+    cursor: pointer; transition: var(--transition); text-align: center;
+  }
+  .music-item:hover { border-color: var(--accent); background: rgba(124,111,247,0.06); }
+  .music-item.active { border-color: var(--accent); background: rgba(124,111,247,0.12); }
+  .music-icon { font-size: 22px; margin-bottom: 4px; }
+  .music-name { font-size: 11px; color: var(--text2); font-weight: 500; }
+  .music-bpm { font-size: 10px; color: var(--text3); }
+
+  .music-vol-wrap { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+  .music-vol-wrap label { font-size: 12px; color: var(--text2); flex-shrink: 0; }
+  .music-vol-wrap input { flex: 1; accent-color: var(--cyan); }
+
+  /* ─── TRANSCRIPT ─────────────────────────────────────── */
+  .transcript-area {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px;
+    min-height: 120px; max-height: 220px; overflow-y: auto;
+    font-size: 14px; color: var(--text2); line-height: 1.7;
+  }
+  .transcript-area::-webkit-scrollbar { width: 4px; }
+  .transcript-area::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 4px; }
+
+  .transcript-word { display: inline; }
+  .transcript-word.current { color: var(--accent2); font-weight: 500; }
+  .transcript-interim { color: var(--text3); font-style: italic; }
+
+  .transcript-controls { display: flex; gap: 8px; margin-top: 10px; align-items: center; flex-wrap: wrap; }
+  .transcript-hint { font-size: 11px; color: var(--text3); margin-left: auto; }
+
+  /* ─── RIGHT PANEL ─────────────────────────────────────── */
+  .right-panel {
+    grid-row: 1;
+    border-left: 1px solid var(--border);
+    background: var(--bg2);
+    overflow-y: auto; padding: 20px 16px;
+    display: flex; flex-direction: column; gap: 20px;
+  }
+  .right-panel::-webkit-scrollbar { width: 4px; }
+  .right-panel::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 4px; }
+
+  .panel-section { display: flex; flex-direction: column; gap: 10px; }
+  .panel-section-title {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--text3);
+  }
+
+  /* ─── STATS ─────────────────────────────────────── */
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat-card {
+    background: var(--bg3); border-radius: var(--radius2);
+    padding: 10px; border: 1px solid var(--border);
+  }
+  .stat-val { font-family: var(--font-display); font-size: 20px; font-weight: 700; }
+  .stat-val.green { color: var(--green); }
+  .stat-val.cyan { color: var(--cyan); }
+  .stat-val.amber { color: var(--amber); }
+  .stat-val.accent { color: var(--accent2); }
+  .stat-label { font-size: 10px; color: var(--text3); margin-top: 2px; }
+
+  /* ─── METER ─────────────────────────────────────── */
+  .meter-wrap { display: flex; flex-direction: column; gap: 6px; }
+  .meter-row { display: flex; align-items: center; gap: 8px; }
+  .meter-label { font-size: 11px; color: var(--text3); width: 50px; }
+  .meter-bar { flex: 1; height: 6px; background: var(--bg4); border-radius: 3px; overflow: hidden; }
+  .meter-fill { height: 100%; border-radius: 3px; transition: width 0.08s; }
+  .meter-fill.level { background: linear-gradient(90deg, var(--green), var(--amber) 70%, var(--red)); }
+  .meter-val { font-size: 10px; color: var(--text3); width: 30px; text-align: right; }
+
+  /* ─── EXPORT PANEL ─────────────────────────────────────── */
+  .export-form { display: flex; flex-direction: column; gap: 10px; }
+  .form-row { display: flex; flex-direction: column; gap: 4px; }
+  .form-label { font-size: 11px; color: var(--text3); }
+  .form-select, .form-input {
+    background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: var(--radius3); color: var(--text);
+    padding: 8px 10px; font-size: 12px; font-family: var(--font-body);
+    outline: none; transition: var(--transition); width: 100%;
+  }
+  .form-select:focus, .form-input:focus { border-color: var(--accent); }
+
+  /* ─── TRANSPORT BAR ─────────────────────────────────────── */
+  .transport {
+    grid-column: 1 / -1; grid-row: 2;
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; gap: 16px;
+    padding: 0 28px;
+  }
+  .transport-btns { display: flex; gap: 8px; align-items: center; }
+  .t-btn {
+    width: 38px; height: 38px; border-radius: 50%;
+    border: 1px solid var(--border2); background: var(--bg3);
+    color: var(--text2); cursor: pointer; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    transition: var(--transition);
+  }
+  .t-btn:hover { background: var(--bg4); color: var(--text); }
+  .t-btn.primary { background: var(--accent); border-color: var(--accent); color: white; width: 44px; height: 44px; font-size: 16px; }
+  .t-btn.primary:hover { background: var(--accent2); }
+  .t-btn.danger { background: rgba(248,113,113,0.1); border-color: rgba(248,113,113,0.3); color: var(--red); }
+
+  .progress-wrap { flex: 1; display: flex; align-items: center; gap: 10px; }
+  .progress-time { font-size: 12px; color: var(--text3); min-width: 40px; font-family: var(--font-display); }
+  .progress-bar { flex: 1; height: 4px; background: var(--bg4); border-radius: 2px; cursor: pointer; position: relative; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.1s linear; }
+  .progress-bar:hover .progress-fill { background: var(--accent2); }
+
+  .vol-wrap { display: flex; align-items: center; gap: 8px; }
+  .vol-icon { font-size: 14px; color: var(--text3); }
+  .vol-sl { width: 70px; accent-color: var(--accent); }
+
+  /* ─── EPISODES LIST PAGE ─────────────────────────────────────── */
+  .episodes-page { padding: 28px 32px; }
+  .ep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 16px; margin-top: 20px; }
+  .ep-full-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 18px;
+    cursor: pointer; transition: var(--transition);
+  }
+  .ep-full-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+  .ep-full-card-title { font-family: var(--font-display); font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .ep-full-card-desc { font-size: 13px; color: var(--text3); margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .ep-full-card-footer { display: flex; align-items: center; justify-content: space-between; }
+  .ep-full-card-actions { display: flex; gap: 6px; }
+
+  /* ─── SETTINGS PAGE ─────────────────────────────────────── */
+  .settings-page { padding: 28px 32px; max-width: 600px; }
+  .settings-section { margin-bottom: 28px; }
+  .settings-section-title { font-family: var(--font-display); font-size: 16px; font-weight: 700; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .settings-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .settings-row:last-child { border-bottom: none; }
+  .settings-row-info { display: flex; flex-direction: column; gap: 2px; }
+  .settings-row-label { font-size: 13px; font-weight: 500; }
+  .settings-row-desc { font-size: 11px; color: var(--text3); }
+
+  /* ─── MODAL ─────────────────────────────────────── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: var(--transition);
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--bg2); border: 1px solid var(--border2);
+    border-radius: var(--radius); padding: 28px; width: 420px; max-width: 95vw;
+    transform: scale(0.95); transition: var(--transition);
+  }
+  .modal-overlay.open .modal { transform: scale(1); }
+  .modal-title { font-family: var(--font-display); font-size: 20px; font-weight: 700; margin-bottom: 16px; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+  /* ─── TOAST ─────────────────────────────────────── */
+  .toast-container { position: fixed; bottom: 140px; right: 20px; z-index: 300; display: flex; flex-direction: column; gap: 8px; }
+  .toast {
+    background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: var(--radius2); padding: 10px 16px;
+    font-size: 13px; color: var(--text);
+    animation: toastIn 0.3s ease;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .toast.success { border-color: rgba(52,211,153,0.3); }
+  .toast.error { border-color: rgba(248,113,113,0.3); }
+  @keyframes toastIn { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:translateX(0); } }
+
+  /* ─── VIDEO PREVIEW ─────────────────────────────────────── */
+  .video-preview {
+    background: #000; border-radius: var(--radius2);
+    aspect-ratio: 16/9; overflow: hidden; position: relative;
+    display: none;
+  }
+  .video-preview video { width: 100%; height: 100%; object-fit: cover; }
+  .video-preview.active { display: block; }
+
+  /* ─── RESPONSIVE ─────────────────────────────────────── */
+  @media (max-width: 900px) {
+    .app { grid-template-columns: 1fr; grid-template-rows: auto 120px; }
+    .sidebar { display: none; }
+    .right-panel { display: none; }
+    .main { grid-column: 1; }
+    .transport { grid-column: 1; }
+    .fx-grid { grid-template-columns: 1fr; }
+    .music-grid { grid-template-columns: repeat(2,1fr); }
+  }
+  @media (max-width: 600px) {
+    .studio-body { padding: 16px; }
+    .studio-header { padding: 16px; }
+    .rec-controls { gap: 8px; }
+    .timer-display { font-size: 24px; }
+    .music-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* scroll */
+  .scroll-area { flex: 1; overflow-y: auto; }
+  .scroll-area::-webkit-scrollbar { width: 4px; }
+  .scroll-area::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 4px; }
+
+  /* empty state */
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--text3); }
+  .empty-state .es-icon { font-size: 40px; margin-bottom: 10px; }
+  .empty-state p { font-size: 13px; }
+
+  /* tabs inside studio */
+  .studio-tabs { display: flex; gap: 2px; padding: 0 32px; border-bottom: 1px solid var(--border); background: var(--bg); }
+  .studio-tab {
+    font-size: 12px; font-weight: 500; padding: 10px 14px;
+    border: none; background: transparent; color: var(--text3);
+    cursor: pointer; font-family: var(--font-body);
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+    transition: var(--transition);
+  }
+  .studio-tab:hover { color: var(--text2); }
+  .studio-tab.active { color: var(--accent2); border-bottom-color: var(--accent); }
+
+  .studio-panel { display: none; padding: 20px 32px; }
+  .studio-panel.active { display: block; }
+
+  /* mic selector */
+  .device-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .device-row label { font-size: 12px; color: var(--text2); flex-shrink: 0; width: 70px; }
+
+  /* wave animation in empty state */
+  .wave-bars { display: flex; gap: 3px; align-items: flex-end; height: 32px; margin: 12px auto; width: fit-content; }
+  .wave-bar { width: 4px; border-radius: 2px; background: var(--accent); animation: wave 1.2s ease infinite; }
+  .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+  .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+  .wave-bar:nth-child(4) { animation-delay: 0.3s; }
+  .wave-bar:nth-child(5) { animation-delay: 0.4s; }
+  @keyframes wave { 0%,100%{height:8px} 50%{height:28px} }
+</style>
+</head>
+<body>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- MODAL: Nova gravação -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-title">Novo Episódio</div>
+    <div class="export-form">
+      <div class="form-row">
+        <label class="form-label">Título do episódio</label>
+        <input class="form-input" id="newEpTitle" placeholder="Ex: Ep. 01 — Bem-vindos ao show!">
+      </div>
+      <div class="form-row">
+        <label class="form-label">Descrição curta</label>
+        <input class="form-input" id="newEpDesc" placeholder="Sobre o que é esse episódio?">
+      </div>
+      <div class="form-row">
+        <label class="form-label">Tipo</label>
+        <select class="form-select" id="newEpType">
+          <option value="audio">Somente áudio</option>
+          <option value="video">Áudio + vídeo</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="createEpisode()">Criar episódio ✦</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="logo">
+    PodcastStudio
+    <span>Estúdio Online</span>
+  </div>
+  <nav class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('studio')">Estúdio</button>
+    <button class="nav-tab" onclick="showPage('episodes')">Episódios</button>
+    <button class="nav-tab" onclick="showPage('settings')">Configurações</button>
+  </nav>
+  <div class="topbar-right">
+    <div class="status-dot" id="statusDot"></div>
+    <span style="font-size:12px;color:var(--text3)" id="statusText">Pronto</span>
+  </div>
+</header>
+
+<!-- APP GRID -->
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Episódios</div>
+      <div id="epListSidebar"></div>
+      <button class="btn-new-ep" onclick="openModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Novo episódio
+      </button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Dispositivos</div>
+      <div class="device-row">
+        <label>Microfone</label>
+        <select class="form-select" id="micSelect" style="font-size:11px;padding:5px 8px;"></select>
+      </div>
+      <div class="device-row">
+        <label>Câmera</label>
+        <select class="form-select" id="camSelect" style="font-size:11px;padding:5px 8px;"></select>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- ══ STUDIO PAGE ══ -->
+    <div class="page active" id="page-studio">
+
+      <!-- Header do episódio -->
+      <div class="studio-header">
+        <input class="ep-name-input" id="epTitle" placeholder="Nome do episódio..." value="Episódio 01 — Piloto">
+        <textarea class="ep-desc-input" id="epDesc" placeholder="Descrição do episódio...">Primeiro episódio do nosso podcast. Bem-vindos!</textarea>
+      </div>
+
+      <!-- Studio sub-tabs -->
+      <div class="studio-tabs">
+        <button class="studio-tab active" onclick="switchStudioTab('gravacao')">Gravação</button>
+        <button class="studio-tab" onclick="switchStudioTab('voz')">Tratamento de Voz</button>
+        <button class="studio-tab" onclick="switchStudioTab('musica')">Fundo Musical</button>
+        <button class="studio-tab" onclick="switchStudioTab('transcricao')">Transcrição</button>
+        <button class="studio-tab" onclick="switchStudioTab('exportar')">Exportar</button>
+      </div>
+
+      <div class="scroll-area">
+
+        <!-- ── TAB: GRAVAÇÃO ── -->
+        <div class="studio-panel active" id="panel-gravacao">
+
+          <!-- Video preview -->
+          <div class="video-preview" id="videoPreview">
+            <video id="videoEl" autoplay muted playsinline></video>
+          </div>
+
+          <!-- Visualizer -->
+          <div class="visualizer-wrap" style="margin-bottom:16px;">
+            <canvas id="vizCanvas"></canvas>
+            <div class="rec-overlay" id="recOverlay">
+              <div class="wave-bars">
+                <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+                <div class="wave-bar"></div><div class="wave-bar"></div>
+              </div>
+              <p>Pressione REC para começar a gravar</p>
+            </div>
+          </div>
+
+          <!-- Timer -->
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
+            <div class="timer-display" id="timerDisplay">00:00:00</div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <div style="font-size:11px;color:var(--text3)">Modo de gravação</div>
+              <div class="mode-selector">
+                <button class="mode-btn active" id="modeAudio" onclick="setMode('audio')">🎙 Áudio</button>
+                <button class="mode-btn" id="modeVideo" onclick="setMode('video')">🎥 Vídeo</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Controls -->
+          <div class="rec-controls">
+            <button class="btn btn-primary" id="btnRec" onclick="toggleRecord()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="8"/></svg>
+              REC
+            </button>
+            <button class="btn btn-ghost" id="btnPause" onclick="pauseRecord()" disabled>
+              ⏸ Pausar
+            </button>
+            <button class="btn btn-danger" id="btnStop" onclick="stopRecord()" disabled>
+              ⏹ Parar
+            </button>
+            <button class="btn btn-success" id="btnSave" onclick="saveRecording()" disabled>
+              💾 Salvar take
+            </button>
+          </div>
+
+          <!-- Takes list -->
+          <div class="tracks-section" style="margin-top:20px;">
+            <div class="section-title">Takes gravados</div>
+            <div id="takesList">
+              <div class="empty-state" style="padding:20px 0;">
+                <p>Nenhum take ainda. Grave o primeiro!</p>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /panel-gravacao -->
+
+        <!-- ── TAB: TRATAMENTO DE VOZ ── -->
+        <div class="studio-panel" id="panel-voz">
+          <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">Aplique efeitos em tempo real à sua voz durante a gravação ou no pós-produção.</p>
+          <div class="fx-grid">
+
+            <div class="fx-card">
+              <div class="fx-card-title">🎚 EQ Paramétrico</div>
+              <div class="fx-row">
+                <span class="fx-label">Graves</span>
+                <input type="range" class="fx-slider" min="-12" max="12" value="2" id="eqBass" oninput="updateFX()">
+                <span class="fx-val" id="eqBassVal">+2</span>
+              </div>
+              <div class="fx-row">
+                <span class="fx-label">Médios</span>
+                <input type="range" class="fx-slider" min="-12" max="12" value="0" id="eqMid" oninput="updateFX()">
+                <span class="fx-val" id="eqMidVal">0</span>
+              </div>
+              <div class="fx-row">
+                <span class="fx-label">Agudos</span>
+                <input type="range" class="fx-slider" min="-12" max="12" value="3" id="eqTreble" oninput="updateFX()">
+                <span class="fx-val" id="eqTrebleVal">+3</span>
+              </div>
+              <div class="fx-row">
+                <span class="fx-label">Presença</span>
+                <input type="range" class="fx-slider" min="-12" max="12" value="1" id="eqPresence" oninput="updateFX()">
+                <span class="fx-val" id="eqPresenceVal">+1</span>
+              </div>
+            </div>
+
+            <div class="fx-card">
+              <div class="fx-card-title">🔇 Compressor / Noise Gate</div>
+              <div class="toggle-row">
+                <span class="toggle-label">Compressor</span>
+                <button class="toggle on" id="togCompressor" onclick="toggleFX(this)"></button>
+              </div>
+              <div class="fx-row">
+                <span class="fx-label">Threshold</span>
+                <input type="range" class="fx-slider" min="-60" max="0" value="-24" id="compThresh" oninput="updateFX()">
+                <span class="fx-val" id="compThreshVal">-24</span>
+              </div>
+              <div class="fx-row">
+                <span class="fx-label">Ratio</span>
+                <input type="range" class="fx-slider" min="1" max="20" value="4" id="compRatio" oninput="updateFX()">
+                <span class="fx-val" id="compRatioVal">4:1</span>
+              </div>
+              <div class="toggle-row" style="margin-top:8px;">
+                <span class="toggle-label">Noise Gate</span>
+                <button class="toggle on" id="togGate" onclick="toggleFX(this)"></button>
+              </div>
+              <div class="fx-row">
+                <span class="fx-label">Gate (-dB)</span>
+                <input type="range" class="fx-slider" min="-80" max="-20" value="-40" id="gateThresh" oninput="updateFX()">
+                <span class="fx-val" id="gateThreshVal">-40</span>
+              </div>
+            </div>
+
+            <div class="fx-card">
+              <div class="fx-card-title">🔊 Reverb & Delay</div>
+              <div class="toggle-row">
+                <span class="toggle-label">Reverb</span>
+                <button class="toggle" id="togReverb" onclick="toggleFX(this)"></button>
+              </div>
+              <div class="fx-row">
+                <span class="fx-label">Tamanho</span>
+                <input type="range" class="fx-slider" min="0" max="100" value="20" id="reverbSize" oninput="updateFX()">
+                <span class="fx-val" id="reverbSizeVal">20%</span>
+              </div>
+              <div class="fx-row">
+                <span class="fx-label">Wet/Dry</span>
+                <input type="range" class="fx-slider" min="0" max="100" value="15" id="reverbWet" oninput="updateFX()">
+                <span class="fx-val" id="reverbWetVal">15%</span>
+              </div>
+              <div class="toggle-row" style="margin-top:8px;">
+                <span class="toggle-label">Delay</span>
+                <button class="toggle" id="togDelay" onclick="toggleFX(this)"></button>
+              </div>
+              <div class="fx-row">
+                <span class="fx-label">Tempo (ms)</span>
+                <input type="range" class="fx-slider" min="50" max="800" value="200" id="delayTime" oninput="updateFX()">
+                <span class="fx-val" id="delayTimeVal">200</span>
+              </div>
+            </div>
+
+            <div class="fx-card">
+              <div class="fx-card-title">🎤 Enriquecimento de Voz</div>
+              <div class="toggle-row">
+                <span class="toggle-label">De-Esser</span>
+                <button class="toggle on" id="togDeEsser" onclick="toggleFX(this)"></button>
+              </div>
+              <div class="toggle-row">
+                <span class="toggle-label">Pitch Correction</span>
+                <button class="toggle" id="togPitch" onclick="toggleFX(this)"></button>
+              </div>
+              <div class="fx-row">
+                <span class="fx-label">Pitch (st)</span>
+                <input type="range" class="fx-slider" min="-12" max="12" value="0" id="pitchShift" oninput="updateFX()">
+                <span class="fx-val" id="pitchShiftVal">0</span>
+              </div>
+              <div class="toggle-row" style="margin-top:4px;">
+                <span class="toggle-label">Voice Enhance</span>
+                <button class="toggle on" id="togEnhance" onclick="toggleFX(this)"></button>
+              </div>
+              <div class="fx-row">
+                <span class="fx-label">Intensidade</span>
+                <input type="range" class="fx-slider" min="0" max="100" value="40" id="enhanceAmt" oninput="updateFX()">
+                <span class="fx-val" id="enhanceAmtVal">40%</span>
+              </div>
+            </div>
+
+          </div><!-- /fx-grid -->
+        </div><!-- /panel-voz -->
+
+        <!-- ── TAB: FUNDO MUSICAL ── -->
+        <div class="studio-panel" id="panel-musica">
+          <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">Escolha um fundo musical ou importe seu próprio. O volume é ajustado automaticamente (ducking) durante a fala.</p>
+
+          <div class="section-title" style="margin-bottom:10px;">Trilhas built-in</div>
+          <div class="music-grid" id="musicGrid"></div>
+
+          <div class="music-vol-wrap" style="margin-top:16px;margin-bottom:16px;">
+            <label>Volume fundo</label>
+            <input type="range" min="0" max="100" value="25" id="bgVolSlider" oninput="updateBgVol()">
+            <span style="font-size:12px;color:var(--text2);min-width:32px;" id="bgVolVal">25%</span>
+          </div>
+
+          <div class="toggle-row" style="margin-bottom:12px;">
+            <span style="font-size:13px;color:var(--text2);">🦆 Auto-ducking durante fala</span>
+            <button class="toggle on" id="togDucking" onclick="toggleFX(this)"></button>
+          </div>
+
+          <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:4px;">
+            <div class="section-title" style="margin-bottom:10px;">Importar trilha personalizada</div>
+            <label class="btn btn-ghost" style="cursor:pointer;display:inline-flex;align-items:center;gap:8px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Selecionar arquivo de áudio
+              <input type="file" accept="audio/*" style="display:none;" onchange="importMusic(this)">
+            </label>
+            <div id="importedTrackInfo" style="font-size:12px;color:var(--text3);margin-top:8px;"></div>
+          </div>
+        </div><!-- /panel-musica -->
+
+        <!-- ── TAB: TRANSCRIÇÃO ── -->
+        <div class="studio-panel" id="panel-transcricao">
+          <p style="font-size:13px;color:var(--text2);margin-bottom:14px;">Transcrição automática em tempo real usando reconhecimento de voz do navegador. Edite o texto abaixo conforme necessário.</p>
+
+          <div class="transcript-controls">
+            <button class="btn btn-primary" id="btnTranscribe" onclick="toggleTranscription()">
+              🎙 Iniciar Transcrição
+            </button>
+            <button class="btn btn-ghost" onclick="clearTranscript()">🗑 Limpar</button>
+            <button class="btn btn-ghost" onclick="copyTranscript()">📋 Copiar</button>
+            <button class="btn btn-ghost" onclick="downloadTranscript()">⬇ Baixar .txt</button>
+            <span class="transcript-hint" id="transcriptHint">Clique em "Iniciar" para transcrever</span>
+          </div>
+
+          <div class="transcript-area" id="transcriptArea" contenteditable="true" style="margin-top:12px;">
+            <span style="color:var(--text3);font-style:italic;">A transcrição aparecerá aqui durante a gravação...</span>
+          </div>
+
+          <div style="margin-top:14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);padding:12px;">
+            <div class="section-title" style="margin-bottom:8px;">Identificação de Falantes</div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div style="font-size:12px;color:var(--text3);">Até 4 falantes detectados automaticamente pelo padrão de silêncio</div>
+              <button class="toggle on" id="togSpeakers" onclick="toggleFX(this)" style="margin-left:auto;"></button>
+            </div>
+            <div id="speakersDetected" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;"></div>
+          </div>
+        </div><!-- /panel-transcricao -->
+
+        <!-- ── TAB: EXPORTAR ── -->
+        <div class="studio-panel" id="panel-exportar">
+          <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">Configure e exporte seu episódio finalizado.</p>
+          <div class="export-form">
+
+            <div class="form-row">
+              <label class="form-label">Formato de exportação</label>
+              <select class="form-select" id="exportFormat">
+                <option value="webm">WebM (padrão do navegador)</option>
+                <option value="mp3">MP3 (compatível)</option>
+                <option value="wav">WAV (sem perda)</option>
+                <option value="ogg">OGG Vorbis</option>
+              </select>
+            </div>
+
+            <div class="form-row">
+              <label class="form-label">Qualidade de áudio</label>
+              <select class="form-select" id="exportQuality">
+                <option value="192">Alta — 192 kbps</option>
+                <option value="128" selected>Média — 128 kbps</option>
+                <option value="96">Econômica — 96 kbps</option>
+              </select>
+            </div>
+
+            <div class="form-row">
+              <label class="form-label">Incluir na exportação</label>
+              <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;">
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);cursor:pointer;">
+                  <input type="checkbox" checked id="expVoice"> Voz tratada
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);cursor:pointer;">
+                  <input type="checkbox" checked id="expMusic"> Fundo musical
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);cursor:pointer;">
+                  <input type="checkbox" id="expVideo"> Vídeo (se gravado)
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);cursor:pointer;">
+                  <input type="checkbox" checked id="expTranscript"> Arquivo de transcrição (.txt)
+                </label>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label class="form-label">Metadados do podcast</label>
+              <input class="form-input" placeholder="Nome do Podcast" id="podcastName" style="margin-bottom:6px;" value="Meu Podcast">
+              <input class="form-input" placeholder="Autor" id="podcastAuthor" value="Apresentador">
+            </div>
+
+            <div style="display:flex;gap:10px;margin-top:6px;flex-wrap:wrap;">
+              <button class="btn btn-primary" onclick="exportEpisode()">
+                ⬇ Exportar episódio
+              </button>
+              <button class="btn btn-ghost" onclick="publishToRSS()">
+                📡 Gerar feed RSS
+              </button>
+            </div>
+          </div>
+        </div><!-- /panel-exportar -->
+
+      </div><!-- /scroll-area -->
+    </div><!-- /page-studio -->
+
+    <!-- ══ EPISODES PAGE ══ -->
+    <div class="page" id="page-episodes">
+      <div class="episodes-page">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <h1 style="font-family:var(--font-display);font-size:24px;font-weight:800;letter-spacing:-0.5px;">Episódios</h1>
+            <p style="font-size:13px;color:var(--text3);margin-top:4px;" id="epCount">0 episódios salvos</p>
+          </div>
+          <button class="btn btn-primary" onclick="openModal()">
+            + Novo Episódio
+          </button>
+        </div>
+        <div class="ep-grid" id="epGrid">
+          <div class="empty-state" style="grid-column:1/-1;">
+            <div class="es-icon">🎙</div>
+            <p>Nenhum episódio ainda. Crie o primeiro!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ SETTINGS PAGE ══ -->
+    <div class="page" id="page-settings">
+      <div class="settings-page">
+        <h1 style="font-family:var(--font-display);font-size:24px;font-weight:800;margin-bottom:24px;letter-spacing:-0.5px;">Configurações</h1>
+
+        <div class="settings-section">
+          <div class="settings-section-title">Áudio</div>
+          <div class="settings-row">
+            <div class="settings-row-info">
+              <div class="settings-row-label">Sample Rate</div>
+              <div class="settings-row-desc">Taxa de amostragem padrão de gravação</div>
+            </div>
+            <select class="form-select" style="width:120px;" id="sampleRate">
+              <option>44100 Hz</option>
+              <option selected>48000 Hz</option>
+            </select>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-info">
+              <div class="settings-row-label">Canais</div>
+              <div class="settings-row-desc">Mono ou estéreo</div>
+            </div>
+            <select class="form-select" style="width:120px;" id="channels">
+              <option value="1">Mono</option>
+              <option value="2" selected>Estéreo</option>
+            </select>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-info">
+              <div class="settings-row-label">Cancelamento de ruído</div>
+              <div class="settings-row-desc">Filtro de ruído de fundo no microfone</div>
+            </div>
+            <button class="toggle on" id="togNoiseSuppression" onclick="toggleFX(this)"></button>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-info">
+              <div class="settings-row-label">Ganho automático</div>
+              <div class="settings-row-desc">Ajuste automático de nível</div>
+            </div>
+            <button class="toggle on" id="togAGC" onclick="toggleFX(this)"></button>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-title">Armazenamento</div>
+          <div class="settings-row">
+            <div class="settings-row-info">
+              <div class="settings-row-label">Banco de dados local</div>
+              <div class="settings-row-desc" id="dbSize">Calculando...</div>
+            </div>
+            <button class="btn btn-danger" style="padding:7px 12px;font-size:12px;" onclick="clearDB()">Limpar tudo</button>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-title">Sobre</div>
+          <div class="settings-row">
+            <div class="settings-row-info">
+              <div class="settings-row-label">PodcastStudio</div>
+              <div class="settings-row-desc">Versão 1.0 — Estúdio online completo com IndexedDB</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main><!-- /main -->
+
+  <!-- RIGHT PANEL -->
+  <aside class="right-panel">
+
+    <div class="panel-section">
+      <div class="panel-section-title">Nível de Entrada</div>
+      <div class="meter-wrap">
+        <div class="meter-row">
+          <span class="meter-label">L</span>
+          <div class="meter-bar"><div class="meter-fill level" id="meterL" style="width:0%"></div></div>
+          <span class="meter-val" id="meterLVal">-∞</span>
+        </div>
+        <div class="meter-row">
+          <span class="meter-label">R</span>
+          <div class="meter-bar"><div class="meter-fill level" id="meterR" style="width:0%"></div></div>
+          <span class="meter-val" id="meterRVal">-∞</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-section-title">Estatísticas</div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-val green" id="statDuration">0:00</div>
+          <div class="stat-label">Duração</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val cyan" id="statTakes">0</div>
+          <div class="stat-label">Takes</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val amber" id="statWords">0</div>
+          <div class="stat-label">Palavras</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val accent" id="statSize">0 MB</div>
+          <div class="stat-label">Tamanho</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-section-title">Checklist de Publicação</div>
+      <div id="checklist" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-section-title">Dicas Rápidas</div>
+      <div id="tipsBox" style="font-size:12px;color:var(--text3);line-height:1.6;"></div>
+    </div>
+
+  </aside>
+
+  <!-- TRANSPORT BAR -->
+  <footer class="transport">
+    <div class="transport-btns">
+      <button class="t-btn" onclick="transportSkip(-10)" title="Voltar 10s">⏮</button>
+      <button class="t-btn primary" id="tPlayPause" onclick="transportPlayPause()">▶</button>
+      <button class="t-btn" onclick="transportSkip(10)" title="Avançar 10s">⏭</button>
+      <button class="t-btn danger" onclick="transportStop()" title="Parar">⏹</button>
+    </div>
+    <div class="progress-wrap">
+      <span class="progress-time" id="transportPos">0:00</span>
+      <div class="progress-bar" id="progressBar" onclick="seekTransport(event)">
+        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+      </div>
+      <span class="progress-time" id="transportDur">0:00</span>
+    </div>
+    <div class="vol-wrap">
+      <span class="vol-icon">🔊</span>
+      <input type="range" class="vol-sl" min="0" max="100" value="80" id="masterVol" oninput="updateMasterVol()">
+      <span style="font-size:11px;color:var(--text3);min-width:28px;" id="masterVolVal">80%</span>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-left:8px;" id="transportTrackName">Sem take selecionado</div>
+  </footer>
+
+</div><!-- /app -->
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// INDEXEDDB
+// ═══════════════════════════════════════════════════════════════════
+const DB_NAME = 'PodcastStudio';
+const DB_VERSION = 1;
+let db;
+
+function openDB() {
+  return new Promise((res, rej) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = e => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('episodes')) {
+        const epStore = db.createObjectStore('episodes', { keyPath: 'id', autoIncrement: true });
+        epStore.createIndex('title', 'title', { unique: false });
+      }
+      if (!db.objectStoreNames.contains('recordings')) {
+        const recStore = db.createObjectStore('recordings', { keyPath: 'id', autoIncrement: true });
+        recStore.createIndex('episodeId', 'episodeId', { unique: false });
+      }
+    };
+    req.onsuccess = e => { db = e.target.result; res(db); };
+    req.onerror = e => rej(e);
+  });
+}
+
+function dbAdd(store, data) {
+  return new Promise((res, rej) => {
+    const tx = db.transaction(store, 'readwrite');
+    const req = tx.objectStore(store).add(data);
+    req.onsuccess = () => res(req.result);
+    req.onerror = e => rej(e);
+  });
+}
+
+function dbGetAll(store) {
+  return new Promise((res, rej) => {
+    const tx = db.transaction(store, 'readonly');
+    const req = tx.objectStore(store).getAll();
+    req.onsuccess = () => res(req.result);
+    req.onerror = e => rej(e);
+  });
+}
+
+function dbGet(store, id) {
+  return new Promise((res, rej) => {
+    const tx = db.transaction(store, 'readonly');
+    const req = tx.objectStore(store).get(id);
+    req.onsuccess = () => res(req.result);
+    req.onerror = e => rej(e);
+  });
+}
+
+function dbDelete(store, id) {
+  return new Promise((res, rej) => {
+    const tx = db.transaction(store, 'readwrite');
+    const req = tx.objectStore(store).delete(id);
+    req.onsuccess = () => res();
+    req.onerror = e => rej(e);
+  });
+}
+
+function dbUpdate(store, data) {
+  return new Promise((res, rej) => {
+    const tx = db.transaction(store, 'readwrite');
+    const req = tx.objectStore(store).put(data);
+    req.onsuccess = () => res();
+    req.onerror = e => rej(e);
+  });
+}
+
+function dbClear(store) {
+  return new Promise((res, rej) => {
+    const tx = db.transaction(store, 'readwrite');
+    const req = tx.objectStore(store).clear();
+    req.onsuccess = () => res();
+    req.onerror = e => rej(e);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════
+let state = {
+  episodes: [],
+  recordings: [],
+  currentEpisodeId: null,
+  isRecording: false,
+  isPaused: false,
+  mode: 'audio', // audio | video
+  mediaRecorder: null,
+  audioCtx: null,
+  analyser: null,
+  sourceNode: null,
+  stream: null,
+  chunks: [],
+  timerInterval: null,
+  timerSecs: 0,
+  takes: [],
+  currentTake: null,
+  playerAudio: new Audio(),
+  isPlaying: false,
+  recognition: null,
+  isTranscribing: false,
+  transcript: '',
+  bgAudioCtx: null,
+  bgBuffer: null,
+  bgSource: null,
+  bgGain: null,
+  activeBgMusic: null,
+  currentStudioTab: 'gravacao',
+  currentPage: 'studio',
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════════════════
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => {
+    if (t.textContent.toLowerCase().includes(name === 'studio' ? 'estúdio' : name === 'episodes' ? 'episódios' : 'config')) t.classList.add('active');
+  });
+  state.currentPage = name;
+  if (name === 'episodes') renderEpisodesPage();
+}
+
+function switchStudioTab(tab) {
+  state.currentStudioTab = tab;
+  document.querySelectorAll('.studio-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.studio-panel').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('panel-' + tab).classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════════════════════════════════
+function openModal() {
+  document.getElementById('modalOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('newEpTitle').focus(), 200);
+}
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+async function createEpisode() {
+  const title = document.getElementById('newEpTitle').value.trim() || 'Sem título';
+  const desc = document.getElementById('newEpDesc').value.trim();
+  const type = document.getElementById('newEpType').value;
+  const ep = {
+    title, desc, type,
+    status: 'draft',
+    createdAt: Date.now(),
+    transcript: '',
+    takes: []
+  };
+  const id = await dbAdd('episodes', ep);
+  ep.id = id;
+  state.episodes.push(ep);
+  state.currentEpisodeId = id;
+  document.getElementById('epTitle').value = title;
+  document.getElementById('epDesc').value = desc;
+  closeModal();
+  renderSidebar();
+  showPage('studio');
+  toast('Episódio criado!', 'success');
+  document.getElementById('newEpTitle').value = '';
+  document.getElementById('newEpDesc').value = '';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════════════
+function renderSidebar() {
+  const el = document.getElementById('epListSidebar');
+  if (!state.episodes.length) { el.innerHTML = '<p style="font-size:12px;color:var(--text3);padding:8px;">Nenhum episódio</p>'; return; }
+  el.innerHTML = state.episodes.map(ep => `
+    <div class="episode-card ${ep.id === state.currentEpisodeId ? 'active' : ''}" onclick="loadEpisode(${ep.id})">
+      <div class="ep-title">${ep.title}</div>
+      <div class="ep-meta">
+        <span class="ep-badge ${ep.status}">${ep.status === 'draft' ? 'Rascunho' : ep.status === 'ready' ? 'Pronto' : 'Gravando'}</span>
+        <span>${formatTime2(ep.duration || 0)}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderEpisodesPage() {
+  const grid = document.getElementById('epGrid');
+  const count = document.getElementById('epCount');
+  count.textContent = `${state.episodes.length} episódio${state.episodes.length !== 1 ? 's' : ''} salvo${state.episodes.length !== 1 ? 's' : ''}`;
+  if (!state.episodes.length) {
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><div class="es-icon">🎙</div><p>Nenhum episódio ainda.</p></div>';
+    return;
+  }
+  grid.innerHTML = state.episodes.map(ep => `
+    <div class="ep-full-card" onclick="loadEpisode(${ep.id}); showPage('studio');">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <span class="ep-badge ${ep.status}">${ep.status === 'draft' ? 'Rascunho' : 'Pronto'}</span>
+        <span style="font-size:11px;color:var(--text3);">${new Date(ep.createdAt).toLocaleDateString('pt-BR')}</span>
+      </div>
+      <div class="ep-full-card-title">${ep.title}</div>
+      <div class="ep-full-card-desc">${ep.desc || 'Sem descrição'}</div>
+      <div class="ep-full-card-footer">
+        <span style="font-size:12px;color:var(--text3);">${ep.takes ? ep.takes.length : 0} takes • ${formatTime2(ep.duration || 0)}</span>
+        <div class="ep-full-card-actions">
+          <button class="icon-btn" onclick="event.stopPropagation();deleteEpisode(${ep.id})" title="Excluir">🗑</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderTakes() {
+  const el = document.getElementById('takesList');
+  if (!state.takes.length) {
+    el.innerHTML = '<div class="empty-state" style="padding:20px 0;"><p>Nenhum take ainda. Grave o primeiro!</p></div>';
+    document.getElementById('statTakes').textContent = '0';
+    return;
+  }
+  document.getElementById('statTakes').textContent = state.takes.length;
+  el.innerHTML = state.takes.map((tk, i) => `
+    <div class="track" id="take_${i}">
+      <div class="track-type voice"></div>
+      <div class="track-info">
+        <div class="track-name">Take ${i + 1}${tk.name ? ' — ' + tk.name : ''}</div>
+        <div class="track-dur">${formatTime2(tk.duration || 0)} • ${(tk.size / 1024 / 1024).toFixed(1)} MB</div>
+      </div>
+      <canvas class="track-waveform" id="waveform_${i}" width="200" height="36"></canvas>
+      <div class="track-controls">
+        <button class="icon-btn" onclick="playTake(${i})" title="Reproduzir">▶</button>
+        <input type="range" class="volume-sl" min="0" max="100" value="80" title="Volume">
+        <button class="icon-btn" onclick="downloadTake(${i})" title="Baixar">⬇</button>
+        <button class="icon-btn" onclick="deleteTake(${i})" title="Excluir" style="color:var(--red)">✕</button>
+      </div>
+    </div>
+  `).join('');
+  state.takes.forEach((tk, i) => drawMiniWaveform(i, tk));
+}
+
+function drawMiniWaveform(idx, tk) {
+  const canvas = document.getElementById('waveform_' + idx);
+  if (!canvas || !tk.blob) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  // draw fake waveform for stored blobs (visual only)
+  const bars = 60;
+  for (let i = 0; i < bars; i++) {
+    const h = Math.random() * (H * 0.8) + H * 0.1;
+    const x = (i / bars) * W;
+    ctx.fillStyle = 'rgba(124,111,247,0.6)';
+    ctx.fillRect(x, (H - h) / 2, W / bars - 1, h);
+  }
+}
+
+function renderChecklist() {
+  const ep = state.episodes.find(e => e.id === state.currentEpisodeId);
+  const items = [
+    { label: 'Episódio criado', ok: !!ep },
+    { label: 'Pelo menos 1 take gravado', ok: state.takes.length > 0 },
+    { label: 'Título definido', ok: ep && ep.title && ep.title !== 'Sem título' },
+    { label: 'Transcrição gerada', ok: state.transcript.length > 20 },
+    { label: 'Fundo musical configurado', ok: !!state.activeBgMusic },
+  ];
+  document.getElementById('checklist').innerHTML = items.map(it => `
+    <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:${it.ok ? 'var(--green)' : 'var(--text3)'};">
+      <span>${it.ok ? '✔' : '○'}</span>
+      <span>${it.label}</span>
+    </div>
+  `).join('');
+}
+
+function renderTips() {
+  const tips = [
+    '🎙 Fique a 15–30 cm do microfone',
+    '🔇 Grave em ambiente silencioso',
+    '📈 Mantenha o nível entre -18 e -12 dBFS',
+    '⏱ Episódios de 20–45 min têm maior retenção',
+    '✂️ Edite pausas longas e hesitações',
+    '🎵 Fundo musical abaixo de 30% do volume',
+  ];
+  document.getElementById('tipsBox').innerHTML = tips[Math.floor(Math.random() * tips.length)];
+  setInterval(() => {
+    document.getElementById('tipsBox').innerHTML = tips[Math.floor(Math.random() * tips.length)];
+  }, 8000);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// DEVICES
+// ═══════════════════════════════════════════════════════════════════
+async function enumerateDevices() {
+  try {
+    await navigator.mediaDevices.getUserMedia({ audio: true });
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const mics = devices.filter(d => d.kind === 'audioinput');
+    const cams = devices.filter(d => d.kind === 'videoinput');
+    const micSel = document.getElementById('micSelect');
+    const camSel = document.getElementById('camSelect');
+    micSel.innerHTML = mics.map((d, i) => `<option value="${d.deviceId}">${d.label || 'Microfone ' + (i+1)}</option>`).join('');
+    camSel.innerHTML = '<option value="">Sem câmera</option>' + cams.map((d, i) => `<option value="${d.deviceId}">${d.label || 'Câmera ' + (i+1)}</option>`).join('');
+  } catch(e) { console.warn('Permissão negada ou sem dispositivos'); }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// RECORDING
+// ═══════════════════════════════════════════════════════════════════
+function setMode(m) {
+  state.mode = m;
+  document.getElementById('modeAudio').classList.toggle('active', m === 'audio');
+  document.getElementById('modeVideo').classList.toggle('active', m === 'video');
+  document.getElementById('videoPreview').classList.toggle('active', m === 'video');
+}
+
+async function toggleRecord() {
+  if (state.isRecording) {
+    pauseRecord();
+  } else {
+    await startRecord();
+  }
+}
+
+async function startRecord() {
+  try {
+    const micId = document.getElementById('micSelect').value;
+    const camId = document.getElementById('camSelect').value;
+    const constraints = {
+      audio: {
+        deviceId: micId ? { exact: micId } : undefined,
+        noiseSuppression: document.getElementById('togNoiseSuppression').classList.contains('on'),
+        autoGainControl: document.getElementById('togAGC').classList.contains('on'),
+        echoCancellation: true,
+        sampleRate: parseInt(document.getElementById('sampleRate').value) || 48000,
+        channelCount: parseInt(document.getElementById('channels').value) || 2,
+      }
+    };
+    if (state.mode === 'video' && camId) constraints.video = { deviceId: { exact: camId } };
+
+    state.stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+    if (state.mode === 'video') {
+      document.getElementById('videoEl').srcObject = state.stream;
+    }
+
+    // Audio context for visualizer
+    state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    state.analyser = state.audioCtx.createAnalyser();
+    state.analyser.fftSize = 1024;
+    state.sourceNode = state.audioCtx.createMediaStreamSource(state.stream);
+    state.sourceNode.connect(state.analyser);
+
+    // MediaRecorder
+    const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/webm';
+    state.mediaRecorder = new MediaRecorder(state.stream, { mimeType });
+    state.chunks = [];
+    state.mediaRecorder.ondataavailable = e => { if (e.data.size > 0) state.chunks.push(e.data); };
+    state.mediaRecorder.start(100);
+
+    state.isRecording = true;
+    state.isPaused = false;
+    startTimer();
+    updateRecUI();
+    startVisualizer();
+    document.getElementById('recOverlay').classList.add('hidden');
+    toast('Gravação iniciada!', 'success');
+  } catch(e) {
+    toast('Erro ao acessar microfone: ' + e.message, 'error');
+    console.error(e);
+  }
+}
+
+function pauseRecord() {
+  if (!state.isRecording) return;
+  if (state.mediaRecorder.state === 'recording') {
+    state.mediaRecorder.pause();
+    state.isPaused = true;
+    stopTimer();
+    setStatus('paused', 'Pausado');
+    document.getElementById('btnPause').textContent = '▶ Retomar';
+  } else if (state.mediaRecorder.state === 'paused') {
+    state.mediaRecorder.resume();
+    state.isPaused = false;
+    startTimer();
+    setStatus('recording', 'Gravando');
+    document.getElementById('btnPause').textContent = '⏸ Pausar';
+  }
+}
+
+function stopRecord() {
+  if (!state.isRecording) return;
+  state.mediaRecorder.stop();
+  state.stream.getTracks().forEach(t => t.stop());
+  if (state.audioCtx) state.audioCtx.close();
+  state.isRecording = false;
+  state.isPaused = false;
+  stopTimer();
+  updateRecUI();
+  setStatus('', 'Pronto');
+  document.getElementById('btnSave').disabled = false;
+  document.getElementById('recOverlay').classList.remove('hidden');
+}
+
+async function saveRecording() {
+  if (!state.chunks.length) { toast('Nada para salvar', 'error'); return; }
+  const blob = new Blob(state.chunks, { type: 'audio/webm' });
+  const takeData = {
+    episodeId: state.currentEpisodeId,
+    blob,
+    duration: state.timerSecs,
+    size: blob.size,
+    createdAt: Date.now(),
+    transcript: state.transcript
+  };
+  const id = await dbAdd('recordings', takeData);
+  takeData.id = id;
+  state.takes.push(takeData);
+  state.chunks = [];
+  state.timerSecs = 0;
+  updateTimer();
+  document.getElementById('btnSave').disabled = true;
+
+  // update episode
+  const ep = state.episodes.find(e => e.id === state.currentEpisodeId);
+  if (ep) {
+    ep.takes = state.takes.map(t => t.id);
+    ep.duration = state.takes.reduce((a, t) => a + (t.duration || 0), 0);
+    ep.status = 'draft';
+    await dbUpdate('episodes', ep);
+  }
+
+  renderTakes();
+  renderChecklist();
+  updateStats();
+  renderSidebar();
+  toast('Take salvo com sucesso!', 'success');
+}
+
+function updateRecUI() {
+  const rec = state.isRecording;
+  document.getElementById('btnRec').innerHTML = rec
+    ? '<span style="width:10px;height:10px;background:white;border-radius:2px;display:inline-block"></span> Pausar'
+    : '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="8"/></svg> REC';
+  document.getElementById('btnPause').disabled = !rec;
+  document.getElementById('btnStop').disabled = !rec;
+  if (rec) setStatus('recording', 'Gravando');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TIMER
+// ═══════════════════════════════════════════════════════════════════
+function startTimer() {
+  clearInterval(state.timerInterval);
+  state.timerInterval = setInterval(() => {
+    state.timerSecs++;
+    updateTimer();
+  }, 1000);
+}
+function stopTimer() { clearInterval(state.timerInterval); }
+function updateTimer() {
+  const h = Math.floor(state.timerSecs / 3600);
+  const m = Math.floor((state.timerSecs % 3600) / 60);
+  const s = state.timerSecs % 60;
+  const str = `${pad(h)}:${pad(m)}:${pad(s)}`;
+  document.getElementById('timerDisplay').textContent = str;
+  document.getElementById('timerDisplay').className = 'timer-display' + (state.isRecording && !state.isPaused ? ' recording' : '');
+  document.getElementById('statDuration').textContent = `${pad(m)}:${pad(s)}`;
+}
+function pad(n) { return String(n).padStart(2, '0'); }
+function formatTime2(secs) {
+  const m = Math.floor(secs / 60), s = Math.floor(secs % 60);
+  return `${pad(m)}:${pad(s)}`;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// VISUALIZER
+// ═══════════════════════════════════════════════════════════════════
+let vizAF;
+function startVisualizer() {
+  const canvas = document.getElementById('vizCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width = canvas.offsetWidth;
+  const H = canvas.height = canvas.offsetHeight;
+
+  function draw() {
+    if (!state.isRecording || state.isPaused) return;
+    vizAF = requestAnimationFrame(draw);
+    const buf = new Uint8Array(state.analyser.frequencyBinCount);
+    state.analyser.getByteTimeDomainData(buf);
+
+    ctx.fillStyle = '#111118';
+    ctx.fillRect(0, 0, W, H);
+
+    // Waveform
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#7c6ff7';
+    ctx.beginPath();
+    const sliceW = W / buf.length;
+    let x = 0;
+    for (let i = 0; i < buf.length; i++) {
+      const v = buf[i] / 128;
+      const y = (v * H) / 2;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      x += sliceW;
+    }
+    ctx.stroke();
+
+    // Frequency bars
+    const freqBuf = new Uint8Array(state.analyser.frequencyBinCount);
+    state.analyser.getByteFrequencyData(freqBuf);
+    const bars = 64;
+    const barW = W / bars;
+    for (let i = 0; i < bars; i++) {
+      const val = freqBuf[Math.floor(i * freqBuf.length / bars)] / 255;
+      const bH = val * H * 0.4;
+      const hue = 250 + val * 60;
+      ctx.fillStyle = `hsla(${hue},70%,65%,0.3)`;
+      ctx.fillRect(i * barW, H - bH, barW - 1, bH);
+    }
+
+    // Level meters
+    const sum = freqBuf.reduce((a, v) => a + v, 0) / freqBuf.length;
+    const lvl = sum / 255 * 100;
+    document.getElementById('meterL').style.width = Math.min(100, lvl * 1.1) + '%';
+    document.getElementById('meterR').style.width = Math.min(100, lvl * 0.9) + '%';
+    const db = lvl > 0 ? (20 * Math.log10(lvl / 100)).toFixed(0) : '-∞';
+    document.getElementById('meterLVal').textContent = db;
+    document.getElementById('meterRVal').textContent = db;
+  }
+  draw();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TRANSPORT / PLAYBACK
+// ═══════════════════════════════════════════════════════════════════
+function playTake(idx) {
+  const tk = state.takes[idx];
+  if (!tk || !tk.blob) return;
+  const url = URL.createObjectURL(tk.blob);
+  state.playerAudio.src = url;
+  state.playerAudio.volume = document.getElementById('masterVol').value / 100;
+  state.playerAudio.play();
+  state.isPlaying = true;
+  state.currentTake = idx;
+  document.getElementById('tPlayPause').textContent = '⏸';
+  document.getElementById('transportTrackName').textContent = `Take ${idx + 1}`;
+  document.getElementById('transportDur').textContent = formatTime2(tk.duration || 0);
+
+  state.playerAudio.ontimeupdate = () => {
+    const p = (state.playerAudio.currentTime / (state.playerAudio.duration || 1)) * 100;
+    document.getElementById('progressFill').style.width = p + '%';
+    document.getElementById('transportPos').textContent = formatTime2(state.playerAudio.currentTime);
+  };
+  state.playerAudio.onended = () => {
+    state.isPlaying = false;
+    document.getElementById('tPlayPause').textContent = '▶';
+    document.getElementById('progressFill').style.width = '0%';
+  };
+}
+
+function transportPlayPause() {
+  if (!state.playerAudio.src) { if (state.takes.length) playTake(0); return; }
+  if (state.playerAudio.paused) {
+    state.playerAudio.play();
+    document.getElementById('tPlayPause').textContent = '⏸';
+  } else {
+    state.playerAudio.pause();
+    document.getElementById('tPlayPause').textContent = '▶';
+  }
+}
+
+function transportStop() {
+  state.playerAudio.pause();
+  state.playerAudio.currentTime = 0;
+  document.getElementById('tPlayPause').textContent = '▶';
+  document.getElementById('progressFill').style.width = '0%';
+  document.getElementById('transportPos').textContent = '0:00';
+}
+
+function transportSkip(secs) {
+  state.playerAudio.currentTime = Math.max(0, state.playerAudio.currentTime + secs);
+}
+
+function seekTransport(e) {
+  const bar = document.getElementById('progressBar');
+  const ratio = e.offsetX / bar.offsetWidth;
+  if (state.playerAudio.duration) state.playerAudio.currentTime = ratio * state.playerAudio.duration;
+}
+
+function updateMasterVol() {
+  const v = document.getElementById('masterVol').value;
+  state.playerAudio.volume = v / 100;
+  document.getElementById('masterVolVal').textContent = v + '%';
+}
+
+function downloadTake(idx) {
+  const tk = state.takes[idx];
+  if (!tk) return;
+  const url = URL.createObjectURL(tk.blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `take_${idx + 1}.webm`;
+  a.click(); URL.revokeObjectURL(url);
+  toast('Download iniciado!', 'success');
+}
+
+function deleteTake(idx) {
+  const tk = state.takes[idx];
+  if (!tk) return;
+  dbDelete('recordings', tk.id);
+  state.takes.splice(idx, 1);
+  renderTakes();
+  updateStats();
+  toast('Take removido', 'success');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// FX CONTROLS
+// ═══════════════════════════════════════════════════════════════════
+function updateFX() {
+  // EQ
+  const vals = {
+    eqBass: document.getElementById('eqBass').value,
+    eqMid: document.getElementById('eqMid').value,
+    eqTreble: document.getElementById('eqTreble').value,
+    eqPresence: document.getElementById('eqPresence').value,
+    compThresh: document.getElementById('compThresh').value,
+    compRatio: document.getElementById('compRatio').value,
+    gateThresh: document.getElementById('gateThresh').value,
+    reverbSize: document.getElementById('reverbSize').value,
+    reverbWet: document.getElementById('reverbWet').value,
+    delayTime: document.getElementById('delayTime').value,
+    pitchShift: document.getElementById('pitchShift').value,
+    enhanceAmt: document.getElementById('enhanceAmt').value,
+  };
+  document.getElementById('eqBassVal').textContent = vals.eqBass > 0 ? '+' + vals.eqBass : vals.eqBass;
+  document.getElementById('eqMidVal').textContent = vals.eqMid > 0 ? '+' + vals.eqMid : vals.eqMid;
+  document.getElementById('eqTrebleVal').textContent = vals.eqTreble > 0 ? '+' + vals.eqTreble : vals.eqTreble;
+  document.getElementById('eqPresenceVal').textContent = vals.eqPresence > 0 ? '+' + vals.eqPresence : vals.eqPresence;
+  document.getElementById('compThreshVal').textContent = vals.compThresh;
+  document.getElementById('compRatioVal').textContent = vals.compRatio + ':1';
+  document.getElementById('gateThreshVal').textContent = vals.gateThresh;
+  document.getElementById('reverbSizeVal').textContent = vals.reverbSize + '%';
+  document.getElementById('reverbWetVal').textContent = vals.reverbWet + '%';
+  document.getElementById('delayTimeVal').textContent = vals.delayTime;
+  document.getElementById('pitchShiftVal').textContent = vals.pitchShift;
+  document.getElementById('enhanceAmtVal').textContent = vals.enhanceAmt + '%';
+}
+
+function toggleFX(btn) {
+  btn.classList.toggle('on');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// BACKGROUND MUSIC
+// ═══════════════════════════════════════════════════════════════════
+const BG_TRACKS = [
+  { name: 'Lofi Chill', icon: '🌙', bpm: 75, color: '#7c6ff7' },
+  { name: 'Corporate', icon: '💼', bpm: 110, color: '#22d3ee' },
+  { name: 'Upbeat Jazz', icon: '🎷', bpm: 130, color: '#f472b6' },
+  { name: 'Ambient', icon: '🌊', bpm: 60, color: '#34d399' },
+  { name: 'Epic Intro', icon: '⚡', bpm: 140, color: '#fbbf24' },
+  { name: 'Acoustic', icon: '🎸', bpm: 90, color: '#a78bfa' },
+];
+
+function renderMusicGrid() {
+  const grid = document.getElementById('musicGrid');
+  grid.innerHTML = BG_TRACKS.map((tr, i) => `
+    <div class="music-item ${state.activeBgMusic === i ? 'active' : ''}" onclick="selectBgMusic(${i})">
+      <div class="music-icon">${tr.icon}</div>
+      <div class="music-name">${tr.name}</div>
+      <div class="music-bpm">${tr.bpm} BPM</div>
+    </div>
+  `).join('');
+}
+
+function selectBgMusic(idx) {
+  state.activeBgMusic = state.activeBgMusic === idx ? null : idx;
+  renderMusicGrid();
+  renderChecklist();
+  if (state.activeBgMusic !== null) {
+    playBgOscillator(BG_TRACKS[idx]);
+    toast(`🎵 ${BG_TRACKS[idx].name} selecionado`, 'success');
+  } else {
+    stopBgMusic();
+  }
+}
+
+function playBgOscillator(track) {
+  stopBgMusic();
+  state.bgAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  state.bgGain = state.bgAudioCtx.createGain();
+  const vol = document.getElementById('bgVolSlider').value / 100 * 0.3;
+  state.bgGain.gain.value = vol;
+  state.bgGain.connect(state.bgAudioCtx.destination);
+  // Simulate with oscillators for demo
+  const freqs = [track.bpm * 0.5, track.bpm * 1.0, track.bpm * 1.5];
+  freqs.forEach((f, i) => {
+    const osc = state.bgAudioCtx.createOscillator();
+    osc.type = ['sine', 'triangle', 'sawtooth'][i % 3];
+    osc.frequency.value = f;
+    const g2 = state.bgAudioCtx.createGain();
+    g2.gain.value = 0.05 / (i + 1);
+    osc.connect(g2);
+    g2.connect(state.bgGain);
+    osc.start();
+  });
+}
+
+function stopBgMusic() {
+  if (state.bgAudioCtx) { state.bgAudioCtx.close(); state.bgAudioCtx = null; }
+}
+
+function updateBgVol() {
+  const v = document.getElementById('bgVolSlider').value;
+  document.getElementById('bgVolVal').textContent = v + '%';
+  if (state.bgGain) state.bgGain.gain.value = v / 100 * 0.3;
+}
+
+function importMusic(input) {
+  const file = input.files[0];
+  if (!file) return;
+  document.getElementById('importedTrackInfo').textContent = `✔ ${file.name} (${(file.size/1024/1024).toFixed(1)} MB)`;
+  toast('Trilha importada!', 'success');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TRANSCRIPTION
+// ═══════════════════════════════════════════════════════════════════
+function toggleTranscription() {
+  if (state.isTranscribing) {
+    stopTranscription();
+  } else {
+    startTranscription();
+  }
+}
+
+function startTranscription() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { toast('Reconhecimento de voz não suportado neste navegador', 'error'); return; }
+
+  state.recognition = new SR();
+  state.recognition.lang = 'pt-BR';
+  state.recognition.continuous = true;
+  state.recognition.interimResults = true;
+  state.recognition.maxAlternatives = 1;
+
+  state.recognition.onresult = e => {
+    let interim = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const t = e.results[i][0].transcript;
+      if (e.results[i].isFinal) {
+        state.transcript += t + ' ';
+        updateTranscriptUI();
+        updateWordCount();
+      } else {
+        interim = t;
+      }
+    }
+    document.getElementById('transcriptHint').textContent = interim ? `"${interim}"` : 'Ouvindo...';
+  };
+
+  state.recognition.onerror = e => {
+    if (e.error !== 'no-speech') { toast('Erro na transcrição: ' + e.error, 'error'); }
+  };
+
+  state.recognition.onend = () => {
+    if (state.isTranscribing) state.recognition.start(); // auto-restart
+  };
+
+  state.recognition.start();
+  state.isTranscribing = true;
+  document.getElementById('btnTranscribe').textContent = '⏹ Parar Transcrição';
+  document.getElementById('btnTranscribe').className = 'btn btn-danger';
+  toast('Transcrição iniciada!', 'success');
+}
+
+function stopTranscription() {
+  if (state.recognition) { state.recognition.stop(); state.recognition = null; }
+  state.isTranscribing = false;
+  document.getElementById('btnTranscribe').textContent = '🎙 Iniciar Transcrição';
+  document.getElementById('btnTranscribe').className = 'btn btn-primary';
+  document.getElementById('transcriptHint').textContent = 'Transcrição parada';
+}
+
+function updateTranscriptUI() {
+  const area = document.getElementById('transcriptArea');
+  area.textContent = state.transcript;
+}
+
+function clearTranscript() {
+  state.transcript = '';
+  document.getElementById('transcriptArea').innerHTML = '<span style="color:var(--text3);font-style:italic;">A transcrição aparecerá aqui durante a gravação...</span>';
+  document.getElementById('statWords').textContent = '0';
+}
+
+function copyTranscript() {
+  navigator.clipboard.writeText(state.transcript).then(() => toast('Copiado!', 'success'));
+}
+
+function downloadTranscript() {
+  const blob = new Blob([state.transcript], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const ep = state.episodes.find(e => e.id === state.currentEpisodeId);
+  a.href = url; a.download = `${ep ? ep.title : 'transcricao'}.txt`;
+  a.click(); URL.revokeObjectURL(url);
+  toast('Transcrição baixada!', 'success');
+}
+
+function updateWordCount() {
+  const words = state.transcript.trim().split(/\s+/).filter(w => w).length;
+  document.getElementById('statWords').textContent = words;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// EXPORT
+// ═══════════════════════════════════════════════════════════════════
+async function exportEpisode() {
+  if (!state.takes.length) { toast('Grave pelo menos um take antes de exportar', 'error'); return; }
+  const take = state.takes[state.takes.length - 1];
+  const format = document.getElementById('exportFormat').value;
+  const url = URL.createObjectURL(take.blob);
+  const a = document.createElement('a');
+  const ep = state.episodes.find(e => e.id === state.currentEpisodeId);
+  const name = ep ? ep.title.replace(/[^a-z0-9]/gi, '_') : 'episodio';
+  a.href = url; a.download = `${name}.${format === 'webm' ? 'webm' : format}`;
+  a.click(); URL.revokeObjectURL(url);
+
+  if (document.getElementById('expTranscript').checked && state.transcript) {
+    downloadTranscript();
+  }
+
+  toast('Exportação iniciada!', 'success');
+}
+
+function publishToRSS() {
+  const ep = state.episodes.find(e => e.id === state.currentEpisodeId);
+  const podName = document.getElementById('podcastName').value;
+  const author = document.getElementById('podcastAuthor').value;
+  const rss = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
+  <channel>
+    <title>${podName}</title>
+    <itunes:author>${author}</itunes:author>
+    <description>Podcast gerado pelo PodcastStudio</description>
+    <item>
+      <title>${ep ? ep.title : 'Episódio'}</title>
+      <description>${ep ? ep.desc : ''}</description>
+      <pubDate>${new Date().toUTCString()}</pubDate>
+    </item>
+  </channel>
+</rss>`;
+  const blob = new Blob([rss], { type: 'application/rss+xml' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'feed.rss';
+  a.click(); URL.revokeObjectURL(url);
+  toast('Feed RSS gerado!', 'success');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// EPISODES
+// ═══════════════════════════════════════════════════════════════════
+async function loadEpisode(id) {
+  state.currentEpisodeId = id;
+  const ep = state.episodes.find(e => e.id === id);
+  if (!ep) return;
+  document.getElementById('epTitle').value = ep.title;
+  document.getElementById('epDesc').value = ep.desc || '';
+  state.transcript = ep.transcript || '';
+  if (state.transcript) updateTranscriptUI();
+
+  // Load takes
+  const allRecs = await dbGetAll('recordings');
+  state.takes = allRecs.filter(r => r.episodeId === id);
+  renderTakes();
+  updateStats();
+  renderSidebar();
+  renderChecklist();
+  showPage('studio');
+}
+
+async function deleteEpisode(id) {
+  if (!confirm('Excluir episódio e todas as gravações?')) return;
+  await dbDelete('episodes', id);
+  const allRecs = await dbGetAll('recordings');
+  for (const r of allRecs.filter(r => r.episodeId === id)) await dbDelete('recordings', r.id);
+  state.episodes = state.episodes.filter(e => e.id !== id);
+  if (state.currentEpisodeId === id) { state.currentEpisodeId = null; state.takes = []; renderTakes(); }
+  renderEpisodesPage();
+  renderSidebar();
+  toast('Episódio excluído', 'success');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// STATS & STATUS
+// ═══════════════════════════════════════════════════════════════════
+function updateStats() {
+  const totalSize = state.takes.reduce((a, t) => a + (t.size || 0), 0);
+  document.getElementById('statSize').textContent = (totalSize / 1024 / 1024).toFixed(1) + ' MB';
+  document.getElementById('statTakes').textContent = state.takes.length;
+  estimateDBSize();
+}
+
+function estimateDBSize() {
+  if (navigator.storage && navigator.storage.estimate) {
+    navigator.storage.estimate().then(est => {
+      const used = (est.usage / 1024 / 1024).toFixed(1);
+      const total = (est.quota / 1024 / 1024 / 1024).toFixed(1);
+      document.getElementById('dbSize').textContent = `${used} MB usados de ${total} GB disponíveis`;
+    });
+  }
+}
+
+function setStatus(type, text) {
+  const dot = document.getElementById('statusDot');
+  const txt = document.getElementById('statusText');
+  dot.className = 'status-dot' + (type ? ' ' + type : '');
+  txt.textContent = text;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════════════════
+function toast(msg, type = '') {
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.innerHTML = `<span>${type === 'success' ? '✔' : type === 'error' ? '✕' : 'ℹ'}</span> ${msg}`;
+  const container = document.getElementById('toastContainer');
+  container.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateX(20px)'; el.style.transition = 'all 0.3s'; setTimeout(() => el.remove(), 300); }, 3000);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// DB SETTINGS
+// ═══════════════════════════════════════════════════════════════════
+async function clearDB() {
+  if (!confirm('Excluir TODOS os dados? Esta ação não pode ser desfeita.')) return;
+  await dbClear('episodes');
+  await dbClear('recordings');
+  state.episodes = [];
+  state.takes = [];
+  state.currentEpisodeId = null;
+  renderSidebar();
+  renderTakes();
+  toast('Banco de dados limpo', 'success');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════
+async function init() {
+  await openDB();
+  state.episodes = await dbGetAll('episodes');
+  renderSidebar();
+  renderMusicGrid();
+  renderTips();
+  renderChecklist();
+  updateFX();
+  enumerateDevices();
+  estimateDBSize();
+
+  // Auto-select first episode
+  if (state.episodes.length) {
+    await loadEpisode(state.episodes[state.episodes.length - 1].id);
+  }
+
+  // Save transcript on input
+  document.getElementById('transcriptArea').addEventListener('input', () => {
+    state.transcript = document.getElementById('transcriptArea').textContent;
+    updateWordCount();
+    const ep = state.episodes.find(e => e.id === state.currentEpisodeId);
+    if (ep) { ep.transcript = state.transcript; dbUpdate('episodes', ep); }
+  });
+
+  // Save title/desc on blur
+  document.getElementById('epTitle').addEventListener('blur', saveEpMeta);
+  document.getElementById('epDesc').addEventListener('blur', saveEpMeta);
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+    if (e.code === 'Space') { e.preventDefault(); transportPlayPause(); }
+    if (e.code === 'KeyR' && e.ctrlKey) { e.preventDefault(); toggleRecord(); }
+  });
+
+  // Resize canvas on window resize
+  window.addEventListener('resize', () => {
+    const canvas = document.getElementById('vizCanvas');
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+  });
+
+  // Nav tab highlight fix
+  document.querySelectorAll('.nav-tab').forEach((t, i) => {
+    const pages = ['studio', 'episodes', 'settings'];
+    t.onclick = () => showPage(pages[i]);
+  });
+}
+
+async function saveEpMeta() {
+  const ep = state.episodes.find(e => e.id === state.currentEpisodeId);
+  if (!ep) return;
+  ep.title = document.getElementById('epTitle').value;
+  ep.desc = document.getElementById('epDesc').value;
+  await dbUpdate('episodes', ep);
+  renderSidebar();
+}
+
+// Speaker badges
+function addSpeaker(name, color) {
+  const el = document.getElementById('speakersDetected');
+  const badge = document.createElement('span');
+  badge.className = 'ep-badge';
+  badge.style.cssText = `background:${color}22;color:${color};font-size:11px;padding:3px 8px;`;
+  badge.textContent = name;
+  el.appendChild(badge);
+}
+
+init();
+
+// Simulate speaker detection after a bit
+setTimeout(() => {
+  addSpeaker('Falante 1', '#7c6ff7');
+  addSpeaker('Falante 2', '#22d3ee');
+}, 5000);
+</script>
+</body>
+</html>
