@@ -1857,6 +1857,14 @@ function dbUpdate(store, data) {
     req.onerror = e => rej(e);
   });
 }
+function dbGet(store, id) {
+  return new Promise((res, rej) => {
+    const tx = db.transaction(store, 'readonly');
+    const req = tx.objectStore(store).get(id);
+    req.onsuccess = () => res(req.result);
+    req.onerror = e => rej(e);
+  });
+}
 function dbClear(store) {
   return new Promise((res, rej) => {
     const tx = db.transaction(store, 'readwrite');
@@ -1992,11 +2000,23 @@ function renderTakes() {
     return;
   }
   countEl.textContent = state.takes.length;
-  el.innerHTML = state.takes.map((tk, i) => `
+  el.innerHTML = state.takes.map((tk, i) => {
+    const displayName = tk.name || `Take ${i + 1}`;
+    return `
     <div class="take-card" id="take_${i}">
       <div class="take-stripe"></div>
       <div class="take-info">
-        <div class="take-name">Take ${i + 1}${tk.name ? ' — ' + tk.name : ''}</div>
+        <div class="take-name" id="take-name-display-${i}" style="display:flex;align-items:center;gap:6px;">
+          <span id="take-name-text-${i}" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${displayName}</span>
+          <button class="icon-btn" style="width:22px;height:22px;font-size:11px;flex-shrink:0;" onclick="startRenameTake(${i})" title="Renomear">✏️</button>
+        </div>
+        <div id="take-rename-row-${i}" style="display:none;align-items:center;gap:6px;margin-top:4px;">
+          <input id="take-rename-input-${i}" type="text" value="${displayName}" 
+            style="flex:1;background:var(--bg4);border:1px solid var(--accent);border-radius:6px;padding:4px 8px;color:var(--text);font-size:12px;font-family:var(--sans);outline:none;"
+            onkeydown="if(event.key==='Enter')confirmRenameTake(${i});if(event.key==='Escape')cancelRenameTake(${i});">
+          <button class="icon-btn" style="width:26px;height:26px;font-size:13px;background:rgba(45,202,115,0.15);border-color:var(--green);color:var(--green);" onclick="confirmRenameTake(${i})">✓</button>
+          <button class="icon-btn" style="width:26px;height:26px;font-size:11px;" onclick="cancelRenameTake(${i})">✕</button>
+        </div>
         <div class="take-meta">${formatTime2(tk.duration || 0)} · ${(tk.size / 1024 / 1024).toFixed(1)} MB</div>
       </div>
       <canvas class="take-waveform" id="waveform_${i}" width="80" height="32"></canvas>
@@ -2005,9 +2025,47 @@ function renderTakes() {
         <button class="icon-btn" onclick="downloadTake(${i})">⬇</button>
         <button class="icon-btn del" onclick="deleteTake(${i})">✕</button>
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
   state.takes.forEach((tk, i) => drawMiniWaveform(i, tk));
+}
+
+function startRenameTake(i) {
+  document.getElementById('take-name-display-' + i).style.display = 'none';
+  const row = document.getElementById('take-rename-row-' + i);
+  row.style.display = 'flex';
+  const input = document.getElementById('take-rename-input-' + i);
+  input.focus();
+  input.select();
+}
+
+function cancelRenameTake(i) {
+  document.getElementById('take-rename-row-' + i).style.display = 'none';
+  document.getElementById('take-name-display-' + i).style.display = 'flex';
+}
+
+async function confirmRenameTake(i) {
+  const input = document.getElementById('take-rename-input-' + i);
+  const newName = input.value.trim();
+  if (!newName) { cancelRenameTake(i); return; }
+  const tk = state.takes[i];
+  if (!tk) return;
+  tk.name = newName;
+  // Persist in IndexedDB — read full record first to preserve audioData
+  if (tk.id) {
+    try {
+      const full = await dbGet('recordings', tk.id);
+      if (full) {
+        full.name = newName;
+        await dbUpdate('recordings', full);
+      }
+    } catch(e) {
+      console.warn('Rename persist error:', e);
+    }
+  }
+  document.getElementById('take-name-text-' + i).textContent = newName;
+  cancelRenameTake(i);
+  toast(`✏️ Take renomeado para "${newName}"`, 'success');
 }
 
 function drawMiniWaveform(idx, tk) {
@@ -2388,31 +2446,73 @@ function updateMasterVol() {
   state.playerAudio.volume = v / 100;
   document.getElementById('masterVolVal').textContent = v + '%';
 }
+function getTakeFileName(idx) {
+  const tk = state.takes[idx];
+  if (!tk) return `take_${idx+1}`;
+  if (tk.name) return tk.name.replace(/[^a-z0-9çãáàâéêíóôõúü\s_-]/gi, '').trim().replace(/\s+/g, '_') || `take_${idx+1}`;
+  return `take_${idx+1}`;
+}
+
 function downloadTake(idx, fmt) {
   const tk = state.takes[idx];
   if (!tk || !tk.blob) { toast('Take não disponível', 'error'); return; }
   if (!fmt) { showDownloadMenu(idx); return; }
-  const url = URL.createObjectURL(tk.blob);
-  const a = document.createElement('a');
-  a.href = url;
-  // WebM pode ser renomeado para .mp3 — navegadores aceitam por conteúdo
-  // Para conversão real, usamos AudioContext + WAV para o formato wav
+  const baseName = getTakeFileName(idx);
+
   if (fmt === 'wav') {
+    toast('Convertendo para WAV...', '');
     blobToWav(tk.blob).then(wavBlob => {
       const wu = URL.createObjectURL(wavBlob);
       const wa = document.createElement('a');
-      wa.href = wu; wa.download = `take_${idx+1}.wav`;
-      wa.click(); URL.revokeObjectURL(wu);
+      wa.href = wu; wa.download = `${baseName}.wav`;
+      document.body.appendChild(wa); wa.click(); document.body.removeChild(wa);
+      setTimeout(() => URL.revokeObjectURL(wu), 5000);
       toast('Download WAV iniciado!', 'success');
-    }).catch(() => {
-      // fallback
-      a.download = `take_${idx+1}.webm`; a.click(); URL.revokeObjectURL(url);
+    }).catch(err => {
+      console.error('WAV conversion error:', err);
+      // fallback: download original webm
+      const url = URL.createObjectURL(tk.blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `${baseName}.webm`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+      toast('Erro na conversão WAV — baixando WebM', 'error');
     });
     return;
   }
-  const ext = fmt === 'mp3' ? 'mp3' : 'webm';
-  a.download = `take_${idx+1}.${ext}`; a.click(); URL.revokeObjectURL(url);
-  toast(`Download ${ext.toUpperCase()} iniciado!`, 'success');
+
+  if (fmt === 'mp3') {
+    // Browsers record as WebM/Opus — true MP3 encoding requires a JS library not loaded here.
+    // Best cross-device approach: convert to WAV (universal) or download as WebM with correct extension.
+    // We convert to WAV for maximum compatibility on mobile (iOS + Android).
+    toast('Convertendo para WAV (compatível com celular)...', '');
+    blobToWav(tk.blob).then(wavBlob => {
+      const wu = URL.createObjectURL(wavBlob);
+      const wa = document.createElement('a');
+      wa.href = wu; wa.download = `${baseName}.wav`;
+      document.body.appendChild(wa); wa.click(); document.body.removeChild(wa);
+      setTimeout(() => URL.revokeObjectURL(wu), 5000);
+      toast('✅ Áudio WAV baixado — compatível com todos os celulares!', 'success');
+    }).catch(err => {
+      console.error('WAV conversion error for mp3 request:', err);
+      // fallback: webm — at least works on Android
+      const url = URL.createObjectURL(tk.blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `${baseName}.webm`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+      toast('Baixado como WebM (Android) — use conversor online para iOS', 'error');
+    });
+    return;
+  }
+
+  // WebM (formato nativo da gravação)
+  const url = URL.createObjectURL(tk.blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `${baseName}.webm`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+  toast('Download WebM iniciado!', 'success');
 }
 
 async function blobToWav(blob) {
@@ -2450,15 +2550,23 @@ function showDownloadMenu(idx) {
   if (!card) return;
   const menu = document.createElement('div');
   menu.id = 'dlMenu_' + idx;
-  menu.style.cssText = `position:absolute;right:0;top:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:6px;z-index:50;display:flex;flex-direction:column;gap:4px;min-width:120px;box-shadow:0 8px 24px rgba(0,0,0,0.4);`;
-  ['mp3','webm','wav'].forEach(fmt => {
+  menu.style.cssText = `position:absolute;right:0;top:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:6px;z-index:50;display:flex;flex-direction:column;gap:4px;min-width:160px;box-shadow:0 8px 24px rgba(0,0,0,0.4);`;
+
+  const options = [
+    { fmt: 'mp3',  label: '⬇ WAV/MP3 (Celular ✅)' },
+    { fmt: 'wav',  label: '⬇ WAV (Alta qualidade)' },
+    { fmt: 'webm', label: '⬇ WebM (Nativo)' },
+  ];
+
+  options.forEach(({ fmt, label }) => {
     const b = document.createElement('button');
     b.className = 'btn btn-ghost btn-sm';
     b.style.cssText = 'justify-content:flex-start;font-size:12px;';
-    b.textContent = fmt === 'mp3' ? '⬇ MP3' : fmt === 'wav' ? '⬇ WAV' : '⬇ WebM';
+    b.textContent = label;
     b.onclick = (e) => { e.stopPropagation(); menu.remove(); downloadTake(idx, fmt); };
     menu.appendChild(b);
   });
+
   card.style.position = 'relative';
   card.appendChild(menu);
   setTimeout(() => document.addEventListener('click', function rm() {
