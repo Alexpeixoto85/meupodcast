@@ -2627,24 +2627,21 @@ async function playStoredTrack(track) {
 
 // ── Detecção do melhor formato suportado ─────────────────────────────
 function bestAudioMime() {
-  return ['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/ogg']
-    .find(t => MediaRecorder.isTypeSupported(t)) || 'audio/webm';
-}
-function bestVideoMime() {
-  return ['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm']
-    .find(t => MediaRecorder.isTypeSupported(t)) || 'video/webm';
+  const candidates = [
+    'audio/webm;codecs=opus',
+    'audio/webm',
+    'audio/ogg;codecs=opus',
+    'audio/ogg',
+  ];
+  return candidates.find(t => {
+    try { return MediaRecorder.isTypeSupported(t); } catch(e){ return false; }
+  }) || 'audio/webm';
 }
 
-// Detecta se o arquivo é vídeo pelo MIME ou extensão
 function isVideoFile(file) {
-  if (file.type.startsWith('video/')) return true;
-  const ext = file.name.split('.').pop().toLowerCase();
-  return ['mp4','mkv','avi','mov','webm','m4v','flv','wmv','ts','3gp','ogv'].includes(ext);
-}
-function isAudioFile(file) {
-  if (file.type.startsWith('audio/')) return true;
-  const ext = file.name.split('.').pop().toLowerCase();
-  return ['mp3','wav','ogg','aac','flac','m4a','wma','aiff','opus','ra','amr'].includes(ext);
+  if (file.type && file.type.startsWith('video/')) return true;
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  return ['mp4','mkv','avi','mov','m4v','flv','wmv','ts','3gp','ogv','rmvb','vob','divx'].includes(ext);
 }
 
 // ── Handler de drop ───────────────────────────────────────────────────
@@ -2662,228 +2659,315 @@ function importMedia(input) {
   input.value = '';
 }
 
-// ── Pipeline principal: detecta tipo → extrai áudio → converte → salva ─
+// ═══════════════════════════════════════════════════════════════════
+// PIPELINE UNIVERSAL DE CONVERSÃO
+// Estratégia: usar HTMLMediaElement como player + capturar stream
+// em tempo real via MediaRecorder. Funciona para qualquer formato
+// e tamanho que o browser consiga tocar, sem limitações de RAM.
+// ═══════════════════════════════════════════════════════════════════
 async function processMediaFiles(files) {
-  const statusDiv  = document.getElementById('musicConvertStatus');
-  const bar        = document.getElementById('musicConvertBar');
-  const label      = document.getElementById('musicConvertLabel');
-  const detail     = document.getElementById('musicConvertDetail');
+  const statusDiv = document.getElementById('musicConvertStatus');
+  const bar       = document.getElementById('musicConvertBar');
+  const label     = document.getElementById('musicConvertLabel');
+  const detail    = document.getElementById('musicConvertDetail');
   statusDiv.style.display = 'block';
 
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    const name = file.name.replace(/\.[^.]+$/, '');
+  for (let fi = 0; fi < files.length; fi++) {
+    const file   = files[fi];
+    const name   = file.name.replace(/\.[^.]+$/, '');
     const origMB = (file.size / 1024 / 1024).toFixed(1);
-    label.textContent = `⚙️ [${i+1}/${files.length}] "${name}"`;
-    bar.style.width = '5%';
+
+    setConvertUI(label, bar, detail, `[${fi+1}/${files.length}] "${name}"`, 3, 'Preparando...');
 
     try {
-      let audioBuffer, sourceType;
+      const result = await convertFileToWebM(file, (pct, msg) => {
+        setConvertUI(label, bar, detail, `[${fi+1}/${files.length}] "${name}"`, pct, msg);
+      });
 
-      if (isVideoFile(file)) {
-        sourceType = 'video';
-        detail.textContent = 'Extraindo faixa de áudio do vídeo...';
-        bar.style.width = '15%';
-        audioBuffer = await extractAudioFromVideo(file, pct => {
-          bar.style.width = (15 + pct * 0.35) + '%';
-        });
-      } else if (isAudioFile(file) || file.type.startsWith('audio/')) {
-        sourceType = 'audio';
-        detail.textContent = 'Decodificando áudio...';
-        bar.style.width = '15%';
-        audioBuffer = await decodeAudioFile(file, pct => {
-          bar.style.width = (15 + pct * 0.35) + '%';
-        });
-      } else {
-        // Tenta como áudio mesmo assim (browser decode)
-        sourceType = 'audio';
-        detail.textContent = 'Tentando decodificar...';
-        audioBuffer = await decodeAudioFile(file, pct => {
-          bar.style.width = (15 + pct * 0.35) + '%';
-        });
-      }
+      setConvertUI(label, bar, detail, `"${name}"`, 95, 'Salvando no banco...');
 
-      detail.textContent = 'Normalizando áudio (44.1kHz estéreo)...';
-      bar.style.width = '55%';
-
-      // Normalizar: resample para 44100Hz, máx 2 canais
-      const normalizedBuffer = await normalizeAudioBuffer(audioBuffer, 44100);
-      bar.style.width = '65%';
-
-      detail.textContent = 'Codificando WebM/Opus 96kbps...';
-      const compressedBuf = await encodeBufferToWebM(normalizedBuffer, bestAudioMime(), 96000);
-      bar.style.width = '92%';
-
-      // Salvar no DB
-      const mimeType  = bestAudioMime().split(';')[0]; // só 'audio/webm'
-      const duration  = normalizedBuffer.duration;
       const trackData = {
-        name, mimeType, duration, sourceType,
-        data: compressedBuf,
-        createdAt: Date.now(),
-        origSize: file.size,
-        size: compressedBuf.byteLength
+        name,
+        mimeType:    result.mimeType,
+        duration:    result.duration,
+        sourceType:  isVideoFile(file) ? 'video' : 'audio',
+        data:        result.buffer,
+        createdAt:   Date.now(),
+        origSize:    file.size,
+        size:        result.buffer.byteLength,
       };
       const id = await musicDbAdd(trackData);
       trackData.id = id;
       _musicTracks.push(trackData);
 
-      bar.style.width = '100%';
-      const newMB = (compressedBuf.byteLength / 1024 / 1024).toFixed(1);
-      const reduction = Math.round((1 - compressedBuf.byteLength / file.size) * 100);
-      detail.textContent = `✓ ${origMB}MB → ${newMB}MB (${reduction}% menor)`;
-      toast(`✓ "${name}" convertido e salvo (${origMB}MB→${newMB}MB)`, 'success');
-      await new Promise(r => setTimeout(r, 600));
+      const newMB     = (result.buffer.byteLength / 1024 / 1024).toFixed(1);
+      const reduction = Math.max(0, Math.round((1 - result.buffer.byteLength / file.size) * 100));
+      setConvertUI(label, bar, detail, `"${name}"`, 100,
+        `✓ ${origMB} MB → ${newMB} MB${reduction > 0 ? ' (-'+reduction+'%)' : ''}`);
+      toast(`✓ "${name}" salvo (${origMB}MB → ${newMB}MB)`, 'success');
+      await sleep(700);
 
     } catch(err) {
-      detail.textContent = 'Erro: ' + err.message;
-      toast(`Erro em "${file.name}": ${err.message}`, 'error');
-      console.error('importMedia error:', err);
-      await new Promise(r => setTimeout(r, 1500));
+      setConvertUI(label, bar, detail, `"${name}"`, 0, '✗ Erro: ' + err.message);
+      toast(`Erro em "${name}": ${err.message}`, 'error');
+      console.error('[PodcastStudio] importMedia:', err);
+      await sleep(2000);
     }
   }
 
   statusDiv.style.display = 'none';
-  bar.style.width = '0%';
-  detail.textContent = '';
   renderMusicGrid();
 }
 
-// ── Decodifica arquivo de áudio via Web Audio ─────────────────────────
-async function decodeAudioFile(file, onProgress) {
-  const buf = await file.arrayBuffer();
-  onProgress && onProgress(0.5);
-  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+function setConvertUI(label, bar, detail, name, pct, msg) {
+  label.textContent  = '⚙️ ' + name;
+  bar.style.width    = pct + '%';
+  detail.textContent = msg;
+}
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ── Conversor principal — tenta 3 estratégias em cascata ─────────────
+async function convertFileToWebM(file, onProgress) {
+  // Estratégia 1: HTMLMediaElement → Web Audio → MediaRecorder (universal)
   try {
-    const decoded = await ctx.decodeAudioData(buf.slice(0));
-    onProgress && onProgress(1);
-    await ctx.close();
-    return decoded;
-  } catch(e) {
-    await ctx.close();
-    throw new Error('Formato não suportado pelo navegador: ' + e.message);
+    return await convertViaMediaElement(file, onProgress);
+  } catch(e1) {
+    console.warn('[Strategy 1 failed]', e1.message);
+    onProgress(10, 'Tentando método alternativo...');
+    // Estratégia 2: decodeAudioData → OfflineAudioContext → MediaRecorder
+    try {
+      return await convertViaDecodeAudio(file, onProgress);
+    } catch(e2) {
+      console.warn('[Strategy 2 failed]', e2.message);
+      onProgress(10, 'Tentando método de compatibilidade...');
+      // Estratégia 3: passar direto para o browser reproduzir sem re-encode
+      return await convertViaDirectPlay(file, onProgress);
+    }
   }
 }
 
-// ── Extrai áudio de vídeo via HTMLVideoElement + Web Audio ────────────
-function extractAudioFromVideo(file, onProgress) {
+// ── Estratégia 1: MediaElement → AudioContext → MediaRecorder ─────────
+// Melhor para vídeos e arquivos grandes. O browser decodifica internamente.
+function convertViaMediaElement(file, onProgress) {
   return new Promise((resolve, reject) => {
-    const url   = URL.createObjectURL(file);
-    const video = document.createElement('video');
-    video.src   = url;
-    video.muted = false;
-    video.preload = 'auto';
-    video.crossOrigin = 'anonymous';
+    const url      = URL.createObjectURL(file);
+    const media    = isVideoFile(file)
+      ? document.createElement('video')
+      : document.createElement('audio');
+    media.src      = url;
+    media.preload  = 'auto';
 
-    video.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Vídeo não pôde ser decodificado')); };
+    const cleanup = () => { try { URL.revokeObjectURL(url); } catch(e){} };
 
-    video.onloadedmetadata = async () => {
+    media.onerror = () => {
+      cleanup();
+      reject(new Error('Formato não reconhecido pelo navegador (código ' + (media.error && media.error.code) + ')'));
+    };
+
+    media.onloadedmetadata = () => {
+      const duration = media.duration;
+      if (!isFinite(duration) || duration <= 0) {
+        cleanup();
+        reject(new Error('Duração inválida — arquivo pode estar corrompido'));
+        return;
+      }
+
+      onProgress(12, `Iniciando captura (${Math.round(duration)}s de áudio)...`);
+
       try {
-        const duration = video.duration;
-        const sampleRate = 44100;
-        const numCh = 2;
-        const offCtx = new OfflineAudioContext(numCh, Math.ceil(duration * sampleRate), sampleRate);
+        // AudioContext que captura a saída do elemento de mídia
+        const audioCtx  = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 44100 });
+        const srcNode   = audioCtx.createMediaElementSource(media);
+        const gainNode  = audioCtx.createGain();
+        gainNode.gain.value = 1.0;
+        const destNode  = audioCtx.createMediaStreamDestination();
+        srcNode.connect(gainNode);
+        gainNode.connect(destNode);
+        // Também conectar à saída padrão para permitir a captura
+        gainNode.connect(audioCtx.destination);
 
-        // Criar source de vídeo via MediaElementSource
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate });
-        const mediaSource = audioCtx.createMediaElementSource(video);
+        const mime    = bestAudioMime();
+        const rec     = new MediaRecorder(destNode.stream, {
+          mimeType:          mime,
+          audioBitsPerSecond: 96000,
+        });
+        const chunks  = [];
 
-        // Conectar ao OfflineAudioContext via stream intermediário
-        const dest = audioCtx.createMediaStreamDestination();
-        mediaSource.connect(dest);
+        rec.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
 
-        const srcNode = offCtx.createMediaStreamSource(dest.stream);
-        srcNode.connect(offCtx.destination);
+        rec.onstop = async () => {
+          try { audioCtx.close(); } catch(e){}
+          cleanup();
+          const blob = new Blob(chunks, { type: mime });
+          if (blob.size < 2000) {
+            reject(new Error('Saída vazia — MediaRecorder não capturou dados'));
+            return;
+          }
+          resolve({ buffer: await blob.arrayBuffer(), mimeType: mime.split(';')[0], duration });
+        };
 
-        video.currentTime = 0;
-        await video.play();
-        onProgress && onProgress(0.3);
+        rec.onerror = e => {
+          try { audioCtx.close(); } catch(e2){}
+          cleanup();
+          reject(new Error('MediaRecorder: ' + (e.error && e.error.message || 'erro desconhecido')));
+        };
 
-        // Monitorar progresso
-        const progressInterval = setInterval(() => {
-          const p = video.currentTime / (duration || 1);
-          onProgress && onProgress(0.3 + p * 0.6);
-        }, 500);
+        // Iniciar gravação e reprodução
+        rec.start(500);
+        media.currentTime = 0;
+        media.volume = 1;
+        media.muted  = false;
+        media.play().catch(e => {
+          rec.stop();
+          cleanup();
+          reject(new Error('Playback bloqueado: ' + e.message));
+        });
 
-        const rendered = await offCtx.startRendering();
-        clearInterval(progressInterval);
-        video.pause();
-        await audioCtx.close();
-        URL.revokeObjectURL(url);
-        onProgress && onProgress(1);
-        resolve(rendered);
+        // Progresso baseado no tempo de reprodução
+        const progInterval = setInterval(() => {
+          if (!media.paused && isFinite(media.currentTime)) {
+            const pct = 12 + (media.currentTime / duration) * 80;
+            const rem = Math.round(duration - media.currentTime);
+            onProgress(Math.min(92, pct), `Convertendo... ${rem}s restantes`);
+          }
+        }, 1000);
+
+        // Parar quando terminar
+        media.onended = () => {
+          clearInterval(progInterval);
+          onProgress(93, 'Finalizando codificação...');
+          setTimeout(() => {
+            if (rec.state !== 'inactive') rec.stop();
+          }, 600);
+        };
+
+        // Safety: parar se demorar muito mais que a duração
+        setTimeout(() => {
+          clearInterval(progInterval);
+          if (rec.state !== 'inactive') {
+            rec.stop();
+          }
+        }, (duration + 10) * 1000);
+
       } catch(e) {
-        URL.revokeObjectURL(url);
-        // Fallback: usar FileReader + decodeAudioData
-        reject(new Error('Extração de vídeo falhou, tente um arquivo de áudio'));
+        cleanup();
+        reject(e);
       }
     };
   });
 }
 
-// ── Normaliza AudioBuffer para sample rate alvo ───────────────────────
-async function normalizeAudioBuffer(buffer, targetSR) {
-  const numCh  = Math.min(buffer.numberOfChannels, 2);
-  const newLen = Math.ceil(buffer.duration * targetSR);
-  const offCtx = new OfflineAudioContext(numCh, newLen, targetSR);
-  const src    = offCtx.createBufferSource();
-  src.buffer   = buffer;
-  src.connect(offCtx.destination);
-  src.start(0);
-  return await offCtx.startRendering();
+// ── Estratégia 2: decodeAudioData → OfflineAudioContext → MediaRecorder
+// Bom para MP3/WAV/OGG curtos (< 30min). Processa mais rápido que tempo real.
+async function convertViaDecodeAudio(file, onProgress) {
+  onProgress(10, 'Lendo arquivo...');
+  const arrayBuf = await file.arrayBuffer();
+
+  onProgress(25, 'Decodificando áudio...');
+  const tmpCtx = new (window.AudioContext || window.webkitAudioContext)();
+  let decoded;
+  try {
+    decoded = await tmpCtx.decodeAudioData(arrayBuf.slice(0));
+    await tmpCtx.close();
+  } catch(e) {
+    await tmpCtx.close();
+    throw new Error('decodeAudioData falhou: ' + e.message);
+  }
+
+  const duration   = decoded.duration;
+  const numCh      = Math.min(decoded.numberOfChannels, 2);
+  const sampleRate = 44100;
+
+  onProgress(40, 'Normalizando sample rate...');
+  const newLen  = Math.ceil(duration * sampleRate);
+  // Limite de segurança: OfflineAudioContext não suporta >179M samples (~68min mono)
+  if (newLen > 170000000) {
+    throw new Error('Arquivo muito longo para este método (use um arquivo < 60min)');
+  }
+  const offCtx  = new OfflineAudioContext(numCh, newLen, sampleRate);
+  const srcNode = offCtx.createBufferSource();
+  srcNode.buffer = decoded;
+  srcNode.connect(offCtx.destination);
+  srcNode.start(0);
+
+  onProgress(55, 'Renderizando offline...');
+  const rendered = await offCtx.startRendering();
+
+  onProgress(70, 'Codificando WebM/Opus...');
+  const mime   = bestAudioMime();
+  const buffer = await encodeRenderedBuffer(rendered, mime, 96000, p => {
+    onProgress(70 + p * 22, 'Codificando WebM/Opus...');
+  });
+
+  return { buffer, mimeType: mime.split(';')[0], duration };
 }
 
-// ── Codifica AudioBuffer → WebM/Opus via MediaRecorder ───────────────
-function encodeBufferToWebM(audioBuffer, mimeType, bitrate) {
+// ── Estratégia 3: reproduzir direto sem conversão (fallback) ──────────
+// Salva o arquivo original se o browser conseguir reproduzi-lo.
+async function convertViaDirectPlay(file, onProgress) {
+  onProgress(20, 'Verificando compatibilidade direta...');
   return new Promise((resolve, reject) => {
-    const sampleRate = audioBuffer.sampleRate;
-    const ctx   = new (window.AudioContext || window.webkitAudioContext)({ sampleRate });
-    const dest  = ctx.createMediaStreamDestination();
-    const src   = ctx.createBufferSource();
-    src.buffer  = audioBuffer;
+    const url = URL.createObjectURL(file);
+    const el  = document.createElement('audio');
+    el.src    = url;
+    el.preload = 'metadata';
+    el.onloadedmetadata = async () => {
+      URL.revokeObjectURL(url);
+      onProgress(60, 'Lendo arquivo original...');
+      const buffer   = await file.arrayBuffer();
+      const mimeType = file.type || 'audio/webm';
+      const duration = el.duration;
+      onProgress(95, 'Arquivo será usado como-está...');
+      resolve({ buffer, mimeType, duration });
+    };
+    el.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Nenhuma estratégia funcionou. O arquivo pode estar corrompido ou usar codec não suportado pelo navegador.'));
+    };
+  });
+}
 
-    // Compressor suave para normalizar nível antes de salvar
-    const comp = ctx.createDynamicsCompressor();
-    comp.threshold.value = -18;
-    comp.knee.value = 8;
-    comp.ratio.value = 3;
-    comp.attack.value = 0.01;
-    comp.release.value = 0.2;
-    src.connect(comp);
-    comp.connect(dest);
+// ── Codifica um AudioBuffer renderizado → WebM via MediaRecorder ──────
+function encodeRenderedBuffer(audioBuffer, mimeType, bitrate, onProgress) {
+  return new Promise((resolve, reject) => {
+    const sr   = audioBuffer.sampleRate;
+    const ctx  = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: sr });
+    const dest = ctx.createMediaStreamDestination();
+    const src  = ctx.createBufferSource();
+    src.buffer = audioBuffer;
+    src.connect(dest);
 
     const rec    = new MediaRecorder(dest.stream, { mimeType, audioBitsPerSecond: bitrate });
     const chunks = [];
-    rec.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+    rec.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
     rec.onstop = async () => {
       try { ctx.close(); } catch(e){}
       const blob = new Blob(chunks, { type: mimeType });
-      if (blob.size < 1000) { reject(new Error('Arquivo de saída muito pequeno — codec não suportado')); return; }
+      if (blob.size < 1000) { reject(new Error('Saída vazia do encoder')); return; }
       resolve(await blob.arrayBuffer());
     };
-    rec.onerror = e => { try { ctx.close(); } catch(e2){} reject(e.error || new Error('MediaRecorder error')); };
+    rec.onerror = e => { try { ctx.close(); } catch(e2){} reject(new Error('Encoder error')); };
 
-    rec.start(250);
+    const duration = audioBuffer.duration;
+    rec.start(300);
     src.start(0);
-    src.onended = () => setTimeout(() => { if (rec.state !== 'inactive') rec.stop(); }, 400);
-    // Safety timeout
-    const safety = (audioBuffer.duration + 3) * 1000;
-    setTimeout(() => { if (rec.state !== 'inactive') rec.stop(); }, safety);
+    src.onended = () => setTimeout(() => { if (rec.state !== 'inactive') rec.stop(); }, 500);
+    setTimeout(() => { if (rec.state !== 'inactive') rec.stop(); }, (duration + 5) * 1000);
   });
 }
 
 // ── Limpar todas as trilhas ───────────────────────────────────────────
 async function clearAllTracks() {
   if (!_musicTracks.length) return;
-  if (!confirm('Excluir TODAS as trilhas? Esta ação não pode ser desfeita.')) return;
+  if (!confirm('Excluir TODAS as trilhas permanentemente?')) return;
   stopBgMusic();
   state.activeBgMusic = null;
-  // Deletar cada uma do DB
   for (const t of _musicTracks) await musicDbDelete(t.id);
   _musicTracks = [];
   renderMusicGrid();
   toast('Todas as trilhas removidas', 'success');
 }
+
 
 // ── Deletar trilha do DB e lista ─────────────────────────────────────
 async function deleteTrack(id) {
