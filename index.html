@@ -933,6 +933,100 @@ input[type=range].vol-sl{
 .music-vol-wrap input{flex:1;accent-color:var(--cyan);}
 .music-vol-wrap span{font-size:11px;font-family:var(--mono);color:var(--text2);min-width:34px;text-align:right;}
 
+/* ─── MUSIC PLAYING BADGE ────────── */
+.music-playing-badge{
+  font-size:9px;font-weight:700;letter-spacing:0.5px;
+  color:var(--green);text-transform:uppercase;
+  margin-top:2px;
+}
+
+/* ─── VIDEO RECORDING UI ─────────── */
+.video-rec-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--radius);overflow:hidden;
+  margin-bottom:14px;position:relative;
+}
+.video-rec-preview{
+  width:100%;aspect-ratio:16/9;background:#000;
+  display:block;object-fit:cover;
+}
+.video-rec-overlay{
+  position:absolute;top:10px;right:10px;
+  display:flex;gap:6px;
+}
+.video-rec-badge{
+  background:rgba(255,68,68,0.9);color:#fff;
+  font-size:10px;font-weight:700;letter-spacing:0.5px;
+  padding:4px 10px;border-radius:20px;
+  display:none;align-items:center;gap:5px;
+}
+.video-rec-badge.active{display:flex;}
+.video-rec-dot{width:6px;height:6px;border-radius:50%;background:#fff;animation:blink 1s ease infinite;}
+.video-pip{
+  position:absolute;bottom:10px;right:10px;
+  width:90px;height:60px;border-radius:8px;
+  object-fit:cover;border:2px solid rgba(255,255,255,0.3);
+  display:none;
+}
+.video-pip.active{display:block;}
+.video-controls-bar{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 14px;border-top:1px solid var(--border);
+  background:var(--bg3);
+}
+.cam-selector{
+  flex:1;font-size:12px;padding:6px 10px;
+  background:var(--bg4);border:1px solid var(--border2);
+  color:var(--text);border-radius:8px;font-family:var(--sans);
+}
+.video-takes-list{margin-top:8px;}
+.video-take-card{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--radius2);padding:10px 14px;
+  display:flex;align-items:center;gap:10px;margin-bottom:6px;
+}
+.video-take-thumb{
+  width:60px;height:40px;border-radius:6px;
+  object-fit:cover;background:#111;flex-shrink:0;
+}
+.video-take-info{flex:1;min-width:0;}
+.video-take-name{font-size:12px;font-weight:600;}
+.video-take-meta{font-size:10px;color:var(--text3);font-family:var(--mono);}
+
+/* ─── NOVOS RECURSOS PODCAST ─────── */
+.podcast-tips-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;
+  margin-bottom:14px;
+}
+.tip-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--radius2);padding:12px;
+  font-size:11px;color:var(--text2);line-height:1.5;
+}
+.tip-card-icon{font-size:20px;margin-bottom:6px;}
+.tip-card-title{font-weight:700;color:var(--text);margin-bottom:3px;font-size:12px;}
+
+.chapter-list{display:flex;flex-direction:column;gap:6px;}
+.chapter-item{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--radius2);padding:10px 14px;
+  display:flex;align-items:center;gap:10px;
+}
+.chapter-time{font-family:var(--mono);font-size:11px;color:var(--accent);min-width:44px;}
+.chapter-name{font-size:13px;font-weight:500;flex:1;}
+.chapter-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:2px 6px;}
+
+.noise-indicator{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 14px;border-radius:var(--radius2);
+  background:var(--bg2);border:1px solid var(--border);
+  margin-bottom:12px;font-size:12px;
+}
+.noise-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.noise-dot.good{background:var(--green);}
+.noise-dot.warn{background:var(--amber);}
+.noise-dot.bad{background:var(--red);}
+
 /* ─── SPEAKERS ─────────────────────── */
 .speakers-box{
   background:var(--bg2);border:1px solid var(--border);
@@ -1017,6 +1111,8 @@ input[type=range].vol-sl{
         <button class="studio-tab" onclick="switchStudioTab('voz',this)">Voz FX</button>
         <button class="studio-tab" onclick="switchStudioTab('musica',this)">Música</button>
         <button class="studio-tab" onclick="switchStudioTab('transcricao',this)">Transcrição</button>
+        <button class="studio-tab" onclick="switchStudioTab('video',this)">📹 Vídeo</button>
+        <button class="studio-tab" onclick="switchStudioTab('capitulos',this)">📖 Capítulos</button>
         <button class="studio-tab" onclick="switchStudioTab('exportar',this)">Exportar</button>
       </div>
     </div>
@@ -1024,9 +1120,15 @@ input[type=range].vol-sl{
     <!-- ── TAB: GRAVAÇÃO ── -->
     <div class="studio-panel active" id="panel-gravacao">
 
-      <!-- Video preview -->
-      <div class="video-preview" id="videoPreview">
-        <video id="videoEl" autoplay muted playsinline></video>
+      <!-- Video preview (funcional) -->
+      <div class="video-preview" id="videoPreview" style="position:relative;">
+        <video id="videoEl" autoplay muted playsinline style="width:100%;border-radius:var(--radius2);"></video>
+        <div class="video-rec-overlay">
+          <div class="video-rec-badge" id="videoRecBadge">
+            <div class="video-rec-dot"></div>REC
+          </div>
+        </div>
+        <video id="videoPip" class="video-pip" autoplay muted playsinline></video>
       </div>
 
       <!-- Visualizer -->
@@ -1278,32 +1380,42 @@ input[type=range].vol-sl{
 
     <!-- ── TAB: MÚSICA ── -->
     <div class="studio-panel" id="panel-musica">
-      <p style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.6;">Escolha um fundo musical. O volume é ajustado automaticamente durante a fala (ducking).</p>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.6;">Música instrumental gerada em tempo real. Mantém o ambiente do podcast sem interferir na voz.</p>
 
-      <div class="section-label" style="margin-bottom:10px;">Trilhas built-in</div>
+      <div class="section-label" style="margin-bottom:10px;">Trilhas Instrumentais</div>
       <div class="music-grid" id="musicGrid"></div>
 
-      <div class="music-vol-wrap">
-        <label>Volume fundo</label>
+      <div class="music-vol-wrap" style="margin-top:14px;">
+        <label>Volume</label>
         <input type="range" min="0" max="100" value="25" id="bgVolSlider" oninput="updateBgVol()">
         <span id="bgVolVal">25%</span>
       </div>
 
-      <div class="fx-card" style="margin-top:10px;">
+      <div class="fx-card" style="margin-top:12px;">
         <div class="toggle-row">
-          <span class="toggle-label">🦆 Auto-ducking durante fala</span>
+          <span class="toggle-label">🦆 Auto-ducking (baixa quando você fala)</span>
           <button class="toggle on" id="togDucking" onclick="toggleFX(this)"></button>
         </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.5;">O volume da música reduz automaticamente em 60% quando detecta sua voz, como nos podcasts profissionais.</div>
       </div>
 
-      <div style="margin-top:12px;">
-        <div class="section-label" style="margin-bottom:10px;">Importar trilha</div>
+      <div style="margin-top:16px;">
+        <div class="section-label" style="margin-bottom:10px;">Importar sua música</div>
         <label class="btn btn-ghost" style="cursor:pointer;display:inline-flex;align-items:center;gap:8px;width:100%;justify-content:center;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          Selecionar arquivo de áudio
+          📁 Selecionar MP3 / WAV / OGG
           <input type="file" accept="audio/*" style="display:none;" onchange="importMusic(this)">
         </label>
         <div id="importedTrackInfo" style="font-size:12px;color:var(--text3);margin-top:8px;text-align:center;"></div>
+      </div>
+
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);">
+        <div class="section-label" style="margin-bottom:10px;">Dicas de uso</div>
+        <div style="font-size:11px;color:var(--text3);line-height:1.7;">
+          • Volume ideal para fundo: <strong>15–25%</strong><br>
+          • Use <em>Lofi Chill</em> ou <em>Jazz Suave</em> para conversas<br>
+          • Use <em>Ambient Pad</em> para narrações introspectivas<br>
+          • Use <em>Chill Beats</em> para podcasts de cultura pop
+        </div>
       </div>
     </div><!-- /panel-musica -->
 
@@ -1332,6 +1444,93 @@ input[type=range].vol-sl{
         <div id="speakersDetected"></div>
       </div>
     </div><!-- /panel-transcricao -->
+
+    <!-- ── TAB: VÍDEO ── -->
+    <div class="studio-panel" id="panel-video">
+      <p style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.6;">Grave episódios em vídeo com câmera e microfone. Perfeito para vídeo-podcasts e YouTube.</p>
+
+      <div class="video-rec-card">
+        <video id="videoCamPreview" class="video-rec-preview" autoplay muted playsinline></video>
+        <div class="video-rec-overlay">
+          <div class="video-rec-badge" id="videoPanelRecBadge">
+            <div class="video-rec-dot"></div>REC
+          </div>
+        </div>
+      </div>
+
+      <div class="video-controls-bar">
+        <select class="cam-selector" id="camSelectVideo" onchange="updateVideoCam()">
+          <option>Carregando câmeras...</option>
+        </select>
+        <button class="ctrl-btn primary" id="btnVideoRec" onclick="toggleVideoRecord()" style="flex-shrink:0;padding:8px 14px;">
+          <span class="ci">⏺</span>Gravar Vídeo
+        </button>
+        <button class="ctrl-btn success" id="btnVideoSave" onclick="saveVideoTake()" disabled style="flex-shrink:0;padding:8px 14px;">
+          <span class="ci">💾</span>Salvar
+        </button>
+      </div>
+
+      <div style="margin-top:14px;">
+        <div class="takes-header">
+          <div class="section-label">Takes de Vídeo</div>
+          <div class="takes-count" id="videoTakesCount">0</div>
+        </div>
+        <div id="videoTakesList">
+          <div class="empty-state" style="padding:16px 0;">
+            <div class="empty-icon" style="font-size:28px;">🎬</div>
+            <div class="empty-text">Nenhum take de vídeo ainda.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fx-card" style="margin-top:14px;">
+        <div class="fx-title">⚙️ Configurações de Vídeo</div>
+        <div class="fx-row" style="margin-top:10px;">
+          <span class="fx-label">Resolução</span>
+          <select class="form-select" id="videoRes" style="flex:1;">
+            <option value="1280x720">720p HD</option>
+            <option value="1920x1080" selected>1080p Full HD</option>
+          </select>
+        </div>
+        <div class="toggle-row" style="margin-top:8px;">
+          <span class="toggle-label">Mostrar câmera durante gravação de áudio (PiP)</span>
+          <button class="toggle" id="togPiP" onclick="toggleFX(this)"></button>
+        </div>
+      </div>
+    </div><!-- /panel-video -->
+
+    <!-- ── TAB: CAPÍTULOS ── -->
+    <div class="studio-panel" id="panel-capitulos">
+      <p style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.6;">Marque capítulos durante ou após a gravação. Aparecem nos players de podcast como Spotify e Apple Podcasts.</p>
+
+      <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center;">
+        <button class="btn btn-primary btn-sm" onclick="addChapterNow()">⏱ Marcar Agora</button>
+        <input class="form-input" id="chapterNameInput" placeholder="Nome do capítulo..." style="flex:1;padding:8px 12px;font-size:13px;">
+        <button class="btn btn-ghost btn-sm" onclick="addChapterManual()">+ Adicionar</button>
+      </div>
+
+      <div class="chapter-list" id="chapterList">
+        <div class="empty-state" style="padding:16px 0;">
+          <div class="empty-icon" style="font-size:24px;">📖</div>
+          <div class="empty-text">Nenhum capítulo ainda.</div>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);display:flex;gap:8px;">
+        <button class="btn btn-ghost btn-sm" onclick="exportChapters()" style="flex:1;justify-content:center;">⬇ Exportar .chapters</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportChaptersJson()" style="flex:1;justify-content:center;">⬇ Exportar JSON</button>
+      </div>
+
+      <div class="fx-card" style="margin-top:14px;">
+        <div class="fx-title">📊 Sobre capítulos</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.7;">
+          • Spotify, Apple Podcasts e Overcast suportam capítulos<br>
+          • Adicione capítulos para cada tema ou convidado<br>
+          • Formatos: Podlove, JSON, MP3chapters<br>
+          • Episódios com capítulos têm <strong>+40% de retenção</strong>
+        </div>
+      </div>
+    </div><!-- /panel-capitulos -->
 
     <!-- ── TAB: EXPORTAR ── -->
     <div class="studio-panel" id="panel-exportar">
@@ -1648,6 +1847,7 @@ function switchStudioTab(tab, el) {
   document.querySelectorAll('.studio-panel').forEach(p => p.classList.remove('active'));
   el.classList.add('active');
   document.getElementById('panel-' + tab).classList.add('active');
+  if (tab === 'video') { initVideoCam(); }
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -2226,32 +2426,21 @@ function updateFX() {
 function toggleFX(btn) { btn.classList.toggle('on'); }
 
 // ═══════════════════════════════════════════════════════════════════
-// BACKGROUND MUSIC — Gerador procedural de música podcast
+// BACKGROUND MUSIC — Síntese FM de alta qualidade (estilo podcast real)
 // ═══════════════════════════════════════════════════════════════════
+
 const BG_TRACKS = [
-  { name: 'Lofi Chill',    icon: '🌙', bpm: 70,  style: 'lofi',      desc: '70 BPM · Suave' },
-  { name: 'Podcast Jazz',  icon: '🎷', bpm: 85,  style: 'jazz',      desc: '85 BPM · Instrumental' },
-  { name: 'Ambient Pad',   icon: '🌊', bpm: 0,   style: 'ambient',   desc: 'Atmosférico · Drone' },
-  { name: 'Acoustic Folk', icon: '🎸', bpm: 90,  style: 'acoustic',  desc: '90 BPM · Violão' },
-  { name: 'Corporate',     icon: '💼', bpm: 100, style: 'corporate', desc: '100 BPM · Moderno' },
-  { name: 'Chill Beats',   icon: '🎹', bpm: 80,  style: 'chillbeats',desc: '80 BPM · Piano' },
+  { name: 'Lofi Chill',     icon: '🌙', style: 'lofi',      desc: '70 BPM · Piano suave' },
+  { name: 'Jazz Suave',     icon: '🎷', style: 'jazz',      desc: '85 BPM · Contrabaixo e piano' },
+  { name: 'Ambient Pad',    icon: '🌊', style: 'ambient',   desc: 'Atmosférico · Textura etérea' },
+  { name: 'Acoustic Folk',  icon: '🎸', style: 'acoustic',  desc: '90 BPM · Violão fingerpicking' },
+  { name: 'Corporate Pop',  icon: '💼', style: 'corporate', desc: '100 BPM · Moderno e limpo' },
+  { name: 'Chill Beats',    icon: '🎹', style: 'chillbeats',desc: '80 BPM · Hip-hop instrumental' },
 ];
 
-// Escalas para cada estilo
-const SCALES = {
-  lofi:       [0,2,3,5,7,9,10], // dorian
-  jazz:       [0,2,4,5,7,9,11], // maior
-  ambient:    [0,4,7,11],        // maj7 arpeggio
-  acoustic:   [0,2,4,7,9],       // pentatônica maior
-  corporate:  [0,2,4,5,7,9,11], // maior
-  chillbeats: [0,3,5,7,10],      // minor pentatônica
-};
-const BASE_FREQS = { C4:261.63, D4:293.66, E4:329.63, F4:349.23, G4:392.00, A4:440.00, Bb4:466.16 };
-
-function midiToHz(midi) { return 440 * Math.pow(2,(midi-69)/12); }
-
+function midiToHz(m) { return 440 * Math.pow(2, (m - 69) / 12); }
 function stopBgMusic() {
-  if (state.bgAudioCtx) { state.bgAudioCtx.close(); state.bgAudioCtx = null; }
+  if (state.bgAudioCtx) { try { state.bgAudioCtx.close(); } catch(e){} state.bgAudioCtx = null; }
   state.bgGain = null;
   if (state._bgScheduler) { clearTimeout(state._bgScheduler); state._bgScheduler = null; }
 }
@@ -2262,6 +2451,7 @@ function renderMusicGrid() {
       <div class="music-icon">${tr.icon}</div>
       <div class="music-name">${tr.name}</div>
       <div class="music-bpm">${tr.desc}</div>
+      ${state.activeBgMusic === i ? '<div class="music-playing-badge">▶ Tocando</div>' : ''}
     </div>
   `).join('');
 }
@@ -2279,128 +2469,231 @@ function selectBgMusic(idx) {
   toast(`🎵 ${BG_TRACKS[idx].name} tocando`, 'success');
 }
 
+// ─── Síntese de instrumento via FM + filtros ─────────────────────
+
+function makeFMNote(ctx, freq, modRatio, modIdx, dur, vol, dest) {
+  const carr = ctx.createOscillator();
+  const mod  = ctx.createOscillator();
+  const modG = ctx.createGain();
+  const ampG = ctx.createGain();
+  const filt = ctx.createBiquadFilter();
+  filt.type = 'lowpass';
+  filt.frequency.value = freq * 8;
+  filt.Q.value = 0.7;
+  mod.frequency.value  = freq * modRatio;
+  modG.gain.value      = freq * modIdx;
+  carr.frequency.value = freq;
+  mod.connect(modG); modG.connect(carr.frequency);
+  carr.connect(filt); filt.connect(ampG); ampG.connect(dest);
+  const att = Math.min(0.05, dur * 0.1), rel = Math.min(0.3, dur * 0.4);
+  const t = ctx.currentTime;
+  ampG.gain.setValueAtTime(0, t);
+  ampG.gain.linearRampToValueAtTime(vol, t + att);
+  ampG.gain.setValueAtTime(vol, t + dur - rel);
+  ampG.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  mod.start(t); carr.start(t); mod.stop(t + dur + 0.05); carr.stop(t + dur + 0.05);
+}
+
+function schedNote(ctx, freq, start, dur, vol, dest, type='sine', modR=0, modI=0) {
+  if (modR > 0) { makeFMNote(ctx, freq, modR, modI, dur, vol, dest); return; }
+  const osc = ctx.createOscillator();
+  const g   = ctx.createGain();
+  osc.type = type; osc.frequency.value = freq;
+  osc.connect(g); g.connect(dest);
+  const att = Math.min(0.04, dur * 0.08), rel = Math.min(0.25, dur * 0.3);
+  g.gain.setValueAtTime(0, start);
+  g.gain.linearRampToValueAtTime(vol, start + att);
+  g.gain.setValueAtTime(vol, start + dur - rel);
+  g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+  osc.start(start); osc.stop(start + dur + 0.05);
+}
+
+function makeReverb(ctx) {
+  // IIR reverb de alta qualidade via rede de delays paralelos
+  const merger = ctx.createGain(); merger.gain.value = 1;
+  const out    = ctx.createGain(); out.gain.value = 0.22;
+  const times  = [0.029, 0.037, 0.057, 0.083, 0.107, 0.149, 0.179, 0.211];
+  times.forEach(t => {
+    const d  = ctx.createDelay(0.5); d.delayTime.value = t;
+    const fb = ctx.createGain(); fb.gain.value = 0.45;
+    const lp = ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=3200;
+    merger.connect(d); d.connect(lp); lp.connect(fb); fb.connect(d); fb.connect(out);
+  });
+  merger._out = out;
+  return merger;
+}
+
 function playBgTrack(track) {
   stopBgMusic();
-  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 44100 });
   state.bgAudioCtx = ctx;
-  const masterGain = ctx.createGain();
-  const volPct = parseInt(document.getElementById('bgVolSlider').value) / 100;
-  masterGain.gain.value = volPct * 0.18; // max 18% para não atrapalhar voz
-  masterGain.connect(ctx.destination);
-  state.bgGain = masterGain;
+  const vol = parseInt(document.getElementById('bgVolSlider').value) / 100;
+  const master = ctx.createGain();
+  master.gain.value = vol * 0.15;
+  master.connect(ctx.destination);
+  state.bgGain = master;
 
-  // Reverb convolution simulado via delay feedback
-  const convGain = ctx.createGain();
-  convGain.gain.value = 0.18;
-  const delay1 = ctx.createDelay(2); delay1.delayTime.value = 0.35;
-  const delay2 = ctx.createDelay(2); delay2.delayTime.value = 0.55;
-  const fbGain1 = ctx.createGain(); fbGain1.gain.value = 0.25;
-  const fbGain2 = ctx.createGain(); fbGain2.gain.value = 0.18;
-  convGain.connect(delay1); delay1.connect(fbGain1); fbGain1.connect(delay1); fbGain1.connect(masterGain);
-  convGain.connect(delay2); delay2.connect(fbGain2); fbGain2.connect(delay2); fbGain2.connect(masterGain);
+  const rev = makeReverb(ctx);
+  rev._out.connect(master);
+  // Dry + wet mix
+  const dry = ctx.createGain(); dry.gain.value = 0.75; dry.connect(master);
+  const wet = ctx.createGain(); wet.gain.value = 0.25; rev._out.connect(wet); // já conectado acima
 
   const style = track.style;
-  const scale = SCALES[style] || SCALES.lofi;
-  const rootMidi = 60; // C4
+  const bpm   = { lofi:70, jazz:85, acoustic:90, corporate:100, chillbeats:80, ambient:0 }[style] || 80;
+  const beat  = bpm > 0 ? 60 / bpm : 0;
+  const bar   = beat * 4;
 
-  function note(freq, start, dur, vol=0.15, type='sine') {
-    const osc = ctx.createOscillator();
-    const g = ctx.createGain();
-    osc.type = type;
-    osc.frequency.value = freq;
-    const att = 0.06, rel = 0.15;
-    g.gain.setValueAtTime(0, start);
-    g.gain.linearRampToValueAtTime(vol, start + att);
-    g.gain.setValueAtTime(vol, start + dur - rel);
-    g.gain.linearRampToValueAtTime(0, start + dur);
-    osc.connect(g); g.connect(masterGain); g.connect(convGain);
-    osc.start(start); osc.stop(start + dur + 0.05);
+  // ── Progressões harmônicas (midi root = C3=48, C4=60) ──────────
+
+  const PROGS = {
+    lofi:       [[48,52,55,59],[45,48,52,55],[43,47,50,53],[45,48,52,55]], // Cmaj7 Am7 Fmaj7 Am7
+    jazz:       [[48,52,55,59],[50,53,57,60],[52,55,59,62],[43,47,50,55]], // Cmaj7 Dm7 Em7 G7
+    acoustic:   [[48,52,55],[43,47,50],[45,48,52],[50,53,57]],              // C G Am Dm
+    corporate:  [[48,52,55,59],[55,59,62,65],[43,47,50,53],[50,54,57,60]], // Cmaj7 Gmaj7 Fmaj7 Dsus
+    chillbeats: [[48,51,55,58],[43,46,50,53],[45,48,51,55],[50,53,56,60]], // Cm7 Gm7 Abmaj7 Bbm7
+  };
+
+  function scheduleChords(startT, barCount) {
+    const prog = PROGS[style] || PROGS.lofi;
+    for (let b = 0; b < barCount; b++) {
+      const bt    = startT + b * bar;
+      const chord = prog[b % prog.length];
+      const root  = chord[0];
+
+      if (style === 'lofi') {
+        // Piano Rhodes: FM suave
+        chord.forEach((m, i) => schedNote(ctx, midiToHz(m), bt + i*0.015, bar*1.85, 0.12, dry, 'sine', 3.5, 1.2));
+        // Vibrato pad leve
+        chord.forEach(m => schedNote(ctx, midiToHz(m+12), bt, bar*1.9, 0.04, rev, 'sine', 1, 0.3));
+        // Contrabaixo fingered
+        schedNote(ctx, midiToHz(root-12), bt, beat*0.5, 0.20, dry, 'sine', 2, 1.5);
+        schedNote(ctx, midiToHz(root-12), bt+beat*2+beat*0.5, beat*0.4, 0.15, dry, 'sine', 2, 1.5);
+        // Hi-hat sutil (noise filtrado)
+        for (let h=0; h<8; h++) {
+          const hg = ctx.createGain(); const buf = ctx.createBuffer(1, ctx.sampleRate*0.02, ctx.sampleRate);
+          const d = buf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+          const src = ctx.createBufferSource(); src.buffer = buf;
+          const hp = ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=8000;
+          hg.gain.value = 0.018; src.connect(hp); hp.connect(hg); hg.connect(dry);
+          src.start(bt + h*beat*0.5);
+        }
+
+      } else if (style === 'jazz') {
+        // Piano jazz voicings — FM Rhodes
+        chord.forEach((m, i) => schedNote(ctx, midiToHz(m), bt + i*0.02, bar*0.95, 0.10, dry, 'sine', 4, 1.5));
+        // Contrabaixo walking
+        const walk = [root-12, root-12+2, root-12+4, root-12+5];
+        walk.forEach((m,i) => schedNote(ctx, midiToHz(m), bt+i*beat, beat*0.75, 0.22, dry, 'triangle', 2, 2));
+        // Prato suave (reverb)
+        schedNote(ctx, midiToHz(80), bt, beat*0.06, 0.03, rev, 'sine');
+        schedNote(ctx, midiToHz(80), bt+beat*2, beat*0.06, 0.025, rev, 'sine');
+
+      } else if (style === 'acoustic') {
+        // Violão fingerpicking — FM com harmônicos
+        const arp = [root, root+4, root+7, root+12, root+7, root+4, root+12, root+7];
+        arp.forEach((m,i) => schedNote(ctx, midiToHz(m), bt+i*beat*0.5, beat*0.45, 0.14-i*0.008, dry, 'sine', 5, 0.8));
+        // Baixo percussivo
+        schedNote(ctx, midiToHz(root-12), bt, beat*0.35, 0.25, dry, 'triangle', 3, 3);
+        schedNote(ctx, midiToHz(root-5), bt+beat*2, beat*0.35, 0.20, dry, 'triangle', 3, 3);
+
+      } else if (style === 'corporate') {
+        // Synth pad limpo
+        chord.forEach(m => schedNote(ctx, midiToHz(m), bt, bar*1.8, 0.08, dry, 'sine', 1, 0.5));
+        chord.forEach(m => schedNote(ctx, midiToHz(m+12), bt, bar*1.8, 0.04, rev, 'sine', 0.5, 0.3));
+        // Baixo synth
+        schedNote(ctx, midiToHz(root-12), bt, beat*0.3, 0.20, dry, 'sine', 2, 2);
+        schedNote(ctx, midiToHz(root-12), bt+beat, beat*0.3, 0.16, dry, 'sine', 2, 2);
+        schedNote(ctx, midiToHz(root-12), bt+beat*2, beat*0.3, 0.18, dry, 'sine', 2, 2);
+        schedNote(ctx, midiToHz(root-12), bt+beat*3, beat*0.3, 0.14, dry, 'sine', 2, 2);
+        // Melodia synth flutuante
+        const melNotes = [root+7, root+9, root+12, root+7];
+        schedNote(ctx, midiToHz(melNotes[b%4]+12), bt+beat*0.5, beat*1.5, 0.06, rev, 'sine', 1, 0.8);
+
+      } else if (style === 'chillbeats') {
+        // Piano lowfi com flutter
+        chord.forEach((m,i) => {
+          schedNote(ctx, midiToHz(m), bt+i*0.03, bar*1.9, 0.09, dry, 'sine', 4, 1.8);
+        });
+        // Kick sintético (beat 1 e 3)
+        [0, beat*2].forEach(off => {
+          const kg = ctx.createGain(); const kosc = ctx.createOscillator();
+          kosc.frequency.setValueAtTime(180, bt+off); kosc.frequency.exponentialRampToValueAtTime(40, bt+off+0.12);
+          kg.gain.setValueAtTime(0.35, bt+off); kg.gain.exponentialRampToValueAtTime(0.001, bt+off+0.25);
+          kosc.connect(kg); kg.connect(dry); kosc.start(bt+off); kosc.stop(bt+off+0.3);
+        });
+        // Snare sintético (beat 2 e 4)
+        [beat, beat*3].forEach(off => {
+          const sg = ctx.createGain(); const sbuf = ctx.createBuffer(1, ctx.sampleRate*0.15, ctx.sampleRate);
+          const sd = sbuf.getChannelData(0); for(let i=0;i<sd.length;i++) sd[i]=(Math.random()*2-1)*Math.exp(-i/(ctx.sampleRate*0.05));
+          const src = ctx.createBufferSource(); src.buffer = sbuf;
+          const bp = ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=800; bp.Q.value=0.5;
+          sg.gain.value = 0.25; src.connect(bp); bp.connect(sg); sg.connect(dry); src.start(bt+off);
+        });
+        // Hi-hat 16th
+        for(let h=0;h<16;h++) {
+          if (h%4===2) continue; // pausa no 3
+          const hg = ctx.createGain(); const hbuf = ctx.createBuffer(1, ctx.sampleRate*0.025, ctx.sampleRate);
+          const hd = hbuf.getChannelData(0); for(let i=0;i<hd.length;i++) hd[i]=Math.random()*2-1;
+          const src = ctx.createBufferSource(); src.buffer = hbuf;
+          const hp = ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=9000;
+          hg.gain.value = h%2===0 ? 0.025 : 0.012;
+          src.connect(hp); hp.connect(hg); hg.connect(dry); src.start(bt+h*beat*0.25);
+        }
+        // Baixo synth groove
+        const bassLine = [root-12, root-12, root-10, root-12, root-7, root-12, root-10, root-9];
+        bassLine.forEach((m,i) => schedNote(ctx, midiToHz(m), bt+i*beat*0.5, beat*0.42, 0.22, dry, 'sine', 2.5, 3));
+      }
+    }
   }
-
-  function chord(midiNotes, start, dur, vol=0.06) {
-    midiNotes.forEach(m => note(midiToHz(m), start, dur, vol, 'sine'));
-  }
-
-  const now = ctx.currentTime;
 
   if (style === 'ambient') {
-    // Drone suave com pads
-    const drones = [48,55,60,64,67]; // C3,G3,C4,E4,G4
-    drones.forEach((m,i) => {
-      const osc = ctx.createOscillator();
-      const lfo = ctx.createOscillator();
+    // Pad etéreo — 5 camadas de síntese FM com LFO lento
+    const notes = [48,55,60,64,67,72]; // C3 G3 C4 E4 G4 C5
+    notes.forEach((m, i) => {
+      const osc  = ctx.createOscillator();
+      const modO = ctx.createOscillator();
+      const modG = ctx.createGain();
+      const g    = ctx.createGain();
+      const lfo  = ctx.createOscillator();
       const lfoG = ctx.createGain();
-      const g = ctx.createGain();
+      const filt = ctx.createBiquadFilter();
       osc.type = 'sine'; osc.frequency.value = midiToHz(m);
-      lfo.frequency.value = 0.08 + i*0.03; lfoG.gain.value = 2;
+      modO.frequency.value = midiToHz(m) * (1 + i * 0.5);
+      modG.gain.value = midiToHz(m) * 0.3;
+      lfo.frequency.value = 0.05 + i * 0.02; lfoG.gain.value = 4;
+      filt.type = 'lowpass'; filt.frequency.value = 1200 + i * 200;
+      modO.connect(modG); modG.connect(osc.frequency);
       lfo.connect(lfoG); lfoG.connect(osc.frequency);
-      g.gain.value = 0.04 - i*0.005;
-      osc.connect(g); g.connect(masterGain); g.connect(convGain);
-      lfo.start(now); osc.start(now);
-      // fade in lento
-      g.gain.setValueAtTime(0, now);
-      g.gain.linearRampToValueAtTime(0.04 - i*0.005, now + 4);
+      osc.connect(filt); filt.connect(g);
+      g.connect(dry); g.connect(rev);
+      const peak = (0.05 - i * 0.006);
+      g.gain.setValueAtTime(0, ctx.currentTime);
+      g.gain.linearRampToValueAtTime(peak, ctx.currentTime + 4 + i * 1.5);
+      modO.start(); lfo.start(); osc.start();
     });
     return;
   }
 
-  // Sequenciador rítmico para outros estilos
-  const bpm = track.bpm || 80;
-  const beat = 60 / bpm;
-  const bar = beat * 4;
-  const bars = 8; // loop de 8 compassos
-  const loopDur = bar * bars;
+  // Loop scheduler para estilos rítmicos
+  const loopBars = 8;
+  const loopDur  = bar * loopBars;
 
-  function scheduleLoop(startTime) {
+  function scheduleLoop(startT) {
     if (!state.bgAudioCtx || state.bgAudioCtx !== ctx) return;
-    for (let b = 0; b < bars; b++) {
-      const bt = startTime + b * bar;
-      // Acordes (muda a cada 2 compassos)
-      const chordIdx = Math.floor(b / 2) % 4;
-      const chordRoots = [0,5,7,3]; // graus: I IV V III
-      const root = rootMidi + chordRoots[chordIdx];
-      const chordNotes = [root, root+4, root+7, root+12].map(n => n + (b%2===0 ? 0 : 12));
-      if (style === 'lofi' || style === 'chillbeats') {
-        // Piano/Rhodes pad
-        chord(chordNotes, bt, bar * 1.9, 0.05);
-        // Baixo no 1 e 3
-        note(midiToHz(root - 12), bt, beat*0.4, 0.12, 'triangle');
-        note(midiToHz(root - 12), bt + beat*2, beat*0.4, 0.10, 'triangle');
-        // Hi-hat 8th notes (sine breve)
-        for (let h=0; h<8; h++) note(midiToHz(84), bt+h*beat*0.5, 0.04, 0.02, 'sine');
-      } else if (style === 'jazz') {
-        chord([root,root+4,root+7,root+11], bt, bar*0.9, 0.045);
-        chord([root,root+3,root+7,root+10], bt+bar, bar*0.9, 0.04);
-        // Walking bass simplificado
-        scale.slice(0,4).forEach((s,i) => note(midiToHz(root+s-12), bt+i*beat, beat*0.7, 0.1, 'triangle'));
-      } else if (style === 'acoustic') {
-        // Arpejo de violão
-        [root, root+4, root+7, root+12, root+7, root+4].forEach((m,i) =>
-          note(midiToHz(m), bt + i * beat * 0.65, beat * 0.5, 0.07, 'triangle'));
-        note(midiToHz(root-12), bt, beat*0.5, 0.1, 'triangle');
-        note(midiToHz(root-7),  bt+beat*2, beat*0.5, 0.08, 'triangle');
-      } else if (style === 'corporate') {
-        chord(chordNotes, bt, bar*1.8, 0.04);
-        // Bass pump
-        [0,1,2,3].forEach(i => note(midiToHz(root-12), bt+i*beat, beat*0.3, 0.1, 'sine'));
-        // Melody note (cada 2 beats)
-        const melStep = scale[b % scale.length];
-        note(midiToHz(root+melStep+12), bt+beat, beat*0.8, 0.05, 'sine');
-      }
-    }
-    // Agenda próxima iteração do loop
-    const next = startTime + loopDur;
-    const delay = Math.max(0, (next - ctx.currentTime - 0.5) * 1000);
-    state._bgScheduler = setTimeout(() => scheduleLoop(next), delay);
+    scheduleChords(startT, loopBars);
+    const next = startT + loopDur;
+    const ms   = Math.max(100, (next - ctx.currentTime - 1.0) * 1000);
+    state._bgScheduler = setTimeout(() => scheduleLoop(next), ms);
   }
 
-  scheduleLoop(now + 0.1);
+  scheduleLoop(ctx.currentTime + 0.05);
 }
 
 function updateBgVol() {
   const v = document.getElementById('bgVolSlider').value;
   document.getElementById('bgVolVal').textContent = v + '%';
-  if (state.bgGain) state.bgGain.gain.value = (v / 100) * 0.18;
+  if (state.bgGain) state.bgGain.gain.value = (v / 100) * 0.15;
 }
 
 function importMusic(input) {
@@ -2410,21 +2703,20 @@ function importMusic(input) {
   stopBgMusic();
   state.activeBgMusic = 'custom';
   renderMusicGrid();
-  // Reproduzir arquivo importado com Web Audio para controle de volume
   const ctx = new (window.AudioContext || window.webkitAudioContext)();
   state.bgAudioCtx = ctx;
   fetch(url).then(r => r.arrayBuffer()).then(buf => ctx.decodeAudioData(buf)).then(decoded => {
     const src = ctx.createBufferSource();
     src.buffer = decoded; src.loop = true;
     const g = ctx.createGain();
-    g.gain.value = parseInt(document.getElementById('bgVolSlider').value) / 100 * 0.18;
+    g.gain.value = parseInt(document.getElementById('bgVolSlider').value) / 100 * 0.15;
     state.bgGain = g;
-    src.connect(g); g.connect(ctx.destination);
-    src.start();
+    src.connect(g); g.connect(ctx.destination); src.start();
   }).catch(() => toast('Erro ao carregar arquivo de áudio', 'error'));
   document.getElementById('importedTrackInfo').textContent = `✔ ${file.name} (${(file.size/1024/1024).toFixed(1)} MB)`;
   toast('🎵 Trilha importada e tocando!', 'success');
 }
+
 
 // ═══════════════════════════════════════════════════════════════════
 // TRANSCRIPTION
@@ -2622,19 +2914,249 @@ async function clearDB() {
 }
 
 // ═══════════════════════════════════════════════════════════════════
+// GRAVAÇÃO DE VÍDEO
+// ═══════════════════════════════════════════════════════════════════
+let videoStream = null, videoRecorder = null, videoChunks = [], isVideoRecording = false;
+let videoTimerInterval = null, videoTimerSecs = 0;
+
+async function initVideoCam() {
+  const sel = document.getElementById('camSelectVideo');
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video:true, audio:false });
+    stream.getTracks().forEach(t => t.stop()); // apenas para listar
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const cams = devices.filter(d => d.kind === 'videoinput');
+    sel.innerHTML = cams.length
+      ? cams.map((c,i) => `<option value="${c.deviceId}">${c.label || 'Câmera '+(i+1)}</option>`).join('')
+      : '<option value="">Nenhuma câmera</option>';
+    previewVideoCam(cams[0]?.deviceId);
+  } catch(e) { sel.innerHTML = '<option>Permissão negada</option>'; }
+}
+
+async function previewVideoCam(deviceId) {
+  if (videoStream) videoStream.getTracks().forEach(t => t.stop());
+  try {
+    const res = document.getElementById('videoRes')?.value || '1280x720';
+    const [w,h] = res.split('x').map(Number);
+    const constraints = { video:{ width:{ideal:w}, height:{ideal:h}, deviceId: deviceId ? {exact:deviceId} : undefined }, audio:false };
+    videoStream = await navigator.mediaDevices.getUserMedia(constraints);
+    document.getElementById('videoCamPreview').srcObject = videoStream;
+  } catch(e) { console.warn('Câmera:', e.message); }
+}
+
+function updateVideoCam() {
+  const id = document.getElementById('camSelectVideo').value;
+  previewVideoCam(id);
+}
+
+async function toggleVideoRecord() {
+  if (isVideoRecording) {
+    stopVideoRecord();
+  } else {
+    await startVideoRecord();
+  }
+}
+
+async function startVideoRecord() {
+  try {
+    const micId = document.getElementById('micSelect')?.value;
+    const res = document.getElementById('videoRes')?.value || '1280x720';
+    const [w,h] = res.split('x').map(Number);
+    const camId = document.getElementById('camSelectVideo')?.value;
+
+    // Combinar streams de vídeo + áudio
+    const vidStream = await navigator.mediaDevices.getUserMedia({
+      video:{ width:{ideal:w}, height:{ideal:h}, deviceId: camId ? {exact:camId} : undefined },
+      audio:{ deviceId: micId ? {exact:micId} : undefined, echoCancellation:true, noiseSuppression:true }
+    });
+    videoStream = vidStream;
+    document.getElementById('videoCamPreview').srcObject = vidStream;
+
+    const mimeType = ['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'].find(t => MediaRecorder.isTypeSupported(t)) || 'video/webm';
+    videoRecorder = new MediaRecorder(vidStream, { mimeType, videoBitsPerSecond:4000000 });
+    videoChunks = [];
+    videoRecorder.ondataavailable = e => { if(e.data.size>0) videoChunks.push(e.data); };
+    videoRecorder.start(100);
+    isVideoRecording = true;
+    videoTimerSecs = 0;
+    videoTimerInterval = setInterval(() => {
+      videoTimerSecs++;
+      const m = Math.floor(videoTimerSecs/60), s = videoTimerSecs%60;
+      document.getElementById('btnVideoRec').innerHTML = `<span class="ci">⏹</span>${pad(m)}:${pad(s)}`;
+    }, 1000);
+    document.getElementById('videoPanelRecBadge').classList.add('active');
+    document.getElementById('btnVideoRec').innerHTML = '<span class="ci">⏹</span>00:00';
+    document.getElementById('btnVideoRec').className = 'ctrl-btn danger';
+    document.getElementById('btnVideoSave').disabled = true;
+    toast('🎬 Gravação de vídeo iniciada!', 'success');
+  } catch(e) {
+    toast('Erro câmera/mic: ' + e.message, 'error');
+  }
+}
+
+function stopVideoRecord() {
+  if (!isVideoRecording) return;
+  clearInterval(videoTimerInterval);
+  isVideoRecording = false;
+  videoRecorder.onstop = () => {
+    document.getElementById('videoPanelRecBadge').classList.remove('active');
+    document.getElementById('btnVideoRec').innerHTML = '<span class="ci">⏺</span>Gravar Vídeo';
+    document.getElementById('btnVideoRec').className = 'ctrl-btn primary';
+    document.getElementById('btnVideoSave').disabled = videoChunks.length === 0;
+    toast('🎬 Vídeo finalizado! Clique em Salvar.', 'success');
+  };
+  videoRecorder.stop();
+  if (videoStream) videoStream.getTracks().forEach(t => t.stop());
+}
+
+async function saveVideoTake() {
+  if (!videoChunks.length) { toast('Nada para salvar', 'error'); return; }
+  const blob = new Blob(videoChunks, { type: 'video/webm' });
+  const arrayBuffer = await blob.arrayBuffer();
+  const takeData = {
+    episodeId: state.currentEpisodeId,
+    audioData: arrayBuffer, mimeType: 'video/webm',
+    isVideo: true, duration: videoTimerSecs,
+    size: blob.size, createdAt: Date.now()
+  };
+  const id = await dbAdd('recordings', takeData);
+  takeData.id = id; takeData.blob = blob;
+  if (!state.videoTakes) state.videoTakes = [];
+  state.videoTakes.push(takeData);
+  videoChunks = [];
+  document.getElementById('btnVideoSave').disabled = true;
+  renderVideoTakes();
+  toast('🎬 Take de vídeo salvo!', 'success');
+}
+
+function renderVideoTakes() {
+  const el = document.getElementById('videoTakesList');
+  const countEl = document.getElementById('videoTakesCount');
+  const takes = state.videoTakes || [];
+  countEl.textContent = takes.length;
+  if (!takes.length) {
+    el.innerHTML = '<div class="empty-state" style="padding:16px 0;"><div class="empty-icon" style="font-size:28px;">🎬</div><div class="empty-text">Nenhum take de vídeo ainda.</div></div>';
+    return;
+  }
+  el.innerHTML = takes.map((tk, i) => {
+    const url = tk.blob ? URL.createObjectURL(tk.blob) : '';
+    return `
+    <div class="video-take-card">
+      <video class="video-take-thumb" src="${url}" muted></video>
+      <div class="video-take-info">
+        <div class="video-take-name">Vídeo Take ${i+1}</div>
+        <div class="video-take-meta">${formatTime2(tk.duration||0)} · ${(tk.size/1024/1024).toFixed(1)} MB</div>
+      </div>
+      <div class="take-actions">
+        <button class="icon-btn" onclick="playVideoTake(${i})">▶</button>
+        <button class="icon-btn" onclick="downloadVideoTake(${i})">⬇</button>
+        <button class="icon-btn del" onclick="deleteVideoTake(${i})">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function playVideoTake(idx) {
+  const tk = (state.videoTakes||[])[idx];
+  if (!tk || !tk.blob) return;
+  const url = URL.createObjectURL(tk.blob);
+  const v = window.open('','_blank','width=800,height=500');
+  v.document.write(`<video src="${url}" controls autoplay style="width:100%;height:100%;background:#000;"></video>`);
+  v.document.close();
+}
+
+function downloadVideoTake(idx) {
+  const tk = (state.videoTakes||[])[idx];
+  if (!tk || !tk.blob) return;
+  const url = URL.createObjectURL(tk.blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `video_take_${idx+1}.webm`;
+  a.click(); URL.revokeObjectURL(url);
+  toast('Download do vídeo iniciado!', 'success');
+}
+
+function deleteVideoTake(idx) {
+  if (!confirm('Excluir take de vídeo?')) return;
+  const tk = (state.videoTakes||[])[idx];
+  if (tk?.id) dbDelete('recordings', tk.id);
+  state.videoTakes.splice(idx,1);
+  renderVideoTakes();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// CAPÍTULOS
+// ═══════════════════════════════════════════════════════════════════
+if (!window._chapters) window._chapters = [];
+
+function addChapterNow() {
+  const name = document.getElementById('chapterNameInput').value.trim() || `Capítulo ${window._chapters.length + 1}`;
+  const time = state.timerSecs;
+  window._chapters.push({ time, name });
+  document.getElementById('chapterNameInput').value = '';
+  renderChapters();
+  toast(`📖 Capítulo "${name}" em ${formatTime2(time)}`, 'success');
+}
+
+function addChapterManual() {
+  const name = document.getElementById('chapterNameInput').value.trim() || `Capítulo ${window._chapters.length + 1}`;
+  window._chapters.push({ time: state.timerSecs, name });
+  document.getElementById('chapterNameInput').value = '';
+  renderChapters();
+  toast('📖 Capítulo adicionado!', 'success');
+}
+
+function renderChapters() {
+  const el = document.getElementById('chapterList');
+  if (!window._chapters.length) {
+    el.innerHTML = '<div class="empty-state" style="padding:16px 0;"><div class="empty-icon" style="font-size:24px;">📖</div><div class="empty-text">Nenhum capítulo ainda.</div></div>';
+    return;
+  }
+  el.innerHTML = window._chapters.map((c,i) => `
+    <div class="chapter-item">
+      <span class="chapter-time">${formatTime2(c.time)}</span>
+      <span class="chapter-name">${c.name}</span>
+      <button class="chapter-del" onclick="deleteChapter(${i})">✕</button>
+    </div>
+  `).join('');
+}
+
+function deleteChapter(i) {
+  window._chapters.splice(i,1); renderChapters();
+}
+
+function exportChapters() {
+  const txt = window._chapters.map(c => formatTime2(c.time) + ' ' + c.name).join('\n');
+  const blob = new Blob([txt], {type:'text/plain'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'chapters.txt'; a.click();
+  toast('Capítulos exportados!', 'success');
+}
+
+function exportChaptersJson() {
+  const json = JSON.stringify(window._chapters.map(c => ({startTime: c.time, title: c.name})), null, 2);
+  const blob = new Blob([json], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'chapters.json'; a.click();
+  toast('JSON exportado!', 'success');
+}
+
+// ═══════════════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════════════
 async function init() {
   initTheme();
   await openDB();
   state.episodes = await dbGetAll('episodes');
+  state.videoTakes = [];
   renderMusicGrid();
   renderTips();
   renderChecklist();
   updateFX();
   applyMicPreset();
   enumerateDevices();
+  initVideoCam();
   estimateDBSize();
+  renderChapters();
 
   if (state.episodes.length) {
     await loadEpisode(state.episodes[state.episodes.length - 1].id);
