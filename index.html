@@ -1794,6 +1794,7 @@ async function startRecord() {
     state.mediaRecorder = new MediaRecorder(state.stream, { mimeType });
     state.chunks = [];
     state.mediaRecorder.ondataavailable = e => { if (e.data.size > 0) state.chunks.push(e.data); };
+    state.mediaRecorder.onstop = null; // reset; set properly in stopRecord
     state.mediaRecorder.start(100);
 
     state.isRecording = true;
@@ -1829,29 +1830,43 @@ function pauseRecord() {
 
 function stopRecord() {
   if (!state.isRecording) return;
-  state.mediaRecorder.stop();
-  state.stream.getTracks().forEach(t => t.stop());
-  if (state.audioCtx) state.audioCtx.close();
+  // Disable save until onstop fires and chunks are fully collected
+  document.getElementById('btnSave').disabled = true;
   state.isRecording = false;
   state.isPaused = false;
   stopTimer();
   updateRecUI();
-  setStatus('', 'Pronto');
-  document.getElementById('btnSave').disabled = false;
-  document.getElementById('recOverlay').classList.remove('hidden');
+  setStatus('', 'Finalizando...');
+
+  state.mediaRecorder.onstop = () => {
+    state.stream.getTracks().forEach(t => t.stop());
+    if (state.audioCtx) { state.audioCtx.close(); state.audioCtx = null; }
+    setStatus('', 'Pronto');
+    document.getElementById('btnSave').disabled = (state.chunks.length === 0);
+    document.getElementById('recOverlay').classList.remove('hidden');
+    toast('Gravação finalizada! Clique em Salvar.', 'success');
+  };
+
+  state.mediaRecorder.stop();
 }
 
 async function saveRecording() {
   if (!state.chunks.length) { toast('Nada para salvar', 'error'); return; }
   const blob = new Blob(state.chunks, { type: 'audio/webm' });
+  // Convert blob to ArrayBuffer for reliable IndexedDB storage (Blob not supported in all browsers)
+  const arrayBuffer = await blob.arrayBuffer();
   const takeData = {
     episodeId: state.currentEpisodeId,
-    blob, duration: state.timerSecs,
+    audioData: arrayBuffer,
+    mimeType: 'audio/webm',
+    duration: state.timerSecs,
     size: blob.size, createdAt: Date.now(),
     transcript: state.transcript
   };
   const id = await dbAdd('recordings', takeData);
+  // Reconstruct blob for in-memory use this session
   takeData.id = id;
+  takeData.blob = blob;
   state.takes.push(takeData);
   state.chunks = [];
   state.timerSecs = 0;
@@ -1978,25 +1993,40 @@ function startVisualizer() {
 // ═══════════════════════════════════════════════════════════════════
 function playTake(idx) {
   const tk = state.takes[idx];
-  if (!tk || !tk.blob) return;
+  if (!tk || !tk.blob) { toast('Take não disponível', 'error'); return; }
+  // Revoke previous URL to avoid memory leaks
+  if (state._playerUrl) { URL.revokeObjectURL(state._playerUrl); state._playerUrl = null; }
   const url = URL.createObjectURL(tk.blob);
+  state._playerUrl = url;
   state.playerAudio.src = url;
   state.playerAudio.volume = document.getElementById('masterVol').value / 100;
-  state.playerAudio.play();
   state.isPlaying = true;
   state.currentTake = idx;
   document.getElementById('tPlayPause').textContent = '⏸';
   document.getElementById('transportTrackName').textContent = `Take ${idx + 1}`;
-  document.getElementById('transportDur').textContent = formatTime2(tk.duration || 0);
+  // Use real audio duration once metadata loads
+  state.playerAudio.onloadedmetadata = () => {
+    const realDur = isFinite(state.playerAudio.duration) ? state.playerAudio.duration : (tk.duration || 0);
+    document.getElementById('transportDur').textContent = formatTime2(realDur);
+    state.playerAudio.play().catch(e => { toast('Erro ao reproduzir: ' + e.message, 'error'); });
+  };
   state.playerAudio.ontimeupdate = () => {
-    const p = (state.playerAudio.currentTime / (state.playerAudio.duration || 1)) * 100;
+    const dur = state.playerAudio.duration;
+    if (!dur || !isFinite(dur)) return;
+    const p = (state.playerAudio.currentTime / dur) * 100;
     document.getElementById('progressFill').style.width = p + '%';
     document.getElementById('transportPos').textContent = formatTime2(state.playerAudio.currentTime);
+    document.getElementById('transportDur').textContent = formatTime2(dur);
   };
   state.playerAudio.onended = () => {
     state.isPlaying = false;
     document.getElementById('tPlayPause').textContent = '▶';
-    document.getElementById('progressFill').style.width = '0%';
+    document.getElementById('progressFill').style.width = '100%';
+  };
+  state.playerAudio.onerror = (e) => {
+    toast('Erro ao carregar áudio', 'error');
+    state.isPlaying = false;
+    document.getElementById('tPlayPause').textContent = '▶';
   };
 }
 function transportPlayPause() {
@@ -2021,8 +2051,12 @@ function transportSkip(secs) {
 }
 function seekTransport(e) {
   const bar = document.getElementById('progressBar');
-  const ratio = e.offsetX / bar.offsetWidth;
-  if (state.playerAudio.duration) state.playerAudio.currentTime = ratio * state.playerAudio.duration;
+  const rect = bar.getBoundingClientRect();
+  const clickX = (e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : rect.left)) - rect.left;
+  const ratio = Math.max(0, Math.min(1, clickX / bar.offsetWidth));
+  if (state.playerAudio.duration && isFinite(state.playerAudio.duration)) {
+    state.playerAudio.currentTime = ratio * state.playerAudio.duration;
+  }
 }
 function updateMasterVol() {
   const v = document.getElementById('masterVol').value;
@@ -2240,7 +2274,13 @@ async function loadEpisode(id) {
   state.transcript = ep.transcript || '';
   if (state.transcript) updateTranscriptUI();
   const allRecs = await dbGetAll('recordings');
-  state.takes = allRecs.filter(r => r.episodeId === id);
+  // Reconstruct blobs from stored ArrayBuffers
+  state.takes = allRecs.filter(r => r.episodeId === id).map(r => {
+    if (!r.blob && r.audioData) {
+      r.blob = new Blob([r.audioData], { type: r.mimeType || 'audio/webm' });
+    }
+    return r;
+  });
   renderTakes();
   updateStats();
   renderChecklist();
