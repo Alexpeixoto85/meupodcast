@@ -39,6 +39,40 @@
   --ease:     cubic-bezier(0.4,0,0.2,1);
 }
 
+/* ─── TEMA CLARO ─────────────────────── */
+body.theme-light {
+  --bg:       #f4f0eb;
+  --bg2:      #faf8f5;
+  --bg3:      #ede9e2;
+  --bg4:      #e2ddd5;
+  --surface:  #faf8f5;
+  --surface2: #ede9e2;
+  --border:   rgba(0,0,0,0.08);
+  --border2:  rgba(0,0,0,0.13);
+  --accent:   #d94f2a;
+  --accent2:  #e8693d;
+  --accent3:  #f0896a;
+  --glow:     rgba(217,79,42,0.18);
+  --green:    #1e9e55;
+  --red:      #d63030;
+  --amber:    #c68f00;
+  --cyan:     #0099bb;
+  --blue:     #2d6ee0;
+  --text:     #1a1a1a;
+  --text2:    #4a4a4a;
+  --text3:    #8a8a8a;
+}
+body.theme-light .topbar,
+body.theme-light .bottom-nav {
+  background: rgba(244,240,235,0.97);
+}
+body.theme-light .viz-card {
+  background: linear-gradient(180deg, #ede9e2 0%, #faf8f5 100%);
+}
+body.theme-light .toast {
+  background: #faf8f5;
+}
+
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 
 html,body{
@@ -957,6 +991,7 @@ input[type=range].vol-sl{
     PodcastStudio
     <span>ESTÚDIO ONLINE</span>
   </div>
+  <button id="themeToggleBtn" onclick="toggleTheme()" style="background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:5px 10px;font-size:13px;cursor:pointer;color:var(--text2);flex-shrink:0;" title="Alternar tema">☀️</button>
   <div class="top-status">
     <div class="status-dot" id="statusDot"></div>
     <span class="status-text" id="statusText">Pronto</span>
@@ -1389,12 +1424,31 @@ input[type=range].vol-sl{
       <div class="settings-title">Áudio</div>
       <div class="settings-row">
         <div class="settings-row-info">
+          <div class="settings-row-label">Tipo de Microfone</div>
+          <div class="settings-row-desc">Otimiza EQ e ganho para o microfone</div>
+        </div>
+        <select class="form-select" style="width:140px;" id="micType" onchange="applyMicPreset()">
+          <option value="dynamic">Dinâmico</option>
+          <option value="condenser" selected>Condensador</option>
+          <option value="usb">USB</option>
+          <option value="mobile">Celular</option>
+        </select>
+      </div>
+      <div class="settings-row" id="condenserPhantomRow" style="display:flex;">
+        <div class="settings-row-info">
+          <div class="settings-row-label">🔴 Phantom Power (+48V)</div>
+          <div class="settings-row-desc">Necessário para microfones condensadores</div>
+        </div>
+        <button class="toggle on" id="togPhantom" onclick="toggleFX(this)"></button>
+      </div>
+      <div class="settings-row">
+        <div class="settings-row-info">
           <div class="settings-row-label">Sample Rate</div>
           <div class="settings-row-desc">Taxa de amostragem</div>
         </div>
-        <select class="form-select" style="width:120px;" id="sampleRate">
-          <option>44100 Hz</option>
-          <option selected>48000 Hz</option>
+        <select class="form-select" style="width:130px;" id="sampleRate">
+          <option value="44100">44100 Hz</option>
+          <option value="48000" selected>48000 Hz</option>
         </select>
       </div>
       <div class="settings-row">
@@ -1760,7 +1814,7 @@ function setMode(m) {
 
 async function toggleRecord() {
   if (state.isRecording) {
-    pauseRecord();
+    stopRecord();   // FAB e botão REC agora PARAM (não pausam)
   } else {
     await startRecord();
   }
@@ -2063,14 +2117,82 @@ function updateMasterVol() {
   state.playerAudio.volume = v / 100;
   document.getElementById('masterVolVal').textContent = v + '%';
 }
-function downloadTake(idx) {
+function downloadTake(idx, fmt) {
   const tk = state.takes[idx];
-  if (!tk) return;
+  if (!tk || !tk.blob) { toast('Take não disponível', 'error'); return; }
+  if (!fmt) { showDownloadMenu(idx); return; }
   const url = URL.createObjectURL(tk.blob);
   const a = document.createElement('a');
-  a.href = url; a.download = `take_${idx + 1}.webm`;
-  a.click(); URL.revokeObjectURL(url);
-  toast('Download iniciado!', 'success');
+  a.href = url;
+  // WebM pode ser renomeado para .mp3 — navegadores aceitam por conteúdo
+  // Para conversão real, usamos AudioContext + WAV para o formato wav
+  if (fmt === 'wav') {
+    blobToWav(tk.blob).then(wavBlob => {
+      const wu = URL.createObjectURL(wavBlob);
+      const wa = document.createElement('a');
+      wa.href = wu; wa.download = `take_${idx+1}.wav`;
+      wa.click(); URL.revokeObjectURL(wu);
+      toast('Download WAV iniciado!', 'success');
+    }).catch(() => {
+      // fallback
+      a.download = `take_${idx+1}.webm`; a.click(); URL.revokeObjectURL(url);
+    });
+    return;
+  }
+  const ext = fmt === 'mp3' ? 'mp3' : 'webm';
+  a.download = `take_${idx+1}.${ext}`; a.click(); URL.revokeObjectURL(url);
+  toast(`Download ${ext.toUpperCase()} iniciado!`, 'success');
+}
+
+async function blobToWav(blob) {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const ab = await blob.arrayBuffer();
+  const decoded = await ctx.decodeAudioData(ab);
+  ctx.close();
+  const numCh = decoded.numberOfChannels;
+  const sr = decoded.sampleRate;
+  const len = decoded.length;
+  const buf = new ArrayBuffer(44 + len * numCh * 2);
+  const view = new DataView(buf);
+  function writeStr(off, s) { for(let i=0;i<s.length;i++) view.setUint8(off+i, s.charCodeAt(i)); }
+  writeStr(0,'RIFF'); view.setUint32(4, 36+len*numCh*2, true);
+  writeStr(8,'WAVE'); writeStr(12,'fmt '); view.setUint32(16,16,true);
+  view.setUint16(20,1,true); view.setUint16(22,numCh,true);
+  view.setUint32(24,sr,true); view.setUint32(28,sr*numCh*2,true);
+  view.setUint16(32,numCh*2,true); view.setUint16(34,16,true);
+  writeStr(36,'data'); view.setUint32(40,len*numCh*2,true);
+  let offset = 44;
+  for (let i=0; i<len; i++) {
+    for (let ch=0; ch<numCh; ch++) {
+      const s = Math.max(-1, Math.min(1, decoded.getChannelData(ch)[i]));
+      view.setInt16(offset, s<0 ? s*0x8000 : s*0x7FFF, true); offset += 2;
+    }
+  }
+  return new Blob([buf], { type: 'audio/wav' });
+}
+
+function showDownloadMenu(idx) {
+  // Remove menu anterior se existir
+  const prev = document.getElementById('dlMenu_' + idx);
+  if (prev) { prev.remove(); return; }
+  const card = document.getElementById('take_' + idx);
+  if (!card) return;
+  const menu = document.createElement('div');
+  menu.id = 'dlMenu_' + idx;
+  menu.style.cssText = `position:absolute;right:0;top:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:6px;z-index:50;display:flex;flex-direction:column;gap:4px;min-width:120px;box-shadow:0 8px 24px rgba(0,0,0,0.4);`;
+  ['mp3','webm','wav'].forEach(fmt => {
+    const b = document.createElement('button');
+    b.className = 'btn btn-ghost btn-sm';
+    b.style.cssText = 'justify-content:flex-start;font-size:12px;';
+    b.textContent = fmt === 'mp3' ? '⬇ MP3' : fmt === 'wav' ? '⬇ WAV' : '⬇ WebM';
+    b.onclick = (e) => { e.stopPropagation(); menu.remove(); downloadTake(idx, fmt); };
+    menu.appendChild(b);
+  });
+  card.style.position = 'relative';
+  card.appendChild(menu);
+  setTimeout(() => document.addEventListener('click', function rm() {
+    menu.remove(); document.removeEventListener('click', rm);
+  }), 100);
 }
 function deleteTake(idx) {
   const tk = state.takes[idx];
@@ -2104,59 +2226,204 @@ function updateFX() {
 function toggleFX(btn) { btn.classList.toggle('on'); }
 
 // ═══════════════════════════════════════════════════════════════════
-// BACKGROUND MUSIC
+// BACKGROUND MUSIC — Gerador procedural de música podcast
 // ═══════════════════════════════════════════════════════════════════
 const BG_TRACKS = [
-  { name: 'Lofi Chill', icon: '🌙', bpm: 75 },
-  { name: 'Corporate', icon: '💼', bpm: 110 },
-  { name: 'Upbeat Jazz', icon: '🎷', bpm: 130 },
-  { name: 'Ambient', icon: '🌊', bpm: 60 },
-  { name: 'Epic Intro', icon: '⚡', bpm: 140 },
-  { name: 'Acoustic', icon: '🎸', bpm: 90 },
+  { name: 'Lofi Chill',    icon: '🌙', bpm: 70,  style: 'lofi',      desc: '70 BPM · Suave' },
+  { name: 'Podcast Jazz',  icon: '🎷', bpm: 85,  style: 'jazz',      desc: '85 BPM · Instrumental' },
+  { name: 'Ambient Pad',   icon: '🌊', bpm: 0,   style: 'ambient',   desc: 'Atmosférico · Drone' },
+  { name: 'Acoustic Folk', icon: '🎸', bpm: 90,  style: 'acoustic',  desc: '90 BPM · Violão' },
+  { name: 'Corporate',     icon: '💼', bpm: 100, style: 'corporate', desc: '100 BPM · Moderno' },
+  { name: 'Chill Beats',   icon: '🎹', bpm: 80,  style: 'chillbeats',desc: '80 BPM · Piano' },
 ];
+
+// Escalas para cada estilo
+const SCALES = {
+  lofi:       [0,2,3,5,7,9,10], // dorian
+  jazz:       [0,2,4,5,7,9,11], // maior
+  ambient:    [0,4,7,11],        // maj7 arpeggio
+  acoustic:   [0,2,4,7,9],       // pentatônica maior
+  corporate:  [0,2,4,5,7,9,11], // maior
+  chillbeats: [0,3,5,7,10],      // minor pentatônica
+};
+const BASE_FREQS = { C4:261.63, D4:293.66, E4:329.63, F4:349.23, G4:392.00, A4:440.00, Bb4:466.16 };
+
+function midiToHz(midi) { return 440 * Math.pow(2,(midi-69)/12); }
+
+function stopBgMusic() {
+  if (state.bgAudioCtx) { state.bgAudioCtx.close(); state.bgAudioCtx = null; }
+  state.bgGain = null;
+  if (state._bgScheduler) { clearTimeout(state._bgScheduler); state._bgScheduler = null; }
+}
+
 function renderMusicGrid() {
   document.getElementById('musicGrid').innerHTML = BG_TRACKS.map((tr, i) => `
     <div class="music-item ${state.activeBgMusic === i ? 'active' : ''}" onclick="selectBgMusic(${i})">
       <div class="music-icon">${tr.icon}</div>
       <div class="music-name">${tr.name}</div>
-      <div class="music-bpm">${tr.bpm} BPM</div>
+      <div class="music-bpm">${tr.desc}</div>
     </div>
   `).join('');
 }
+
 function selectBgMusic(idx) {
-  state.activeBgMusic = state.activeBgMusic === idx ? null : idx;
+  if (state.activeBgMusic === idx) {
+    state.activeBgMusic = null;
+    stopBgMusic(); renderMusicGrid(); renderChecklist();
+    toast('🔇 Música pausada', '');
+    return;
+  }
+  state.activeBgMusic = idx;
   renderMusicGrid(); renderChecklist();
-  if (state.activeBgMusic !== null) { playBgOscillator(BG_TRACKS[idx]); toast(`🎵 ${BG_TRACKS[idx].name}`, 'success'); }
-  else stopBgMusic();
+  playBgTrack(BG_TRACKS[idx]);
+  toast(`🎵 ${BG_TRACKS[idx].name} tocando`, 'success');
 }
-function playBgOscillator(track) {
+
+function playBgTrack(track) {
   stopBgMusic();
-  state.bgAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  state.bgGain = state.bgAudioCtx.createGain();
-  state.bgGain.gain.value = document.getElementById('bgVolSlider').value / 100 * 0.3;
-  state.bgGain.connect(state.bgAudioCtx.destination);
-  [track.bpm * 0.5, track.bpm * 1.0, track.bpm * 1.5].forEach((f, i) => {
-    const osc = state.bgAudioCtx.createOscillator();
-    osc.type = ['sine','triangle','sawtooth'][i % 3];
-    osc.frequency.value = f;
-    const g2 = state.bgAudioCtx.createGain();
-    g2.gain.value = 0.05 / (i + 1);
-    osc.connect(g2); g2.connect(state.bgGain); osc.start();
-  });
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  state.bgAudioCtx = ctx;
+  const masterGain = ctx.createGain();
+  const volPct = parseInt(document.getElementById('bgVolSlider').value) / 100;
+  masterGain.gain.value = volPct * 0.18; // max 18% para não atrapalhar voz
+  masterGain.connect(ctx.destination);
+  state.bgGain = masterGain;
+
+  // Reverb convolution simulado via delay feedback
+  const convGain = ctx.createGain();
+  convGain.gain.value = 0.18;
+  const delay1 = ctx.createDelay(2); delay1.delayTime.value = 0.35;
+  const delay2 = ctx.createDelay(2); delay2.delayTime.value = 0.55;
+  const fbGain1 = ctx.createGain(); fbGain1.gain.value = 0.25;
+  const fbGain2 = ctx.createGain(); fbGain2.gain.value = 0.18;
+  convGain.connect(delay1); delay1.connect(fbGain1); fbGain1.connect(delay1); fbGain1.connect(masterGain);
+  convGain.connect(delay2); delay2.connect(fbGain2); fbGain2.connect(delay2); fbGain2.connect(masterGain);
+
+  const style = track.style;
+  const scale = SCALES[style] || SCALES.lofi;
+  const rootMidi = 60; // C4
+
+  function note(freq, start, dur, vol=0.15, type='sine') {
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    const att = 0.06, rel = 0.15;
+    g.gain.setValueAtTime(0, start);
+    g.gain.linearRampToValueAtTime(vol, start + att);
+    g.gain.setValueAtTime(vol, start + dur - rel);
+    g.gain.linearRampToValueAtTime(0, start + dur);
+    osc.connect(g); g.connect(masterGain); g.connect(convGain);
+    osc.start(start); osc.stop(start + dur + 0.05);
+  }
+
+  function chord(midiNotes, start, dur, vol=0.06) {
+    midiNotes.forEach(m => note(midiToHz(m), start, dur, vol, 'sine'));
+  }
+
+  const now = ctx.currentTime;
+
+  if (style === 'ambient') {
+    // Drone suave com pads
+    const drones = [48,55,60,64,67]; // C3,G3,C4,E4,G4
+    drones.forEach((m,i) => {
+      const osc = ctx.createOscillator();
+      const lfo = ctx.createOscillator();
+      const lfoG = ctx.createGain();
+      const g = ctx.createGain();
+      osc.type = 'sine'; osc.frequency.value = midiToHz(m);
+      lfo.frequency.value = 0.08 + i*0.03; lfoG.gain.value = 2;
+      lfo.connect(lfoG); lfoG.connect(osc.frequency);
+      g.gain.value = 0.04 - i*0.005;
+      osc.connect(g); g.connect(masterGain); g.connect(convGain);
+      lfo.start(now); osc.start(now);
+      // fade in lento
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(0.04 - i*0.005, now + 4);
+    });
+    return;
+  }
+
+  // Sequenciador rítmico para outros estilos
+  const bpm = track.bpm || 80;
+  const beat = 60 / bpm;
+  const bar = beat * 4;
+  const bars = 8; // loop de 8 compassos
+  const loopDur = bar * bars;
+
+  function scheduleLoop(startTime) {
+    if (!state.bgAudioCtx || state.bgAudioCtx !== ctx) return;
+    for (let b = 0; b < bars; b++) {
+      const bt = startTime + b * bar;
+      // Acordes (muda a cada 2 compassos)
+      const chordIdx = Math.floor(b / 2) % 4;
+      const chordRoots = [0,5,7,3]; // graus: I IV V III
+      const root = rootMidi + chordRoots[chordIdx];
+      const chordNotes = [root, root+4, root+7, root+12].map(n => n + (b%2===0 ? 0 : 12));
+      if (style === 'lofi' || style === 'chillbeats') {
+        // Piano/Rhodes pad
+        chord(chordNotes, bt, bar * 1.9, 0.05);
+        // Baixo no 1 e 3
+        note(midiToHz(root - 12), bt, beat*0.4, 0.12, 'triangle');
+        note(midiToHz(root - 12), bt + beat*2, beat*0.4, 0.10, 'triangle');
+        // Hi-hat 8th notes (sine breve)
+        for (let h=0; h<8; h++) note(midiToHz(84), bt+h*beat*0.5, 0.04, 0.02, 'sine');
+      } else if (style === 'jazz') {
+        chord([root,root+4,root+7,root+11], bt, bar*0.9, 0.045);
+        chord([root,root+3,root+7,root+10], bt+bar, bar*0.9, 0.04);
+        // Walking bass simplificado
+        scale.slice(0,4).forEach((s,i) => note(midiToHz(root+s-12), bt+i*beat, beat*0.7, 0.1, 'triangle'));
+      } else if (style === 'acoustic') {
+        // Arpejo de violão
+        [root, root+4, root+7, root+12, root+7, root+4].forEach((m,i) =>
+          note(midiToHz(m), bt + i * beat * 0.65, beat * 0.5, 0.07, 'triangle'));
+        note(midiToHz(root-12), bt, beat*0.5, 0.1, 'triangle');
+        note(midiToHz(root-7),  bt+beat*2, beat*0.5, 0.08, 'triangle');
+      } else if (style === 'corporate') {
+        chord(chordNotes, bt, bar*1.8, 0.04);
+        // Bass pump
+        [0,1,2,3].forEach(i => note(midiToHz(root-12), bt+i*beat, beat*0.3, 0.1, 'sine'));
+        // Melody note (cada 2 beats)
+        const melStep = scale[b % scale.length];
+        note(midiToHz(root+melStep+12), bt+beat, beat*0.8, 0.05, 'sine');
+      }
+    }
+    // Agenda próxima iteração do loop
+    const next = startTime + loopDur;
+    const delay = Math.max(0, (next - ctx.currentTime - 0.5) * 1000);
+    state._bgScheduler = setTimeout(() => scheduleLoop(next), delay);
+  }
+
+  scheduleLoop(now + 0.1);
 }
-function stopBgMusic() {
-  if (state.bgAudioCtx) { state.bgAudioCtx.close(); state.bgAudioCtx = null; }
-}
+
 function updateBgVol() {
   const v = document.getElementById('bgVolSlider').value;
   document.getElementById('bgVolVal').textContent = v + '%';
-  if (state.bgGain) state.bgGain.gain.value = v / 100 * 0.3;
+  if (state.bgGain) state.bgGain.gain.value = (v / 100) * 0.18;
 }
+
 function importMusic(input) {
   const file = input.files[0];
   if (!file) return;
+  const url = URL.createObjectURL(file);
+  stopBgMusic();
+  state.activeBgMusic = 'custom';
+  renderMusicGrid();
+  // Reproduzir arquivo importado com Web Audio para controle de volume
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  state.bgAudioCtx = ctx;
+  fetch(url).then(r => r.arrayBuffer()).then(buf => ctx.decodeAudioData(buf)).then(decoded => {
+    const src = ctx.createBufferSource();
+    src.buffer = decoded; src.loop = true;
+    const g = ctx.createGain();
+    g.gain.value = parseInt(document.getElementById('bgVolSlider').value) / 100 * 0.18;
+    state.bgGain = g;
+    src.connect(g); g.connect(ctx.destination);
+    src.start();
+  }).catch(() => toast('Erro ao carregar arquivo de áudio', 'error'));
   document.getElementById('importedTrackInfo').textContent = `✔ ${file.name} (${(file.size/1024/1024).toFixed(1)} MB)`;
-  toast('Trilha importada!', 'success');
+  toast('🎵 Trilha importada e tocando!', 'success');
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -2358,12 +2625,14 @@ async function clearDB() {
 // INIT
 // ═══════════════════════════════════════════════════════════════════
 async function init() {
+  initTheme();
   await openDB();
   state.episodes = await dbGetAll('episodes');
   renderMusicGrid();
   renderTips();
   renderChecklist();
   updateFX();
+  applyMicPreset();
   enumerateDevices();
   estimateDBSize();
 
@@ -2392,6 +2661,68 @@ async function init() {
     canvas.width = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight;
   });
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TEMA
+// ═══════════════════════════════════════════════════════════════════
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('theme-light');
+  document.getElementById('themeToggleBtn').textContent = isLight ? '🌙' : '☀️';
+  localStorage.setItem('ps_theme', isLight ? 'light' : 'dark');
+}
+function initTheme() {
+  const saved = localStorage.getItem('ps_theme');
+  if (saved === 'light') {
+    document.body.classList.add('theme-light');
+    document.getElementById('themeToggleBtn').textContent = '🌙';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MICROFONE CONDENSADOR
+// ═══════════════════════════════════════════════════════════════════
+function applyMicPreset() {
+  const type = document.getElementById('micType').value;
+  const phantomRow = document.getElementById('condenserPhantomRow');
+  const togPhantom = document.getElementById('togPhantom');
+  const togNS = document.getElementById('togNoiseSuppression');
+  const togAGC = document.getElementById('togAGC');
+  phantomRow.style.display = type === 'condenser' ? 'flex' : 'none';
+  if (type === 'condenser') {
+    // Condensador: alta sensibilidade, menos AGC, phantom ativo
+    togPhantom.classList.add('on');
+    togNS.classList.add('on');
+    togAGC.classList.remove('on'); // condensador já é sensível, sem AGC
+    // Preset EQ: cortar graves (rumble) e realçar presença
+    document.getElementById('eqBass').value = -3; 
+    document.getElementById('eqPresence').value = 4;
+    document.getElementById('eqTreble').value = 2;
+    updateFX();
+    toast('🎤 Preset Condensador aplicado (phantom +48V, EQ otimizado)', 'success');
+  } else if (type === 'dynamic') {
+    togPhantom.classList.remove('on');
+    togNS.classList.add('on');
+    togAGC.classList.add('on');
+    document.getElementById('eqBass').value = 2;
+    document.getElementById('eqPresence').value = 1;
+    document.getElementById('eqTreble').value = 1;
+    updateFX();
+    toast('🎤 Preset Dinâmico aplicado', 'success');
+  } else if (type === 'usb') {
+    togPhantom.classList.remove('on');
+    togNS.classList.add('on');
+    togAGC.classList.add('on');
+    document.getElementById('eqBass').value = 0;
+    document.getElementById('eqPresence').value = 2;
+    updateFX();
+    toast('🎤 Preset USB aplicado', 'success');
+  } else {
+    togPhantom.classList.remove('on');
+    togNS.classList.add('on');
+    togAGC.classList.add('on');
+    toast('🎤 Preset Celular aplicado', 'success');
+  }
 }
 
 async function saveEpMeta() {
