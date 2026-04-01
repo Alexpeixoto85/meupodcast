@@ -937,8 +937,38 @@ input[type=range].vol-sl{
 .music-playing-badge{
   font-size:9px;font-weight:700;letter-spacing:0.5px;
   color:var(--green);text-transform:uppercase;
-  margin-top:2px;
+  flex-shrink:0;
 }
+
+/* ─── MUSIC TRACK ROW ────────────── */
+.music-track-row{
+  display:flex;align-items:center;gap:10px;
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--radius2);padding:10px 12px;
+  transition:all 0.2s;
+}
+.music-track-row.active{
+  border-color:rgba(255,92,53,0.35);
+  background:rgba(255,92,53,0.06);
+}
+.music-play-btn{
+  width:34px;height:34px;border-radius:50%;
+  border:1px solid var(--border2);
+  background:var(--bg3);
+  color:var(--text);font-size:13px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:all 0.18s;
+}
+.music-play-btn.playing{
+  background:var(--accent);border-color:var(--accent);color:#fff;
+  box-shadow:0 2px 12px var(--glow);
+}
+.music-track-info{flex:1;min-width:0;}
+.music-track-name{
+  font-size:13px;font-weight:600;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.music-track-meta{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:2px;}
 
 /* ─── VIDEO RECORDING UI ─────────── */
 .video-rec-card{
@@ -2429,103 +2459,107 @@ function toggleFX(btn) { btn.classList.toggle('on'); }
 // BACKGROUND MUSIC — Síntese FM de alta qualidade (estilo podcast real)
 // ═══════════════════════════════════════════════════════════════════
 
-const BG_TRACKS = [
-  { name: 'Lofi Chill',     icon: '🌙', style: 'lofi',      desc: '70 BPM · Piano suave' },
-  { name: 'Jazz Suave',     icon: '🎷', style: 'jazz',      desc: '85 BPM · Contrabaixo e piano' },
-  { name: 'Ambient Pad',    icon: '🌊', style: 'ambient',   desc: 'Atmosférico · Textura etérea' },
-  { name: 'Acoustic Folk',  icon: '🎸', style: 'acoustic',  desc: '90 BPM · Violão fingerpicking' },
-  { name: 'Corporate Pop',  icon: '💼', style: 'corporate', desc: '100 BPM · Moderno e limpo' },
-  { name: 'Chill Beats',    icon: '🎹', style: 'chillbeats',desc: '80 BPM · Hip-hop instrumental' },
-];
+// ═══════════════════════════════════════════════════════════════════
+// MUSIC LIBRARY — Trilhas do usuário salvas no IndexedDB
+// ═══════════════════════════════════════════════════════════════════
 
-function midiToHz(m) { return 440 * Math.pow(2, (m - 69) / 12); }
+// State de músicas carregadas
+let _musicTracks = [];          // [{id, name, size, duration, mimeType, data}]
+let _currentTrackSource = null; // BufferSource em reprodução
+
 function stopBgMusic() {
-  if (state.bgAudioCtx) { try { state.bgAudioCtx.close(); } catch(e){} state.bgAudioCtx = null; }
+  if (_currentTrackSource) { try { _currentTrackSource.stop(); } catch(e){} _currentTrackSource = null; }
+  if (state.bgAudioCtx)    { try { state.bgAudioCtx.close(); }  catch(e){} state.bgAudioCtx = null; }
   state.bgGain = null;
-  if (state._bgScheduler) { clearTimeout(state._bgScheduler); state._bgScheduler = null; }
 }
 
+// ── IndexedDB helpers para music store ───────────────────────────────
+function musicDbAdd(data) {
+  return new Promise((res, rej) => {
+    const tx  = db.transaction('music', 'readwrite');
+    const req = tx.objectStore('music').add(data);
+    req.onsuccess = () => res(req.result);
+    req.onerror   = e => rej(e);
+  });
+}
+function musicDbGetAll() {
+  return new Promise((res, rej) => {
+    const tx  = db.transaction('music', 'readonly');
+    const req = tx.objectStore('music').getAll();
+    req.onsuccess = () => res(req.result);
+    req.onerror   = e => rej(e);
+  });
+}
+function musicDbDelete(id) {
+  return new Promise((res, rej) => {
+    const tx  = db.transaction('music', 'readwrite');
+    const req = tx.objectStore('music').delete(id);
+    req.onsuccess = () => res();
+    req.onerror   = e => rej(e);
+  });
+}
+
+// ── Carrega trilhas salvas do DB ─────────────────────────────────────
+async function loadSavedTracks() {
+  _musicTracks = await musicDbGetAll();
+  renderMusicGrid();
+}
+
+// ── Renderiza a lista de trilhas ─────────────────────────────────────
 function renderMusicGrid() {
-  document.getElementById('musicGrid').innerHTML = BG_TRACKS.map((tr, i) => `
-    <div class="music-item ${state.activeBgMusic === i ? 'active' : ''}" onclick="selectBgMusic(${i})">
-      <div class="music-icon">${tr.icon}</div>
-      <div class="music-name">${tr.name}</div>
-      <div class="music-bpm">${tr.desc}</div>
-      ${state.activeBgMusic === i ? '<div class="music-playing-badge">▶ Tocando</div>' : ''}
-    </div>
-  `).join('');
+  const grid    = document.getElementById('musicGrid');
+  const empty   = document.getElementById('musicEmptyState');
+  const badge   = document.getElementById('musicCountBadge');
+  if (!grid) return;
+  badge.textContent = _musicTracks.length + ' salva' + (_musicTracks.length !== 1 ? 's' : '');
+  if (!_musicTracks.length) {
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  grid.innerHTML = _musicTracks.map((tr, i) => {
+    const isActive = state.activeBgMusic === tr.id;
+    const mb = (tr.data.byteLength / 1024 / 1024).toFixed(1);
+    const dur = tr.duration ? formatTime2(tr.duration) : '--:--';
+    return `
+    <div class="music-track-row ${isActive ? 'active' : ''}" id="mtr_${tr.id}">
+      <button class="music-play-btn ${isActive ? 'playing' : ''}" onclick="selectBgMusic(${tr.id})" title="${isActive ? 'Pausar' : 'Reproduzir'}">
+        ${isActive ? '⏸' : '▶'}
+      </button>
+      <div class="music-track-info">
+        <div class="music-track-name">${escHtml(tr.name)}</div>
+        <div class="music-track-meta">${dur} · ${mb} MB · ${tr.mimeType.replace('audio/','').toUpperCase()}</div>
+      </div>
+      ${isActive ? '<div class="music-playing-badge">● AO VIVO</div>' : ''}
+      <button class="icon-btn del" onclick="deleteTrack(${tr.id})" title="Excluir trilha">🗑</button>
+    </div>`;
+  }).join('');
 }
 
-function selectBgMusic(idx) {
-  if (state.activeBgMusic === idx) {
+function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── Seleciona / pausa trilha ─────────────────────────────────────────
+async function selectBgMusic(id) {
+  if (state.activeBgMusic === id) {
     state.activeBgMusic = null;
-    stopBgMusic(); renderMusicGrid(); renderChecklist();
+    stopBgMusic();
+    renderMusicGrid();
     toast('🔇 Música pausada', '');
     return;
   }
-  state.activeBgMusic = idx;
-  renderMusicGrid(); renderChecklist();
-  playBgTrack(BG_TRACKS[idx]);
-  toast(`🎵 ${BG_TRACKS[idx].name} tocando`, 'success');
+  const track = _musicTracks.find(t => t.id === id);
+  if (!track) return;
+  state.activeBgMusic = id;
+  renderMusicGrid();
+  await playStoredTrack(track);
+  toast('🎵 ' + track.name + ' tocando', 'success');
 }
 
-// ─── Síntese de instrumento via FM + filtros ─────────────────────
-
-function makeFMNote(ctx, freq, modRatio, modIdx, dur, vol, dest) {
-  const carr = ctx.createOscillator();
-  const mod  = ctx.createOscillator();
-  const modG = ctx.createGain();
-  const ampG = ctx.createGain();
-  const filt = ctx.createBiquadFilter();
-  filt.type = 'lowpass';
-  filt.frequency.value = freq * 8;
-  filt.Q.value = 0.7;
-  mod.frequency.value  = freq * modRatio;
-  modG.gain.value      = freq * modIdx;
-  carr.frequency.value = freq;
-  mod.connect(modG); modG.connect(carr.frequency);
-  carr.connect(filt); filt.connect(ampG); ampG.connect(dest);
-  const att = Math.min(0.05, dur * 0.1), rel = Math.min(0.3, dur * 0.4);
-  const t = ctx.currentTime;
-  ampG.gain.setValueAtTime(0, t);
-  ampG.gain.linearRampToValueAtTime(vol, t + att);
-  ampG.gain.setValueAtTime(vol, t + dur - rel);
-  ampG.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-  mod.start(t); carr.start(t); mod.stop(t + dur + 0.05); carr.stop(t + dur + 0.05);
-}
-
-function schedNote(ctx, freq, start, dur, vol, dest, type='sine', modR=0, modI=0) {
-  if (modR > 0) { makeFMNote(ctx, freq, modR, modI, dur, vol, dest); return; }
-  const osc = ctx.createOscillator();
-  const g   = ctx.createGain();
-  osc.type = type; osc.frequency.value = freq;
-  osc.connect(g); g.connect(dest);
-  const att = Math.min(0.04, dur * 0.08), rel = Math.min(0.25, dur * 0.3);
-  g.gain.setValueAtTime(0, start);
-  g.gain.linearRampToValueAtTime(vol, start + att);
-  g.gain.setValueAtTime(vol, start + dur - rel);
-  g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
-  osc.start(start); osc.stop(start + dur + 0.05);
-}
-
-function makeReverb(ctx) {
-  // IIR reverb de alta qualidade via rede de delays paralelos
-  const merger = ctx.createGain(); merger.gain.value = 1;
-  const out    = ctx.createGain(); out.gain.value = 0.22;
-  const times  = [0.029, 0.037, 0.057, 0.083, 0.107, 0.149, 0.179, 0.211];
-  times.forEach(t => {
-    const d  = ctx.createDelay(0.5); d.delayTime.value = t;
-    const fb = ctx.createGain(); fb.gain.value = 0.45;
-    const lp = ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=3200;
-    merger.connect(d); d.connect(lp); lp.connect(fb); fb.connect(d); fb.connect(out);
-  });
-  merger._out = out;
-  return merger;
-}
-
-function playBgTrack(track) {
+// ── Reproduz um ArrayBuffer como áudio em loop ───────────────────────
+async function playStoredTrack(track) {
   stopBgMusic();
-  const ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 44100 });
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
   state.bgAudioCtx = ctx;
   const vol = parseInt(document.getElementById('bgVolSlider').value) / 100;
   const master = ctx.createGain();
@@ -2533,161 +2567,127 @@ function playBgTrack(track) {
   master.connect(ctx.destination);
   state.bgGain = master;
 
-  const rev = makeReverb(ctx);
-  rev._out.connect(master);
-  // Dry + wet mix
-  const dry = ctx.createGain(); dry.gain.value = 0.75; dry.connect(master);
-  const wet = ctx.createGain(); wet.gain.value = 0.25; rev._out.connect(wet); // já conectado acima
+  try {
+    const decoded = await ctx.decodeAudioData(track.data.slice(0)); // .slice() para evitar detach
+    const src = ctx.createBufferSource();
+    src.buffer = decoded;
+    src.loop   = true;
+    src.connect(master);
+    src.start(0);
+    _currentTrackSource = src;
+    src.onended = () => { if (state.activeBgMusic === track.id) state.activeBgMusic = null; };
+  } catch(e) {
+    toast('Erro ao decodificar áudio: ' + e.message, 'error');
+    stopBgMusic();
+    state.activeBgMusic = null;
+    renderMusicGrid();
+  }
+}
 
-  const style = track.style;
-  const bpm   = { lofi:70, jazz:85, acoustic:90, corporate:100, chillbeats:80, ambient:0 }[style] || 80;
-  const beat  = bpm > 0 ? 60 / bpm : 0;
-  const bar   = beat * 4;
+// ── Importa, converte para OGG/WebM leve e salva no DB ───────────────
+async function importMusic(input) {
+  const files = Array.from(input.files);
+  if (!files.length) return;
+  const statusDiv = document.getElementById('musicConvertStatus');
+  const bar       = document.getElementById('musicConvertBar');
+  statusDiv.style.display = 'block';
 
-  // ── Progressões harmônicas (midi root = C3=48, C4=60) ──────────
+  for (let fi = 0; fi < files.length; fi++) {
+    const file = files[fi];
+    bar.style.width = '10%';
+    statusDiv.querySelector('div').textContent = `⚙️ Convertendo "${file.name}"...`;
+    try {
+      // 1. Decodificar o áudio original
+      const originalBuf = await file.arrayBuffer();
+      bar.style.width = '30%';
+      const tmpCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 44100 });
+      const decoded = await tmpCtx.decodeAudioData(originalBuf.slice(0));
+      bar.style.width = '55%';
 
-  const PROGS = {
-    lofi:       [[48,52,55,59],[45,48,52,55],[43,47,50,53],[45,48,52,55]], // Cmaj7 Am7 Fmaj7 Am7
-    jazz:       [[48,52,55,59],[50,53,57,60],[52,55,59,62],[43,47,50,55]], // Cmaj7 Dm7 Em7 G7
-    acoustic:   [[48,52,55],[43,47,50],[45,48,52],[50,53,57]],              // C G Am Dm
-    corporate:  [[48,52,55,59],[55,59,62,65],[43,47,50,53],[50,54,57,60]], // Cmaj7 Gmaj7 Fmaj7 Dsus
-    chillbeats: [[48,51,55,58],[43,46,50,53],[45,48,51,55],[50,53,56,60]], // Cm7 Gm7 Abmaj7 Bbm7
-  };
+      // 2. Re-renderizar em mono 44100Hz para reduzir tamanho (~50%)
+      const sampleRate = 44100;
+      const numCh      = Math.min(decoded.numberOfChannels, 2);
+      const length     = decoded.length;
+      const offCtx     = new OfflineAudioContext(numCh, length, sampleRate);
+      const src        = offCtx.createBufferSource();
+      src.buffer       = decoded;
+      src.connect(offCtx.destination);
+      src.start(0);
+      const rendered   = await offCtx.startRendering();
+      await tmpCtx.close();
+      bar.style.width = '70%';
 
-  function scheduleChords(startT, barCount) {
-    const prog = PROGS[style] || PROGS.lofi;
-    for (let b = 0; b < barCount; b++) {
-      const bt    = startT + b * bar;
-      const chord = prog[b % prog.length];
-      const root  = chord[0];
+      // 3. Codificar como WebM/Opus via MediaRecorder (formato leve e nativo)
+      const compressedBuf = await encodeAsWebM(rendered, offCtx.sampleRate);
+      bar.style.width = '90%';
 
-      if (style === 'lofi') {
-        // Piano Rhodes: FM suave
-        chord.forEach((m, i) => schedNote(ctx, midiToHz(m), bt + i*0.015, bar*1.85, 0.12, dry, 'sine', 3.5, 1.2));
-        // Vibrato pad leve
-        chord.forEach(m => schedNote(ctx, midiToHz(m+12), bt, bar*1.9, 0.04, rev, 'sine', 1, 0.3));
-        // Contrabaixo fingered
-        schedNote(ctx, midiToHz(root-12), bt, beat*0.5, 0.20, dry, 'sine', 2, 1.5);
-        schedNote(ctx, midiToHz(root-12), bt+beat*2+beat*0.5, beat*0.4, 0.15, dry, 'sine', 2, 1.5);
-        // Hi-hat sutil (noise filtrado)
-        for (let h=0; h<8; h++) {
-          const hg = ctx.createGain(); const buf = ctx.createBuffer(1, ctx.sampleRate*0.02, ctx.sampleRate);
-          const d = buf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
-          const src = ctx.createBufferSource(); src.buffer = buf;
-          const hp = ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=8000;
-          hg.gain.value = 0.018; src.connect(hp); hp.connect(hg); hg.connect(dry);
-          src.start(bt + h*beat*0.5);
-        }
+      // 4. Calcular duração
+      const duration = decoded.duration;
 
-      } else if (style === 'jazz') {
-        // Piano jazz voicings — FM Rhodes
-        chord.forEach((m, i) => schedNote(ctx, midiToHz(m), bt + i*0.02, bar*0.95, 0.10, dry, 'sine', 4, 1.5));
-        // Contrabaixo walking
-        const walk = [root-12, root-12+2, root-12+4, root-12+5];
-        walk.forEach((m,i) => schedNote(ctx, midiToHz(m), bt+i*beat, beat*0.75, 0.22, dry, 'triangle', 2, 2));
-        // Prato suave (reverb)
-        schedNote(ctx, midiToHz(80), bt, beat*0.06, 0.03, rev, 'sine');
-        schedNote(ctx, midiToHz(80), bt+beat*2, beat*0.06, 0.025, rev, 'sine');
+      // 5. Salvar no IndexedDB
+      const name      = file.name.replace(/\.[^.]+$/, ''); // sem extensão
+      const mimeType  = 'audio/webm';
+      const trackData = { name, mimeType, duration, data: compressedBuf, createdAt: Date.now(), size: compressedBuf.byteLength };
+      const id        = await musicDbAdd(trackData);
+      trackData.id    = id;
+      _musicTracks.push(trackData);
 
-      } else if (style === 'acoustic') {
-        // Violão fingerpicking — FM com harmônicos
-        const arp = [root, root+4, root+7, root+12, root+7, root+4, root+12, root+7];
-        arp.forEach((m,i) => schedNote(ctx, midiToHz(m), bt+i*beat*0.5, beat*0.45, 0.14-i*0.008, dry, 'sine', 5, 0.8));
-        // Baixo percussivo
-        schedNote(ctx, midiToHz(root-12), bt, beat*0.35, 0.25, dry, 'triangle', 3, 3);
-        schedNote(ctx, midiToHz(root-5), bt+beat*2, beat*0.35, 0.20, dry, 'triangle', 3, 3);
-
-      } else if (style === 'corporate') {
-        // Synth pad limpo
-        chord.forEach(m => schedNote(ctx, midiToHz(m), bt, bar*1.8, 0.08, dry, 'sine', 1, 0.5));
-        chord.forEach(m => schedNote(ctx, midiToHz(m+12), bt, bar*1.8, 0.04, rev, 'sine', 0.5, 0.3));
-        // Baixo synth
-        schedNote(ctx, midiToHz(root-12), bt, beat*0.3, 0.20, dry, 'sine', 2, 2);
-        schedNote(ctx, midiToHz(root-12), bt+beat, beat*0.3, 0.16, dry, 'sine', 2, 2);
-        schedNote(ctx, midiToHz(root-12), bt+beat*2, beat*0.3, 0.18, dry, 'sine', 2, 2);
-        schedNote(ctx, midiToHz(root-12), bt+beat*3, beat*0.3, 0.14, dry, 'sine', 2, 2);
-        // Melodia synth flutuante
-        const melNotes = [root+7, root+9, root+12, root+7];
-        schedNote(ctx, midiToHz(melNotes[b%4]+12), bt+beat*0.5, beat*1.5, 0.06, rev, 'sine', 1, 0.8);
-
-      } else if (style === 'chillbeats') {
-        // Piano lowfi com flutter
-        chord.forEach((m,i) => {
-          schedNote(ctx, midiToHz(m), bt+i*0.03, bar*1.9, 0.09, dry, 'sine', 4, 1.8);
-        });
-        // Kick sintético (beat 1 e 3)
-        [0, beat*2].forEach(off => {
-          const kg = ctx.createGain(); const kosc = ctx.createOscillator();
-          kosc.frequency.setValueAtTime(180, bt+off); kosc.frequency.exponentialRampToValueAtTime(40, bt+off+0.12);
-          kg.gain.setValueAtTime(0.35, bt+off); kg.gain.exponentialRampToValueAtTime(0.001, bt+off+0.25);
-          kosc.connect(kg); kg.connect(dry); kosc.start(bt+off); kosc.stop(bt+off+0.3);
-        });
-        // Snare sintético (beat 2 e 4)
-        [beat, beat*3].forEach(off => {
-          const sg = ctx.createGain(); const sbuf = ctx.createBuffer(1, ctx.sampleRate*0.15, ctx.sampleRate);
-          const sd = sbuf.getChannelData(0); for(let i=0;i<sd.length;i++) sd[i]=(Math.random()*2-1)*Math.exp(-i/(ctx.sampleRate*0.05));
-          const src = ctx.createBufferSource(); src.buffer = sbuf;
-          const bp = ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=800; bp.Q.value=0.5;
-          sg.gain.value = 0.25; src.connect(bp); bp.connect(sg); sg.connect(dry); src.start(bt+off);
-        });
-        // Hi-hat 16th
-        for(let h=0;h<16;h++) {
-          if (h%4===2) continue; // pausa no 3
-          const hg = ctx.createGain(); const hbuf = ctx.createBuffer(1, ctx.sampleRate*0.025, ctx.sampleRate);
-          const hd = hbuf.getChannelData(0); for(let i=0;i<hd.length;i++) hd[i]=Math.random()*2-1;
-          const src = ctx.createBufferSource(); src.buffer = hbuf;
-          const hp = ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=9000;
-          hg.gain.value = h%2===0 ? 0.025 : 0.012;
-          src.connect(hp); hp.connect(hg); hg.connect(dry); src.start(bt+h*beat*0.25);
-        }
-        // Baixo synth groove
-        const bassLine = [root-12, root-12, root-10, root-12, root-7, root-12, root-10, root-9];
-        bassLine.forEach((m,i) => schedNote(ctx, midiToHz(m), bt+i*beat*0.5, beat*0.42, 0.22, dry, 'sine', 2.5, 3));
-      }
+      bar.style.width = '100%';
+      const origMB = (file.size / 1024 / 1024).toFixed(1);
+      const newMB  = (compressedBuf.byteLength / 1024 / 1024).toFixed(1);
+      toast(`✓ "${name}" salvo — ${origMB}MB → ${newMB}MB`, 'success');
+    } catch(e) {
+      toast('Erro ao importar "' + file.name + '": ' + e.message, 'error');
+      console.error(e);
     }
   }
 
-  if (style === 'ambient') {
-    // Pad etéreo — 5 camadas de síntese FM com LFO lento
-    const notes = [48,55,60,64,67,72]; // C3 G3 C4 E4 G4 C5
-    notes.forEach((m, i) => {
-      const osc  = ctx.createOscillator();
-      const modO = ctx.createOscillator();
-      const modG = ctx.createGain();
-      const g    = ctx.createGain();
-      const lfo  = ctx.createOscillator();
-      const lfoG = ctx.createGain();
-      const filt = ctx.createBiquadFilter();
-      osc.type = 'sine'; osc.frequency.value = midiToHz(m);
-      modO.frequency.value = midiToHz(m) * (1 + i * 0.5);
-      modG.gain.value = midiToHz(m) * 0.3;
-      lfo.frequency.value = 0.05 + i * 0.02; lfoG.gain.value = 4;
-      filt.type = 'lowpass'; filt.frequency.value = 1200 + i * 200;
-      modO.connect(modG); modG.connect(osc.frequency);
-      lfo.connect(lfoG); lfoG.connect(osc.frequency);
-      osc.connect(filt); filt.connect(g);
-      g.connect(dry); g.connect(rev);
-      const peak = (0.05 - i * 0.006);
-      g.gain.setValueAtTime(0, ctx.currentTime);
-      g.gain.linearRampToValueAtTime(peak, ctx.currentTime + 4 + i * 1.5);
-      modO.start(); lfo.start(); osc.start();
-    });
-    return;
-  }
+  statusDiv.style.display = 'none';
+  bar.style.width = '0%';
+  input.value = '';
+  renderMusicGrid();
+}
 
-  // Loop scheduler para estilos rítmicos
-  const loopBars = 8;
-  const loopDur  = bar * loopBars;
+// ── Codifica AudioBuffer como WebM/Opus via MediaRecorder ────────────
+function encodeAsWebM(audioBuffer, sampleRate) {
+  return new Promise((resolve, reject) => {
+    // Criar stream de áudio a partir do buffer via AudioContext + ScriptProcessor
+    const ctx    = new (window.AudioContext || window.webkitAudioContext)({ sampleRate });
+    const dest   = ctx.createMediaStreamDestination();
+    const src    = ctx.createBufferSource();
+    src.buffer   = audioBuffer;
+    src.connect(dest);
 
-  function scheduleLoop(startT) {
-    if (!state.bgAudioCtx || state.bgAudioCtx !== ctx) return;
-    scheduleChords(startT, loopBars);
-    const next = startT + loopDur;
-    const ms   = Math.max(100, (next - ctx.currentTime - 1.0) * 1000);
-    state._bgScheduler = setTimeout(() => scheduleLoop(next), ms);
-  }
+    const mimeType = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/ogg']
+      .find(t => MediaRecorder.isTypeSupported(t)) || 'audio/webm';
 
-  scheduleLoop(ctx.currentTime + 0.05);
+    const rec    = new MediaRecorder(dest.stream, { mimeType, audioBitsPerSecond: 96000 });
+    const chunks = [];
+    rec.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+    rec.onstop = async () => {
+      ctx.close();
+      const blob = new Blob(chunks, { type: mimeType });
+      resolve(await blob.arrayBuffer());
+    };
+    rec.onerror = e => { ctx.close(); reject(e.error); };
+
+    rec.start(200);
+    src.start(0);
+    // Parar quando o áudio terminar (+ 300ms de segurança)
+    src.onended = () => setTimeout(() => { try { rec.stop(); } catch(e){} }, 300);
+    // Fallback timeout
+    setTimeout(() => { if (rec.state !== 'inactive') try { rec.stop(); } catch(e){} }, (audioBuffer.duration + 1) * 1000);
+  });
+}
+
+// ── Deletar trilha do DB e lista ─────────────────────────────────────
+async function deleteTrack(id) {
+  if (!confirm('Excluir esta trilha permanentemente?')) return;
+  if (state.activeBgMusic === id) { stopBgMusic(); state.activeBgMusic = null; }
+  await musicDbDelete(id);
+  _musicTracks = _musicTracks.filter(t => t.id !== id);
+  renderMusicGrid();
+  toast('Trilha excluída', 'success');
 }
 
 function updateBgVol() {
@@ -2696,26 +2696,10 @@ function updateBgVol() {
   if (state.bgGain) state.bgGain.gain.value = (v / 100) * 0.15;
 }
 
-function importMusic(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const url = URL.createObjectURL(file);
-  stopBgMusic();
-  state.activeBgMusic = 'custom';
-  renderMusicGrid();
-  const ctx = new (window.AudioContext || window.webkitAudioContext)();
-  state.bgAudioCtx = ctx;
-  fetch(url).then(r => r.arrayBuffer()).then(buf => ctx.decodeAudioData(buf)).then(decoded => {
-    const src = ctx.createBufferSource();
-    src.buffer = decoded; src.loop = true;
-    const g = ctx.createGain();
-    g.gain.value = parseInt(document.getElementById('bgVolSlider').value) / 100 * 0.15;
-    state.bgGain = g;
-    src.connect(g); g.connect(ctx.destination); src.start();
-  }).catch(() => toast('Erro ao carregar arquivo de áudio', 'error'));
-  document.getElementById('importedTrackInfo').textContent = `✔ ${file.name} (${(file.size/1024/1024).toFixed(1)} MB)`;
-  toast('🎵 Trilha importada e tocando!', 'success');
-}
+// ── Stub para compatibilidade (selectBgMusic agora usa IDs do DB) ────
+function playBgTrack() {}
+
+
 
 
 // ═══════════════════════════════════════════════════════════════════
@@ -3148,7 +3132,7 @@ async function init() {
   await openDB();
   state.episodes = await dbGetAll('episodes');
   state.videoTakes = [];
-  renderMusicGrid();
+  await loadSavedTracks();
   renderTips();
   renderChecklist();
   updateFX();
