@@ -970,6 +970,32 @@ input[type=range].vol-sl{
 }
 .music-track-meta{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:2px;}
 
+/* ─── MUSIC DROP ZONE ────────────── */
+.music-drop-zone{
+  border:2px dashed var(--border2);
+  border-radius:var(--radius);
+  padding:24px 16px;text-align:center;
+  background:var(--bg2);margin-bottom:14px;
+  transition:all 0.2s;cursor:pointer;
+}
+.music-drop-zone.drag-over{
+  border-color:var(--accent);
+  background:rgba(255,92,53,0.06);
+}
+.music-drop-icon{font-size:32px;margin-bottom:8px;}
+.music-drop-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;}
+.music-drop-sub{font-size:10px;color:var(--text3);line-height:1.6;}
+
+/* ─── MUSIC FORMAT BADGE ─────────── */
+.music-fmt-badge{
+  font-size:9px;font-weight:700;letter-spacing:0.5px;
+  padding:2px 6px;border-radius:4px;
+  background:var(--bg4);color:var(--text3);
+  flex-shrink:0;font-family:var(--mono);
+}
+.music-fmt-badge.audio{background:rgba(45,202,115,0.12);color:var(--green);}
+.music-fmt-badge.video{background:rgba(77,141,255,0.12);color:var(--blue);}
+
 /* ─── VIDEO RECORDING UI ─────────── */
 .video-rec-card{
   background:var(--bg2);border:1px solid var(--border);
@@ -1410,42 +1436,53 @@ input[type=range].vol-sl{
 
     <!-- ── TAB: MÚSICA ── -->
     <div class="studio-panel" id="panel-musica">
-      <p style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.6;">Música instrumental gerada em tempo real. Mantém o ambiente do podcast sem interferir na voz.</p>
 
-      <div class="section-label" style="margin-bottom:10px;">Trilhas Instrumentais</div>
-      <div class="music-grid" id="musicGrid"></div>
+      <!-- Drop zone universal -->
+      <div id="musicDropZone" class="music-drop-zone"
+           ondragover="event.preventDefault();this.classList.add('drag-over')"
+           ondragleave="this.classList.remove('drag-over')"
+           ondrop="handleMusicDrop(event)">
+        <div class="music-drop-icon">🎵</div>
+        <div class="music-drop-title">Arraste qualquer áudio ou vídeo aqui</div>
+        <div class="music-drop-sub">MP3 · WAV · OGG · AAC · FLAC · M4A · MP4 · MKV · AVI · MOV · WebM · e mais</div>
+        <label class="btn btn-ghost btn-sm" style="cursor:pointer;margin-top:10px;">
+          📁 Selecionar arquivos
+          <input type="file" accept="*/*" multiple style="display:none;" onchange="importMedia(this)">
+        </label>
+      </div>
 
-      <div class="music-vol-wrap" style="margin-top:14px;">
+      <!-- Status de conversão -->
+      <div id="musicConvertStatus" style="display:none;margin-bottom:12px;">
+        <div id="musicConvertLabel" style="font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:600;">⚙️ Convertendo...</div>
+        <div style="background:var(--bg4);border-radius:4px;height:6px;overflow:hidden;">
+          <div id="musicConvertBar" style="height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0%;transition:width 0.25s;border-radius:4px;"></div>
+        </div>
+        <div id="musicConvertDetail" style="font-size:10px;color:var(--text3);margin-top:4px;"></div>
+      </div>
+
+      <!-- Volume + ducking -->
+      <div class="music-vol-wrap" style="margin-bottom:10px;">
         <label>Volume</label>
         <input type="range" min="0" max="100" value="25" id="bgVolSlider" oninput="updateBgVol()">
         <span id="bgVolVal">25%</span>
       </div>
-
-      <div class="fx-card" style="margin-top:12px;">
+      <div class="fx-card" style="margin-bottom:14px;padding:10px 14px;">
         <div class="toggle-row">
-          <span class="toggle-label">🦆 Auto-ducking (baixa quando você fala)</span>
+          <span class="toggle-label">🦆 Auto-ducking durante fala</span>
           <button class="toggle on" id="togDucking" onclick="toggleFX(this)"></button>
         </div>
-        <div style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.5;">O volume da música reduz automaticamente em 60% quando detecta sua voz, como nos podcasts profissionais.</div>
       </div>
 
-      <div style="margin-top:16px;">
-        <div class="section-label" style="margin-bottom:10px;">Importar sua música</div>
-        <label class="btn btn-ghost" style="cursor:pointer;display:inline-flex;align-items:center;gap:8px;width:100%;justify-content:center;">
-          📁 Selecionar MP3 / WAV / OGG
-          <input type="file" accept="audio/*" style="display:none;" onchange="importMusic(this)">
-        </label>
-        <div id="importedTrackInfo" style="font-size:12px;color:var(--text3);margin-top:8px;text-align:center;"></div>
+      <!-- Lista de trilhas -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div class="section-label">Minhas Trilhas <span id="musicCountBadge" style="font-family:var(--mono);color:var(--text3);font-weight:400;font-size:10px;margin-left:4px;"></span></div>
+        <button class="btn btn-ghost btn-sm" onclick="clearAllTracks()" style="font-size:10px;padding:4px 8px;color:var(--red);">Limpar tudo</button>
       </div>
-
-      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);">
-        <div class="section-label" style="margin-bottom:10px;">Dicas de uso</div>
-        <div style="font-size:11px;color:var(--text3);line-height:1.7;">
-          • Volume ideal para fundo: <strong>15–25%</strong><br>
-          • Use <em>Lofi Chill</em> ou <em>Jazz Suave</em> para conversas<br>
-          • Use <em>Ambient Pad</em> para narrações introspectivas<br>
-          • Use <em>Chill Beats</em> para podcasts de cultura pop
-        </div>
+      <div id="musicGrid" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <div id="musicEmptyState" style="text-align:center;padding:24px 20px;color:var(--text3);">
+        <div style="font-size:32px;margin-bottom:8px;">🎼</div>
+        <div style="font-size:13px;font-weight:500;">Nenhuma trilha ainda</div>
+        <div style="font-size:11px;margin-top:4px;">Arraste arquivos ou use o botão acima</div>
       </div>
     </div><!-- /panel-musica -->
 
@@ -2520,8 +2557,11 @@ function renderMusicGrid() {
   empty.style.display = 'none';
   grid.innerHTML = _musicTracks.map((tr, i) => {
     const isActive = state.activeBgMusic === tr.id;
-    const mb = (tr.data.byteLength / 1024 / 1024).toFixed(1);
+    const mb  = ((tr.data || tr).byteLength / 1024 / 1024).toFixed(1);
     const dur = tr.duration ? formatTime2(tr.duration) : '--:--';
+    const origMB = tr.origSize ? (tr.origSize / 1024 / 1024).toFixed(1) : null;
+    const typeLabel = tr.sourceType === 'video' ? 'VÍDEO→ÁUDIO' : 'ÁUDIO';
+    const typeClass = tr.sourceType === 'video' ? 'video' : 'audio';
     return `
     <div class="music-track-row ${isActive ? 'active' : ''}" id="mtr_${tr.id}">
       <button class="music-play-btn ${isActive ? 'playing' : ''}" onclick="selectBgMusic(${tr.id})" title="${isActive ? 'Pausar' : 'Reproduzir'}">
@@ -2529,10 +2569,11 @@ function renderMusicGrid() {
       </button>
       <div class="music-track-info">
         <div class="music-track-name">${escHtml(tr.name)}</div>
-        <div class="music-track-meta">${dur} · ${mb} MB · ${tr.mimeType.replace('audio/','').toUpperCase()}</div>
+        <div class="music-track-meta">${dur} · ${mb}MB convertido${origMB ? ' (era '+origMB+'MB)' : ''}</div>
       </div>
-      ${isActive ? '<div class="music-playing-badge">● AO VIVO</div>' : ''}
-      <button class="icon-btn del" onclick="deleteTrack(${tr.id})" title="Excluir trilha">🗑</button>
+      <span class="music-fmt-badge ${typeClass}">${typeLabel}</span>
+      ${isActive ? '<div class="music-playing-badge">▶</div>' : ''}
+      <button class="icon-btn del" onclick="deleteTrack(${tr.id})" title="Excluir">🗑</button>
     </div>`;
   }).join('');
 }
@@ -2584,100 +2625,264 @@ async function playStoredTrack(track) {
   }
 }
 
-// ── Importa, converte para OGG/WebM leve e salva no DB ───────────────
-async function importMusic(input) {
+// ── Detecção do melhor formato suportado ─────────────────────────────
+function bestAudioMime() {
+  return ['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/ogg']
+    .find(t => MediaRecorder.isTypeSupported(t)) || 'audio/webm';
+}
+function bestVideoMime() {
+  return ['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm']
+    .find(t => MediaRecorder.isTypeSupported(t)) || 'video/webm';
+}
+
+// Detecta se o arquivo é vídeo pelo MIME ou extensão
+function isVideoFile(file) {
+  if (file.type.startsWith('video/')) return true;
+  const ext = file.name.split('.').pop().toLowerCase();
+  return ['mp4','mkv','avi','mov','webm','m4v','flv','wmv','ts','3gp','ogv'].includes(ext);
+}
+function isAudioFile(file) {
+  if (file.type.startsWith('audio/')) return true;
+  const ext = file.name.split('.').pop().toLowerCase();
+  return ['mp3','wav','ogg','aac','flac','m4a','wma','aiff','opus','ra','amr'].includes(ext);
+}
+
+// ── Handler de drop ───────────────────────────────────────────────────
+function handleMusicDrop(event) {
+  event.preventDefault();
+  document.getElementById('musicDropZone').classList.remove('drag-over');
+  const files = Array.from(event.dataTransfer.files);
+  if (files.length) processMediaFiles(files);
+}
+
+// ── Entrada via input file ────────────────────────────────────────────
+function importMedia(input) {
   const files = Array.from(input.files);
-  if (!files.length) return;
-  const statusDiv = document.getElementById('musicConvertStatus');
-  const bar       = document.getElementById('musicConvertBar');
+  if (files.length) processMediaFiles(files);
+  input.value = '';
+}
+
+// ── Pipeline principal: detecta tipo → extrai áudio → converte → salva ─
+async function processMediaFiles(files) {
+  const statusDiv  = document.getElementById('musicConvertStatus');
+  const bar        = document.getElementById('musicConvertBar');
+  const label      = document.getElementById('musicConvertLabel');
+  const detail     = document.getElementById('musicConvertDetail');
   statusDiv.style.display = 'block';
 
-  for (let fi = 0; fi < files.length; fi++) {
-    const file = files[fi];
-    bar.style.width = '10%';
-    statusDiv.querySelector('div').textContent = `⚙️ Convertendo "${file.name}"...`;
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const name = file.name.replace(/\.[^.]+$/, '');
+    const origMB = (file.size / 1024 / 1024).toFixed(1);
+    label.textContent = `⚙️ [${i+1}/${files.length}] "${name}"`;
+    bar.style.width = '5%';
+
     try {
-      // 1. Decodificar o áudio original
-      const originalBuf = await file.arrayBuffer();
-      bar.style.width = '30%';
-      const tmpCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 44100 });
-      const decoded = await tmpCtx.decodeAudioData(originalBuf.slice(0));
+      let audioBuffer, sourceType;
+
+      if (isVideoFile(file)) {
+        sourceType = 'video';
+        detail.textContent = 'Extraindo faixa de áudio do vídeo...';
+        bar.style.width = '15%';
+        audioBuffer = await extractAudioFromVideo(file, pct => {
+          bar.style.width = (15 + pct * 0.35) + '%';
+        });
+      } else if (isAudioFile(file) || file.type.startsWith('audio/')) {
+        sourceType = 'audio';
+        detail.textContent = 'Decodificando áudio...';
+        bar.style.width = '15%';
+        audioBuffer = await decodeAudioFile(file, pct => {
+          bar.style.width = (15 + pct * 0.35) + '%';
+        });
+      } else {
+        // Tenta como áudio mesmo assim (browser decode)
+        sourceType = 'audio';
+        detail.textContent = 'Tentando decodificar...';
+        audioBuffer = await decodeAudioFile(file, pct => {
+          bar.style.width = (15 + pct * 0.35) + '%';
+        });
+      }
+
+      detail.textContent = 'Normalizando áudio (44.1kHz estéreo)...';
       bar.style.width = '55%';
 
-      // 2. Re-renderizar em mono 44100Hz para reduzir tamanho (~50%)
-      const sampleRate = 44100;
-      const numCh      = Math.min(decoded.numberOfChannels, 2);
-      const length     = decoded.length;
-      const offCtx     = new OfflineAudioContext(numCh, length, sampleRate);
-      const src        = offCtx.createBufferSource();
-      src.buffer       = decoded;
-      src.connect(offCtx.destination);
-      src.start(0);
-      const rendered   = await offCtx.startRendering();
-      await tmpCtx.close();
-      bar.style.width = '70%';
+      // Normalizar: resample para 44100Hz, máx 2 canais
+      const normalizedBuffer = await normalizeAudioBuffer(audioBuffer, 44100);
+      bar.style.width = '65%';
 
-      // 3. Codificar como WebM/Opus via MediaRecorder (formato leve e nativo)
-      const compressedBuf = await encodeAsWebM(rendered, offCtx.sampleRate);
-      bar.style.width = '90%';
+      detail.textContent = 'Codificando WebM/Opus 96kbps...';
+      const compressedBuf = await encodeBufferToWebM(normalizedBuffer, bestAudioMime(), 96000);
+      bar.style.width = '92%';
 
-      // 4. Calcular duração
-      const duration = decoded.duration;
-
-      // 5. Salvar no IndexedDB
-      const name      = file.name.replace(/\.[^.]+$/, ''); // sem extensão
-      const mimeType  = 'audio/webm';
-      const trackData = { name, mimeType, duration, data: compressedBuf, createdAt: Date.now(), size: compressedBuf.byteLength };
-      const id        = await musicDbAdd(trackData);
-      trackData.id    = id;
+      // Salvar no DB
+      const mimeType  = bestAudioMime().split(';')[0]; // só 'audio/webm'
+      const duration  = normalizedBuffer.duration;
+      const trackData = {
+        name, mimeType, duration, sourceType,
+        data: compressedBuf,
+        createdAt: Date.now(),
+        origSize: file.size,
+        size: compressedBuf.byteLength
+      };
+      const id = await musicDbAdd(trackData);
+      trackData.id = id;
       _musicTracks.push(trackData);
 
       bar.style.width = '100%';
-      const origMB = (file.size / 1024 / 1024).toFixed(1);
-      const newMB  = (compressedBuf.byteLength / 1024 / 1024).toFixed(1);
-      toast(`✓ "${name}" salvo — ${origMB}MB → ${newMB}MB`, 'success');
-    } catch(e) {
-      toast('Erro ao importar "' + file.name + '": ' + e.message, 'error');
-      console.error(e);
+      const newMB = (compressedBuf.byteLength / 1024 / 1024).toFixed(1);
+      const reduction = Math.round((1 - compressedBuf.byteLength / file.size) * 100);
+      detail.textContent = `✓ ${origMB}MB → ${newMB}MB (${reduction}% menor)`;
+      toast(`✓ "${name}" convertido e salvo (${origMB}MB→${newMB}MB)`, 'success');
+      await new Promise(r => setTimeout(r, 600));
+
+    } catch(err) {
+      detail.textContent = 'Erro: ' + err.message;
+      toast(`Erro em "${file.name}": ${err.message}`, 'error');
+      console.error('importMedia error:', err);
+      await new Promise(r => setTimeout(r, 1500));
     }
   }
 
   statusDiv.style.display = 'none';
   bar.style.width = '0%';
-  input.value = '';
+  detail.textContent = '';
   renderMusicGrid();
 }
 
-// ── Codifica AudioBuffer como WebM/Opus via MediaRecorder ────────────
-function encodeAsWebM(audioBuffer, sampleRate) {
+// ── Decodifica arquivo de áudio via Web Audio ─────────────────────────
+async function decodeAudioFile(file, onProgress) {
+  const buf = await file.arrayBuffer();
+  onProgress && onProgress(0.5);
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  try {
+    const decoded = await ctx.decodeAudioData(buf.slice(0));
+    onProgress && onProgress(1);
+    await ctx.close();
+    return decoded;
+  } catch(e) {
+    await ctx.close();
+    throw new Error('Formato não suportado pelo navegador: ' + e.message);
+  }
+}
+
+// ── Extrai áudio de vídeo via HTMLVideoElement + Web Audio ────────────
+function extractAudioFromVideo(file, onProgress) {
   return new Promise((resolve, reject) => {
-    // Criar stream de áudio a partir do buffer via AudioContext + ScriptProcessor
-    const ctx    = new (window.AudioContext || window.webkitAudioContext)({ sampleRate });
-    const dest   = ctx.createMediaStreamDestination();
-    const src    = ctx.createBufferSource();
-    src.buffer   = audioBuffer;
-    src.connect(dest);
+    const url   = URL.createObjectURL(file);
+    const video = document.createElement('video');
+    video.src   = url;
+    video.muted = false;
+    video.preload = 'auto';
+    video.crossOrigin = 'anonymous';
 
-    const mimeType = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/ogg']
-      .find(t => MediaRecorder.isTypeSupported(t)) || 'audio/webm';
+    video.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Vídeo não pôde ser decodificado')); };
 
-    const rec    = new MediaRecorder(dest.stream, { mimeType, audioBitsPerSecond: 96000 });
+    video.onloadedmetadata = async () => {
+      try {
+        const duration = video.duration;
+        const sampleRate = 44100;
+        const numCh = 2;
+        const offCtx = new OfflineAudioContext(numCh, Math.ceil(duration * sampleRate), sampleRate);
+
+        // Criar source de vídeo via MediaElementSource
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate });
+        const mediaSource = audioCtx.createMediaElementSource(video);
+
+        // Conectar ao OfflineAudioContext via stream intermediário
+        const dest = audioCtx.createMediaStreamDestination();
+        mediaSource.connect(dest);
+
+        const srcNode = offCtx.createMediaStreamSource(dest.stream);
+        srcNode.connect(offCtx.destination);
+
+        video.currentTime = 0;
+        await video.play();
+        onProgress && onProgress(0.3);
+
+        // Monitorar progresso
+        const progressInterval = setInterval(() => {
+          const p = video.currentTime / (duration || 1);
+          onProgress && onProgress(0.3 + p * 0.6);
+        }, 500);
+
+        const rendered = await offCtx.startRendering();
+        clearInterval(progressInterval);
+        video.pause();
+        await audioCtx.close();
+        URL.revokeObjectURL(url);
+        onProgress && onProgress(1);
+        resolve(rendered);
+      } catch(e) {
+        URL.revokeObjectURL(url);
+        // Fallback: usar FileReader + decodeAudioData
+        reject(new Error('Extração de vídeo falhou, tente um arquivo de áudio'));
+      }
+    };
+  });
+}
+
+// ── Normaliza AudioBuffer para sample rate alvo ───────────────────────
+async function normalizeAudioBuffer(buffer, targetSR) {
+  const numCh  = Math.min(buffer.numberOfChannels, 2);
+  const newLen = Math.ceil(buffer.duration * targetSR);
+  const offCtx = new OfflineAudioContext(numCh, newLen, targetSR);
+  const src    = offCtx.createBufferSource();
+  src.buffer   = buffer;
+  src.connect(offCtx.destination);
+  src.start(0);
+  return await offCtx.startRendering();
+}
+
+// ── Codifica AudioBuffer → WebM/Opus via MediaRecorder ───────────────
+function encodeBufferToWebM(audioBuffer, mimeType, bitrate) {
+  return new Promise((resolve, reject) => {
+    const sampleRate = audioBuffer.sampleRate;
+    const ctx   = new (window.AudioContext || window.webkitAudioContext)({ sampleRate });
+    const dest  = ctx.createMediaStreamDestination();
+    const src   = ctx.createBufferSource();
+    src.buffer  = audioBuffer;
+
+    // Compressor suave para normalizar nível antes de salvar
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -18;
+    comp.knee.value = 8;
+    comp.ratio.value = 3;
+    comp.attack.value = 0.01;
+    comp.release.value = 0.2;
+    src.connect(comp);
+    comp.connect(dest);
+
+    const rec    = new MediaRecorder(dest.stream, { mimeType, audioBitsPerSecond: bitrate });
     const chunks = [];
     rec.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
     rec.onstop = async () => {
-      ctx.close();
+      try { ctx.close(); } catch(e){}
       const blob = new Blob(chunks, { type: mimeType });
+      if (blob.size < 1000) { reject(new Error('Arquivo de saída muito pequeno — codec não suportado')); return; }
       resolve(await blob.arrayBuffer());
     };
-    rec.onerror = e => { ctx.close(); reject(e.error); };
+    rec.onerror = e => { try { ctx.close(); } catch(e2){} reject(e.error || new Error('MediaRecorder error')); };
 
-    rec.start(200);
+    rec.start(250);
     src.start(0);
-    // Parar quando o áudio terminar (+ 300ms de segurança)
-    src.onended = () => setTimeout(() => { try { rec.stop(); } catch(e){} }, 300);
-    // Fallback timeout
-    setTimeout(() => { if (rec.state !== 'inactive') try { rec.stop(); } catch(e){} }, (audioBuffer.duration + 1) * 1000);
+    src.onended = () => setTimeout(() => { if (rec.state !== 'inactive') rec.stop(); }, 400);
+    // Safety timeout
+    const safety = (audioBuffer.duration + 3) * 1000;
+    setTimeout(() => { if (rec.state !== 'inactive') rec.stop(); }, safety);
   });
+}
+
+// ── Limpar todas as trilhas ───────────────────────────────────────────
+async function clearAllTracks() {
+  if (!_musicTracks.length) return;
+  if (!confirm('Excluir TODAS as trilhas? Esta ação não pode ser desfeita.')) return;
+  stopBgMusic();
+  state.activeBgMusic = null;
+  // Deletar cada uma do DB
+  for (const t of _musicTracks) await musicDbDelete(t.id);
+  _musicTracks = [];
+  renderMusicGrid();
+  toast('Todas as trilhas removidas', 'success');
 }
 
 // ── Deletar trilha do DB e lista ─────────────────────────────────────
