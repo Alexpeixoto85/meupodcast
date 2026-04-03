@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>PodCastMix · Estúdio Móvel</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+<title>PodCastMix · Estúdio Profissional</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
 <style>
 * {
   margin: 0;
@@ -15,23 +15,23 @@
 }
 
 :root {
-  --bg: #0a0c10;
-  --surface: #13171f;
-  --surface2: #1a1f2a;
-  --card: #1e2532;
-  --border: rgba(255,255,255,0.08);
-  --accent: #ff5e3a;
-  --accent-glow: rgba(255,94,58,0.3);
-  --text: #f0f3f8;
-  --text2: #9aa6b9;
-  --text3: #5f6c84;
-  --green: #2ecc71;
-  --red: #e74c3c;
-  --amber: #f39c12;
-  --radius: 20px;
-  --radius-sm: 14px;
-  --nav-h: 70px;
-  --top-h: 64px;
+  --bg: #0B0E14;
+  --surface: #131A24;
+  --surface2: #1A2330;
+  --card: #1E2A3A;
+  --border: rgba(255,255,255,0.06);
+  --accent: #FF6B4A;
+  --accent-glow: rgba(255,107,74,0.3);
+  --text: #F0F3FA;
+  --text2: #9CA9BF;
+  --text3: #5E6F8D;
+  --green: #2ECC71;
+  --red: #E74C3C;
+  --amber: #F39C12;
+  --radius: 24px;
+  --radius-sm: 16px;
+  --nav-h: 72px;
+  --top-h: 68px;
   --font: 'Inter', sans-serif;
 }
 
@@ -45,7 +45,6 @@ body {
   width: 100%;
 }
 
-/* scroll suave mobile */
 .app-scroll {
   position: fixed;
   top: var(--top-h);
@@ -54,43 +53,40 @@ body {
   right: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 16px 14px 24px;
+  padding: 16px 16px 24px;
 }
 
-/* header */
 .top-bar {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   height: var(--top-h);
-  background: rgba(10,12,16,0.92);
+  background: rgba(11,14,20,0.92);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
+  padding: 0 18px;
   z-index: 20;
 }
 .logo h1 {
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   font-weight: 800;
-  background: linear-gradient(135deg, #ff5e3a, #ffb347);
+  background: linear-gradient(135deg, #FF6B4A, #FFB347);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  letter-spacing: -0.5px;
 }
 .logo span {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   color: var(--text3);
-  font-weight: 500;
   display: block;
   margin-top: -4px;
 }
 .status-pill {
-  background: var(--surface2);
+  background: var(--surface);
   padding: 6px 12px;
   border-radius: 40px;
   font-size: 0.7rem;
@@ -103,19 +99,18 @@ body {
   width: 8px;
   height: 8px;
   border-radius: 10px;
-  background: #6c7a8f;
+  background: #6C7A8F;
 }
 .dot.rec { background: var(--red); box-shadow: 0 0 6px var(--red); animation: pulse 1s infinite; }
 .dot.paused { background: var(--amber); }
 
-/* bottom nav */
 .bottom-nav {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
   height: var(--nav-h);
-  background: rgba(10,12,16,0.96);
+  background: rgba(11,14,20,0.96);
   backdrop-filter: blur(20px);
   border-top: 1px solid var(--border);
   display: flex;
@@ -140,13 +135,11 @@ body {
 }
 .nav-btn.active {
   color: var(--accent);
-  background: rgba(255,94,58,0.12);
+  background: rgba(255,107,74,0.12);
 }
-.nav-icon {
-  font-size: 1.5rem;
-}
+.nav-icon { font-size: 1.5rem; }
 .rec-fab {
-  background: linear-gradient(145deg, var(--accent), #e63e17);
+  background: linear-gradient(145deg, var(--accent), #E63E17);
   width: 56px;
   height: 56px;
   border-radius: 56px;
@@ -160,12 +153,11 @@ body {
 }
 .rec-fab:active { transform: scale(0.94); }
 
-/* cards */
 .card {
   background: var(--card);
   border-radius: var(--radius);
-  padding: 16px;
-  margin-bottom: 16px;
+  padding: 18px;
+  margin-bottom: 18px;
   border: 1px solid var(--border);
 }
 .section-title {
@@ -174,15 +166,15 @@ body {
   text-transform: uppercase;
   letter-spacing: 1px;
   color: var(--text3);
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 .btn-row {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 .btn {
-  padding: 12px 18px;
+  padding: 12px 20px;
   border-radius: 40px;
   font-weight: 700;
   font-size: 0.85rem;
@@ -195,19 +187,18 @@ body {
   text-align: center;
 }
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent), #e63e17);
-  box-shadow: 0 4px 12px rgba(255,94,58,0.3);
+  background: linear-gradient(135deg, var(--accent), #E63E17);
+  box-shadow: 0 4px 12px rgba(255,107,74,0.3);
 }
 .btn-danger { background: rgba(231,76,60,0.2); color: var(--red); }
 .btn-success { background: rgba(46,204,113,0.2); color: var(--green); }
 .btn:active { transform: scale(0.97); }
 
-/* timer */
 .timer {
   font-family: monospace;
-  font-size: 2.6rem;
+  font-size: 2.8rem;
   font-weight: 800;
-  letter-spacing: 2px;
+  letter-spacing: 3px;
   text-align: center;
   background: var(--surface);
   padding: 12px;
@@ -215,24 +206,22 @@ body {
   margin-bottom: 12px;
 }
 .meter {
-  background: #0f111a;
+  background: #0F111A;
   border-radius: 40px;
   height: 6px;
   overflow: hidden;
-  margin: 10px 0;
+  margin: 12px 0;
 }
 .meter-fill {
   width: 0%;
   height: 100%;
   background: linear-gradient(90deg, var(--green), var(--amber), var(--accent));
 }
-
-/* takes list */
 .take-item {
   background: var(--surface2);
   border-radius: var(--radius-sm);
-  padding: 12px;
-  margin-bottom: 8px;
+  padding: 14px;
+  margin-bottom: 10px;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -240,6 +229,8 @@ body {
 .take-name {
   font-weight: 600;
   flex: 1;
+  font-size: 0.9rem;
+  word-break: break-word;
 }
 .take-actions button {
   background: none;
@@ -249,46 +240,35 @@ body {
   cursor: pointer;
   color: var(--text2);
 }
-/* music tracks */
 .track-row {
   background: var(--surface2);
   border-radius: var(--radius-sm);
-  padding: 10px 12px;
+  padding: 12px;
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 .track-play {
-  width: 42px;
-  height: 42px;
-  border-radius: 42px;
+  width: 44px;
+  height: 44px;
+  border-radius: 44px;
   background: var(--surface);
   border: none;
   font-size: 1.2rem;
   color: var(--text);
 }
-.track-info {
-  flex: 1;
-}
-.track-title {
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-.track-meta {
-  font-size: 0.7rem;
-  color: var(--text3);
-}
-/* eq sliders */
+.track-info { flex: 1; }
+.track-title { font-weight: 600; font-size: 0.9rem; }
 .eq-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 10px;
+  margin-bottom: 14px;
 }
 .eq-row label {
   width: 80px;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 input[type="range"] {
@@ -298,9 +278,6 @@ input[type="range"] {
   background: var(--surface);
   border-radius: 4px;
 }
-input[type="range"]:focus {
-  outline: none;
-}
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 18px;
@@ -309,17 +286,15 @@ input[type="range"]::-webkit-slider-thumb {
   background: var(--accent);
   cursor: pointer;
 }
-/* select / inputs */
 select, input, textarea {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 30px;
-  padding: 12px 14px;
+  padding: 12px 16px;
   color: var(--text);
   font-size: 0.85rem;
   width: 100%;
 }
-/* modal */
 .modal-mask {
   position: fixed;
   inset: 0;
@@ -333,10 +308,7 @@ select, input, textarea {
   opacity: 0;
   transition: 0.2s;
 }
-.modal-mask.open {
-  visibility: visible;
-  opacity: 1;
-}
+.modal-mask.open { visibility: visible; opacity: 1; }
 .modal-card {
   background: var(--card);
   width: 100%;
@@ -345,7 +317,6 @@ select, input, textarea {
   max-height: 85vh;
   overflow-y: auto;
 }
-/* toasts */
 .toast-zone {
   position: fixed;
   bottom: 80px;
@@ -366,34 +337,27 @@ select, input, textarea {
   font-weight: 500;
   backdrop-filter: blur(12px);
 }
-
 @keyframes pulse { 0%,100%{ opacity:1; } 50%{ opacity:0.4; } }
 </style>
 </head>
 <body>
 
 <div class="top-bar">
-  <div class="logo"><h1>PodCastMix</h1><span>estúdio híbrido</span></div>
+  <div class="logo"><h1>PodCastMix</h1><span>estúdio profissional</span></div>
   <div class="status-pill"><div class="dot" id="statusLed"></div><span id="statusLabel">Pronto</span></div>
 </div>
 
 <div class="app-scroll" id="appScroll">
-  <!-- página estúdio -->
   <div id="studioPage">
-    <!-- cabeçalho episódio -->
     <div class="card">
       <input type="text" id="epTitleInput" placeholder="Título do episódio" value="Episódio #1">
-      <textarea id="epDescInput" rows="2" placeholder="Descrição..." style="margin-top:8px; resize:none;"></textarea>
+      <textarea id="epDescInput" rows="2" placeholder="Descrição..." style="margin-top:8px;"></textarea>
     </div>
-
-    <!-- seleção microfone externo -->
     <div class="card">
-      <div class="section-title">🎙️ MICROFONE</div>
+      <div class="section-title">🎙️ MICROFONE EXTERNO</div>
       <select id="micDeviceSelect"></select>
-      <div style="font-size:12px; color:var(--text3); margin-top:6px;">🔌 Microfones externos / USB / Bluetooth aparecem aqui</div>
+      <div style="font-size:12px; color:var(--text3); margin-top:6px;">✔️ USB, Bluetooth, P2 — detectados automaticamente</div>
     </div>
-
-    <!-- Mixer visual + timer -->
     <div class="card">
       <div class="timer" id="timerDisplay">00:00:00</div>
       <div class="meter"><div class="meter-fill" id="meterFill"></div></div>
@@ -401,64 +365,52 @@ select, input, textarea {
         <button class="btn btn-primary" id="recBtn">⏺ GRAVAR</button>
         <button class="btn" id="pauseRecBtn" disabled>⏸ Pausar</button>
         <button class="btn btn-danger" id="stopRecBtn" disabled>⏹ Parar</button>
-        <button class="btn btn-success" id="saveTakeBtn" disabled>💾 Salvar</button>
       </div>
     </div>
-
-    <!-- TRILHA SONORA (mixagem automática) -->
     <div class="card">
-      <div class="section-title">🎵 FUNDO MUSICAL (mixagem automática na gravação)</div>
+      <div class="section-title">🎵 TRILHA SONORA (mixagem automática)</div>
       <div id="musicLibraryList"></div>
       <div class="btn-row" style="margin-top:8px;">
         <label class="btn" style="flex:1;">📁 Importar áudio<input type="file" id="musicFileInput" accept="audio/mpeg,audio/wav,audio/ogg,audio/mp4,audio/webm" style="display:none;"></label>
         <button class="btn" id="stopMusicBtn">🔇 Parar música</button>
       </div>
       <div style="margin-top:12px;">
-        <label style="font-size:0.7rem;">Volume música durante gravação (ducking automático)</label>
-        <input type="range" id="musicVolume" min="0" max="100" value="28">
-        <span id="musicVolVal">28%</span>
+        <label style="font-size:0.7rem;">Volume música (ducking automático na fala)</label>
+        <input type="range" id="musicVolume" min="0" max="100" value="30">
+        <span id="musicVolVal">30%</span>
       </div>
     </div>
-
-    <!-- EQ e efeitos (voz) -->
     <div class="card">
       <div class="section-title">🎚️ EQ + COMPRESSOR (voz)</div>
       <div class="eq-row"><label>Graves (80Hz)</label><input type="range" id="eqBass" min="-12" max="12" value="2"><span id="eqBassVal">+2</span></div>
       <div class="eq-row"><label>Médios (1kHz)</label><input type="range" id="eqMid" min="-12" max="12" value="1"><span id="eqMidVal">+1</span></div>
       <div class="eq-row"><label>Agudos (8kHz)</label><input type="range" id="eqTreble" min="-12" max="12" value="3"><span id="eqTrebleVal">+3</span></div>
-      <div class="eq-row"><label>Compressor</label><button class="btn" id="compToggleBtn" style="padding:6px 12px;">ON</button><span style="margin-left:8px;">Redução automática</span></div>
-      <div class="eq-row"><label>Gate ruído</label><button class="btn" id="gateToggleBtn" style="padding:6px 12px;">ON</button></div>
+      <div class="eq-row"><label>Compressor</label><button class="btn" id="compToggleBtn" style="padding:6px 12px;">ON</button></div>
+      <div class="eq-row"><label>Gate de ruído</label><button class="btn" id="gateToggleBtn" style="padding:6px 12px;">ON</button></div>
     </div>
-
-    <!-- Takes salvos -->
     <div class="card">
       <div class="section-title">📼 TAKES GRAVADOS</div>
       <div id="takesContainer"><div style="color:var(--text3); text-align:center;">Nenhum take ainda</div></div>
     </div>
   </div>
-
-  <!-- página episódios (simplificada) -->
   <div id="episodesPage" style="display:none;">
     <div class="card">
-      <div class="section-title">📋 MEUS EPISÓDIOS</div>
+      <div class="section-title">📋 EPISÓDIOS SALVOS</div>
       <div id="episodesList"></div>
       <button class="btn btn-primary" id="newEpisodeBtn" style="margin-top:12px;">+ Novo Episódio</button>
     </div>
   </div>
-
-  <!-- página configurações (rápida) -->
   <div id="settingsPage" style="display:none;">
     <div class="card">
-      <div class="section-title">⚙️ Áudio</div>
+      <div class="section-title">⚙️ PROCESSAMENTO</div>
       <div class="eq-row"><label>Cancelamento ruído</label><button class="btn" id="noiseSuppressBtn" style="padding:6px 12px;">ON</button></div>
       <div class="eq-row"><label>Ganho automático</label><button class="btn" id="autoGainBtn" style="padding:6px 12px;">ON</button></div>
-      <div class="section-title" style="margin-top:16px;">💾 Armazenamento</div>
+      <div class="section-title" style="margin-top:16px;">💾 ARMAZENAMENTO</div>
       <button class="btn btn-danger" id="clearDataBtn">Limpar todos os dados</button>
     </div>
   </div>
 </div>
 
-<!-- bottom nav -->
 <div class="bottom-nav">
   <button class="nav-btn active" data-page="studio">🎙<span>Estúdio</span></button>
   <button class="nav-btn" data-page="episodes">📋<span>Episódios</span></button>
@@ -469,103 +421,88 @@ select, input, textarea {
 <div class="toast-zone" id="toastZone"></div>
 
 <script>
-// ----------------------------- MIXER CENTRAL (microfone + música em tempo real) -------------------------
-let mixerCtx = null;
+// ====================== INDEXEDDB ======================
+const DB_NAME = 'PodcastMixDB';
+const DB_VERSION = 3;
+let db = null;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = (e) => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('episodes')) d.createObjectStore('episodes', { keyPath: 'id' });
+      if (!d.objectStoreNames.contains('takes')) d.createObjectStore('takes', { keyPath: 'id' });
+    };
+    req.onsuccess = () => { db = req.result; resolve(db); };
+    req.onerror = () => reject(req.error);
+  });
+}
+async function saveEpisode(ep) { const tx = db.transaction('episodes', 'readwrite'); tx.objectStore('episodes').put(ep); return tx.complete; }
+async function saveTake(take) { const tx = db.transaction('takes', 'readwrite'); tx.objectStore('takes').put(take); return tx.complete; }
+async function getAllEpisodes() { const tx = db.transaction('episodes', 'readonly'); return await tx.objectStore('episodes').getAll(); }
+async function getTakesByEpisode(episodeId) { const tx = db.transaction('takes', 'readonly'); const all = await tx.objectStore('takes').getAll(); return all.filter(t => t.episodeId === episodeId); }
+async function deleteTakeById(id) { const tx = db.transaction('takes', 'readwrite'); tx.objectStore('takes').delete(id); return tx.complete; }
+async function deleteAllData() { const tx = db.transaction(['episodes','takes'], 'readwrite'); tx.objectStore('episodes').clear(); tx.objectStore('takes').clear(); return tx.complete; }
+
+// ====================== ÁUDIO GLOBAL ======================
+let audioCtx = null;
 let micStream = null;
 let micSource = null;
-let micGainNode = null;        // ganho após EQ
-let musicSourceNode = null;    // AudioBufferSourceNode atual
-let musicGainNode = null;      // volume música
-let musicBuffer = null;        // buffer da faixa ativa
-let mixerDestination = null;   // MediaStreamDestination (para gravação)
-let recorder = null;
+let musicGain = null;
+let musicSourceNode = null;
+let currentMusicBuffer = null;
+let mixerDestination = null;
+let mediaRecorder = null;
 let recordedChunks = [];
 let isRecording = false;
 let isPaused = false;
-let recordingTimer = null;
 let recordingSeconds = 0;
+let timerInterval = null;
+let duckingInterval = null;
 
-// estado
+// nós de processamento
+let bassFilter, midFilter, trebleFilter, compressor, gateGain, micGain;
+let compressorEnabled = true;
+let gateEnabled = true;
+
+// estado dos takes e episódios
 let currentEpisodeId = Date.now();
-let episodes = [{ id: currentEpisodeId, title: "Episódio #1", desc: "", createdAt: Date.now(), takes: [] }];
-let takes = [];  // { id, blobURL, duration, name }
-let activeMusicFile = null;   // { buffer, name }
+let episodes = [];
+let takes = []; // array de takes do episódio atual com { id, name, duration, blob, blobURL }
 
-// EQ nodes (biquad)
-let bassFilter, midFilter, trebleFilter;
-let compressorNode, gateNode;
-let noiseSuppression = true;
-let autoGain = true;
-
-// UI elements
-const toastZone = document.getElementById('toastZone');
-function toast(msg, type='info') {
-  const t = document.createElement('div');
-  t.className = 'toast';
-  t.innerText = msg;
-  toastZone.appendChild(t);
-  setTimeout(() => t.remove(), 2800);
+// ====================== INICIALIZAÇÃO DO MIXER ======================
+async function initAudioContext() {
+  if (audioCtx && audioCtx.state !== 'closed') return audioCtx;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  bassFilter = audioCtx.createBiquadFilter(); bassFilter.type = 'peaking'; bassFilter.frequency.value = 80; bassFilter.Q.value = 0.7;
+  midFilter = audioCtx.createBiquadFilter(); midFilter.type = 'peaking'; midFilter.frequency.value = 1000; midFilter.Q.value = 0.7;
+  trebleFilter = audioCtx.createBiquadFilter(); trebleFilter.type = 'peaking'; trebleFilter.frequency.value = 8000; trebleFilter.Q.value = 0.7;
+  compressor = audioCtx.createDynamicsCompressor(); compressor.threshold.value = -24; compressor.knee.value = 6; compressor.ratio.value = 4; compressor.attack.value = 0.003; compressor.release.value = 0.25;
+  gateGain = audioCtx.createGain(); gateGain.gain.value = 1;
+  micGain = audioCtx.createGain();
+  musicGain = audioCtx.createGain(); musicGain.gain.value = 0.3;
+  mixerDestination = audioCtx.createMediaStreamDestination();
+  return audioCtx;
 }
 
-// Inicializa mixer (chamado na primeira interação)
-async function initMixer() {
-  if (mixerCtx && mixerCtx.state !== 'closed') return mixerCtx;
-  mixerCtx = new (window.AudioContext || window.webkitAudioContext)();
-  // criar nós de EQ e processamento
-  bassFilter = mixerCtx.createBiquadFilter();
-  bassFilter.type = 'peaking'; bassFilter.frequency.value = 80; bassFilter.Q.value = 0.7;
-  midFilter = mixerCtx.createBiquadFilter();
-  midFilter.type = 'peaking'; midFilter.frequency.value = 1000; midFilter.Q.value = 0.7;
-  trebleFilter = mixerCtx.createBiquadFilter();
-  trebleFilter.type = 'peaking'; trebleFilter.frequency.value = 8000; trebleFilter.Q.value = 0.7;
-  
-  compressorNode = mixerCtx.createDynamicsCompressor();
-  compressorNode.threshold.value = -24;
-  compressorNode.ratio.value = 4;
-  compressorNode.attack.value = 0.003;
-  compressorNode.release.value = 0.25;
-  
-  gateNode = mixerCtx.createGain();
-  // Simulação simplificada de gate (expansor) usaremos gain automático depois
-  
-  micGainNode = mixerCtx.createGain();
-  musicGainNode = mixerCtx.createGain();
-  musicGainNode.gain.value = 0.28;
-  
-  mixerDestination = mixerCtx.createMediaStreamDestination();
-  
-  // Cadeia: microfone -> filtros -> compressor -> gate -> ganho -> destination
-  // Música -> ganho -> destination
-  return mixerCtx;
-}
-
-// Conectar microfone
 async function connectMicrophone(deviceId = null) {
-  if (micStream) {
-    micStream.getTracks().forEach(t => t.stop());
-    if (micSource) micSource.disconnect();
-  }
-  const constraints = { audio: { deviceId: deviceId ? { exact: deviceId } : undefined, echoCancellation: false, noiseSuppression: noiseSuppression, autoGainControl: autoGain } };
+  if (micStream) { micStream.getTracks().forEach(t => t.stop()); if (micSource) micSource.disconnect(); }
+  const noiseSuppress = document.getElementById('noiseSuppressBtn').innerText === 'ON';
+  const autoGain = document.getElementById('autoGainBtn').innerText === 'ON';
+  const constraints = { audio: { deviceId: deviceId ? { exact: deviceId } : undefined, echoCancellation: false, noiseSuppression: noiseSuppress, autoGainControl: autoGain } };
   micStream = await navigator.mediaDevices.getUserMedia(constraints);
-  await initMixer();
-  micSource = mixerCtx.createMediaStreamSource(micStream);
-  // conexão com efeitos
-  micSource.connect(bassFilter);
-  bassFilter.connect(midFilter);
-  midFilter.connect(trebleFilter);
-  trebleFilter.connect(compressorNode);
-  compressorNode.connect(micGainNode);
-  micGainNode.connect(mixerDestination);
-  micGainNode.connect(mixerCtx.destination); // monitoramento
-  musicGainNode.connect(mixerDestination);
-  musicGainNode.connect(mixerCtx.destination);
-  
-  updateMicEQ();
-  toast(`🎤 Microfone conectado ${deviceId ? 'externo' : 'padrão'}`, 'success');
-  return true;
+  await initAudioContext();
+  micSource = audioCtx.createMediaStreamSource(micStream);
+  micSource.connect(bassFilter); bassFilter.connect(midFilter); midFilter.connect(trebleFilter);
+  trebleFilter.connect(compressor); compressor.connect(gateGain); gateGain.connect(micGain);
+  micGain.connect(audioCtx.destination); micGain.connect(mixerDestination);
+  if (musicGain) { musicGain.connect(audioCtx.destination); musicGain.connect(mixerDestination); }
+  updateEQ(); updateCompressorGate();
+  toast('🎤 Microfone conectado com processamento', 'success');
 }
 
-function updateMicEQ() {
+function updateEQ() {
   if (!bassFilter) return;
   bassFilter.gain.value = parseFloat(document.getElementById('eqBass').value);
   midFilter.gain.value = parseFloat(document.getElementById('eqMid').value);
@@ -574,310 +511,295 @@ function updateMicEQ() {
   document.getElementById('eqMidVal').innerText = midFilter.gain.value;
   document.getElementById('eqTrebleVal').innerText = trebleFilter.gain.value;
 }
-
-// Carregar música e tocar em loop (mixagem ativa)
-async function loadAndPlayMusic(file) {
-  if (musicSourceNode) {
-    try { musicSourceNode.stop(); musicSourceNode.disconnect(); } catch(e) {}
-  }
-  const arrayBuffer = await file.arrayBuffer();
-  const decoded = await mixerCtx.decodeAudioData(arrayBuffer);
-  musicBuffer = decoded;
-  const src = mixerCtx.createBufferSource();
-  src.buffer = musicBuffer;
-  src.loop = true;
-  src.connect(musicGainNode);
-  src.start();
-  musicSourceNode = src;
-  activeMusicFile = { name: file.name, buffer: decoded };
-  toast(`🎵 "${file.name}" tocando e será mixado na gravação`, 'success');
+function updateCompressorGate() {
+  if (compressorEnabled) { compressor.ratio.value = 4; compressor.threshold.value = -24; }
+  else { compressor.ratio.value = 1; compressor.threshold.value = 0; }
+  gateGain.gain.value = gateEnabled ? 0.9 : 1;
 }
 
-function stopBackgroundMusic() {
-  if (musicSourceNode) {
-    try { musicSourceNode.stop(); musicSourceNode.disconnect(); } catch(e) {}
-    musicSourceNode = null;
-  }
-  activeMusicFile = null;
+// ====================== MÚSICA E DUCKING ======================
+async function loadMusic(file) {
+  if (!audioCtx) await initAudioContext();
+  const arrayBuffer = await file.arrayBuffer();
+  const decoded = await audioCtx.decodeAudioData(arrayBuffer);
+  currentMusicBuffer = decoded;
+  if (musicSourceNode) { try { musicSourceNode.stop(); musicSourceNode.disconnect(); } catch(e) {} }
+  const src = audioCtx.createBufferSource();
+  src.buffer = currentMusicBuffer; src.loop = true;
+  src.connect(musicGain); src.start();
+  musicSourceNode = src;
+  toast(`🎵 "${file.name}" carregada e mixada na gravação`, 'success');
+}
+function stopMusic() {
+  if (musicSourceNode) { try { musicSourceNode.stop(); } catch(e) {} musicSourceNode = null; }
+  currentMusicBuffer = null;
   toast('🔇 Música desligada', 'info');
 }
-
-// Ducking automático durante fala (simples: reduz volume da música quando detecta entrada de voz)
-let duckingInterval = null;
-function startDuckingDetection() {
+function updateMusicVolume() {
+  let val = parseInt(document.getElementById('musicVolume').value) / 100;
+  if (musicGain) musicGain.gain.value = val;
+  document.getElementById('musicVolVal').innerText = document.getElementById('musicVolume').value + '%';
+}
+function startDucking() {
   if (duckingInterval) clearInterval(duckingInterval);
   if (!micSource) return;
-  const analyser = mixerCtx.createAnalyser();
-  analyser.fftSize = 256;
+  const analyser = audioCtx.createAnalyser(); analyser.fftSize = 256;
   micSource.connect(analyser);
   const data = new Uint8Array(analyser.frequencyBinCount);
   duckingInterval = setInterval(() => {
-    if (!isRecording || isPaused || !musicGainNode) return;
+    if (!isRecording || isPaused || !musicGain) return;
     analyser.getByteFrequencyData(data);
-    let sum = 0;
-    for (let i=0; i<data.length; i++) sum += data[i];
+    let sum = 0; for (let i=0; i<data.length; i++) sum += data[i];
     let avg = sum / data.length;
-    let targetGain = (avg > 30) ? 0.12 : (parseInt(document.getElementById('musicVolume').value) / 100);
-    targetGain = Math.min(0.35, targetGain);
-    if (avg > 45) targetGain = 0.08;
-    musicGainNode.gain.value = targetGain;
-  }, 150);
+    let baseVol = parseInt(document.getElementById('musicVolume').value) / 100;
+    let target = baseVol;
+    if (avg > 35) target = 0.08;
+    else if (avg > 20) target = baseVol * 0.35;
+    musicGain.gain.value = Math.min(0.35, target);
+  }, 120);
 }
-function stopDuckingDetection() {
+function stopDucking() {
   if (duckingInterval) clearInterval(duckingInterval);
+  updateMusicVolume();
 }
 
-// RECORDER usando mixerDestination.stream
+// ====================== GRAVAÇÃO ======================
 async function startRecording() {
   if (isRecording) return;
-  if (!mixerCtx || mixerCtx.state === 'closed') await initMixer();
+  if (!audioCtx || audioCtx.state === 'closed') await initAudioContext();
   if (!micStream) await connectMicrophone(document.getElementById('micDeviceSelect').value);
-  if (mixerCtx.state === 'suspended') await mixerCtx.resume();
-  
+  if (audioCtx.state === 'suspended') await audioCtx.resume();
   const stream = mixerDestination.stream;
-  if (!stream) throw new Error("Sem stream de mixagem");
-  recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+  if (!stream) throw new Error("Mixer stream indisponível");
+  mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
   recordedChunks = [];
-  recorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
-  recorder.start(100);
-  isRecording = true;
-  isPaused = false;
+  mediaRecorder.ondataavailable = e => { if (e.data.size) recordedChunks.push(e.data); };
+  mediaRecorder.start(100);
+  isRecording = true; isPaused = false;
   recordingSeconds = 0;
-  if (recordingTimer) clearInterval(recordingTimer);
-  recordingTimer = setInterval(() => { if (!isPaused) { recordingSeconds++; updateTimerDisplay(); } }, 1000);
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(() => { if (!isPaused) { recordingSeconds++; updateTimerDisplay(); } }, 1000);
   document.getElementById('statusLed').className = 'dot rec';
   document.getElementById('statusLabel').innerText = 'GRAVANDO';
-  document.getElementById('recBtn').innerHTML = '⏺ REC...';
+  document.getElementById('recBtn').innerHTML = '🔴 GRAVANDO';
   document.getElementById('pauseRecBtn').disabled = false;
   document.getElementById('stopRecBtn').disabled = false;
-  document.getElementById('saveTakeBtn').disabled = true;
-  startDuckingDetection();
-  toast('🔴 Gravação iniciada — música sendo mixada automaticamente!', 'success');
+  startDucking();
+  toast('🔴 Gravação iniciada — música sendo mixada automaticamente', 'success');
 }
-
 function pauseRecording() {
   if (!isRecording) return;
-  if (recorder && recorder.state === 'recording') {
-    recorder.pause();
-    isPaused = true;
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.pause(); isPaused = true;
     document.getElementById('statusLed').className = 'dot paused';
     document.getElementById('statusLabel').innerText = 'PAUSADO';
     document.getElementById('pauseRecBtn').innerHTML = '▶ Retomar';
     toast('Gravação pausada', 'info');
-  } else if (recorder && recorder.state === 'paused') {
-    recorder.resume();
-    isPaused = false;
+  } else if (mediaRecorder && mediaRecorder.state === 'paused') {
+    mediaRecorder.resume(); isPaused = false;
     document.getElementById('statusLed').className = 'dot rec';
     document.getElementById('statusLabel').innerText = 'GRAVANDO';
     document.getElementById('pauseRecBtn').innerHTML = '⏸ Pausar';
     toast('Gravação retomada', 'info');
   }
 }
-
-function stopRecording() {
+async function stopRecording() {
   if (!isRecording) return;
-  if (recorder && recorder.state !== 'inactive') {
-    recorder.stop();
-    recorder.onstop = () => {
-      if (recordedChunks.length) {
-        const blob = new Blob(recordedChunks, { type: 'audio/webm' });
-        const url = URL.createObjectURL(blob);
-        const takeName = `Take ${takes.length+1} - ${new Date().toLocaleTimeString()}`;
-        const newTake = { id: Date.now(), blobURL: url, duration: recordingSeconds, name: takeName, blobData: blob };
-        takes.push(newTake);
-        renderTakes();
-        document.getElementById('saveTakeBtn').disabled = false;
-        toast(`✅ Take salvo: ${takeName}`, 'success');
-      }
-      recordedChunks = [];
-    };
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
+    await new Promise(resolve => { mediaRecorder.onstop = resolve; });
+    if (recordedChunks.length) {
+      const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+      const takeName = `Take ${takes.length+1} - ${new Date().toLocaleTimeString()}`;
+      const takeId = Date.now();
+      const takeData = { id: takeId, episodeId: currentEpisodeId, name: takeName, duration: recordingSeconds, blob: blob, createdAt: Date.now() };
+      await saveTake(takeData);
+      const url = URL.createObjectURL(blob);
+      takes.push({ ...takeData, blobURL: url });
+      renderTakes();
+      toast(`✅ Take salvo: ${takeName}`, 'success');
+    }
+    recordedChunks = [];
   }
-  clearInterval(recordingTimer);
+  clearInterval(timerInterval);
   isRecording = false; isPaused = false;
   document.getElementById('statusLed').className = 'dot';
   document.getElementById('statusLabel').innerText = 'Pronto';
   document.getElementById('recBtn').innerHTML = '⏺ GRAVAR';
   document.getElementById('pauseRecBtn').disabled = true;
   document.getElementById('stopRecBtn').disabled = true;
-  stopDuckingDetection();
-  if (musicGainNode) musicGainNode.gain.value = parseInt(document.getElementById('musicVolume').value)/100;
+  stopDucking(); updateMusicVolume();
 }
-
-function saveCurrentTakePermanently() {
-  if (!takes.length) return;
-  const last = takes[takes.length-1];
-  const episode = episodes.find(ep => ep.id === currentEpisodeId);
-  if (episode) {
-    episode.takes.push({ id: last.id, duration: last.duration, name: last.name });
-    localStorage.setItem('podcast_episodes', JSON.stringify(episodes));
-  }
-  toast('Take arquivado no episódio', 'success');
-  document.getElementById('saveTakeBtn').disabled = true;
-}
-
 function updateTimerDisplay() {
-  let h = Math.floor(recordingSeconds/3600);
-  let m = Math.floor((recordingSeconds%3600)/60);
-  let s = recordingSeconds%60;
+  let h = Math.floor(recordingSeconds/3600), m = Math.floor((recordingSeconds%3600)/60), s = recordingSeconds%60;
   document.getElementById('timerDisplay').innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
 }
 
-// Render takes na UI
+// ====================== UI: TAKES E PLAYBACK CORRIGIDO ======================
 function renderTakes() {
   const container = document.getElementById('takesContainer');
-  if (!takes.length) { container.innerHTML = '<div style="color:var(--text3); text-align:center;">Nenhum take ainda</div>'; return; }
+  if (!takes.length) {
+    container.innerHTML = '<div style="color:var(--text3); text-align:center;">Nenhum take ainda</div>';
+    return;
+  }
   container.innerHTML = takes.map((tk, idx) => `
-    <div class="take-item">
-      <div class="take-name">${tk.name}</div>
+    <div class="take-item" data-take-id="${tk.id}">
+      <div class="take-name">${escapeHtml(tk.name)}</div>
       <div>${Math.floor(tk.duration/60)}:${(tk.duration%60).toString().padStart(2,'0')}</div>
       <div class="take-actions">
-        <button class="playTakeBtn" data-url="${tk.blobURL}">▶</button>
-        <button class="deleteTakeBtn" data-idx="${idx}">🗑</button>
+        <button class="play-take-btn" data-id="${tk.id}">▶</button>
+        <button class="delete-take-btn" data-id="${tk.id}">🗑</button>
       </div>
     </div>
   `).join('');
-  document.querySelectorAll('.playTakeBtn').forEach(btn => {
-    btn.addEventListener('click', () => { new Audio(btn.dataset.url).play(); });
+  // Vincular eventos de forma segura
+  document.querySelectorAll('.play-take-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const takeId = parseInt(btn.dataset.id);
+      const take = takes.find(t => t.id === takeId);
+      if (!take || !take.blob) { toast('Áudio não disponível', 'error'); return; }
+      try {
+        const audio = new Audio();
+        const url = URL.createObjectURL(take.blob);
+        audio.src = url;
+        audio.onended = () => URL.revokeObjectURL(url);
+        await audio.play();
+        toast(`Reproduzindo: ${take.name}`, 'info');
+      } catch(err) { toast('Erro ao reproduzir: ' + err.message, 'error'); }
+    });
   });
-  document.querySelectorAll('.deleteTakeBtn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const idx = parseInt(btn.dataset.idx);
-      const removed = takes[idx];
-      URL.revokeObjectURL(removed.blobURL);
-      takes.splice(idx,1);
-      renderTakes();
+  document.querySelectorAll('.delete-take-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const takeId = parseInt(btn.dataset.id);
+      if (confirm('Excluir este take permanentemente?')) {
+        await deleteTakeById(takeId);
+        const index = takes.findIndex(t => t.id === takeId);
+        if (index !== -1) { if (takes[index].blobURL) URL.revokeObjectURL(takes[index].blobURL); takes.splice(index,1); }
+        renderTakes();
+        toast('Take removido', 'info');
+      }
     });
   });
 }
+function escapeHtml(str) { return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
 
-// Carregar dispositivos de áudio externos
-async function loadAudioDevices() {
-  await navigator.mediaDevices.getUserMedia({ audio: true });
-  const devices = await navigator.mediaDevices.enumerateDevices();
-  const mics = devices.filter(d => d.kind === 'audioinput');
-  const select = document.getElementById('micDeviceSelect');
-  select.innerHTML = mics.map(m => `<option value="${m.deviceId}">${m.label || 'Microfone'}</option>`).join('');
-  if (mics.length) select.value = mics[0].deviceId;
-  select.onchange = () => connectMicrophone(select.value);
-  await connectMicrophone(select.value);
-}
-
-// Importar música
-document.getElementById('musicFileInput').addEventListener('change', async (e) => {
-  if (e.target.files.length) {
-    await initMixer();
-    await loadAndPlayMusic(e.target.files[0]);
-  }
-});
-document.getElementById('stopMusicBtn').onclick = () => stopBackgroundMusic();
-document.getElementById('musicVolume').oninput = (e) => {
-  let val = e.target.value/100;
-  if (musicGainNode) musicGainNode.gain.value = val;
-  document.getElementById('musicVolVal').innerText = e.target.value+'%';
-};
-// Botões de gravação
-document.getElementById('recBtn').onclick = startRecording;
-document.getElementById('pauseRecBtn').onclick = pauseRecording;
-document.getElementById('stopRecBtn').onclick = stopRecording;
-document.getElementById('saveTakeBtn').onclick = saveCurrentTakePermanently;
-// EQ listeners
-['eqBass','eqMid','eqTreble'].forEach(id => {
-  document.getElementById(id).addEventListener('input', updateMicEQ);
-});
-// Compressor toggle
-let compEnabled = true;
-document.getElementById('compToggleBtn').onclick = () => {
-  compEnabled = !compEnabled;
-  compressorNode.enabled = compEnabled;
-  document.getElementById('compToggleBtn').innerText = compEnabled ? 'ON' : 'OFF';
-  if(!compEnabled) compressorNode.ratio.value = 1;
-  else compressorNode.ratio.value = 4;
-};
-// Gate simulado
-let gateEnabled = true;
-document.getElementById('gateToggleBtn').onclick = () => {
-  gateEnabled = !gateEnabled;
-  document.getElementById('gateToggleBtn').innerText = gateEnabled ? 'ON' : 'OFF';
-};
-// Noise supress / auto gain
-document.getElementById('noiseSuppressBtn').onclick = () => { noiseSuppression = !noiseSuppression; connectMicrophone(document.getElementById('micDeviceSelect').value); document.getElementById('noiseSuppressBtn').innerText = noiseSuppression ? 'ON' : 'OFF'; };
-document.getElementById('autoGainBtn').onclick = () => { autoGain = !autoGain; connectMicrophone(document.getElementById('micDeviceSelect').value); document.getElementById('autoGainBtn').innerText = autoGain ? 'ON' : 'OFF'; };
-
-// Navegação e episódios
-function renderEpisodes() {
+// ====================== EPISÓDIOS ======================
+async function renderEpisodesList() {
+  const episodesList = await getAllEpisodes();
+  episodes = episodesList.sort((a,b)=>b.createdAt - a.createdAt);
   const container = document.getElementById('episodesList');
-  if (!episodes.length) { container.innerHTML = '<div style="color:var(--text3);">Nenhum episódio</div>'; return; }
-  container.innerHTML = episodes.map(ep => `<div class="take-item" style="flex-direction:column;align-items:flex-start;"><div><strong>${ep.title}</strong></div><div>${ep.takes.length} takes · ${new Date(ep.createdAt).toLocaleDateString()}</div><button class="btn" data-load="${ep.id}" style="margin-top:6px;padding:6px;">Carregar</button></div>`).join('');
-  document.querySelectorAll('[data-load]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      currentEpisodeId = parseInt(btn.dataset.load);
-      const ep = episodes.find(e => e.id === currentEpisodeId);
-      document.getElementById('epTitleInput').value = ep.title;
-      document.getElementById('epDescInput').value = ep.desc || '';
-      takes = ep.takes.map(t => ({ ...t, blobURL: null })); // not stored blob
-      renderTakes();
-      toast(`Episódio "${ep.title}" carregado`, 'success');
-      showPage('studio');
-    });
+  if (!episodes.length) { container.innerHTML = '<div style="color:var(--text3);">Nenhum episódio. Crie um!</div>'; return; }
+  container.innerHTML = episodes.map(ep => `
+    <div class="take-item" style="flex-direction:column;align-items:flex-start;">
+      <div><strong>${escapeHtml(ep.title)}</strong></div>
+      <div style="font-size:0.75rem; color:var(--text2);">${new Date(ep.createdAt).toLocaleDateString()}</div>
+      <button class="btn load-episode-btn" data-id="${ep.id}" style="margin-top:6px;padding:6px 12px;">Carregar</button>
+    </div>
+  `).join('');
+  document.querySelectorAll('.load-episode-btn').forEach(btn => {
+    btn.addEventListener('click', async () => { await loadEpisode(parseInt(btn.dataset.id)); showPage('studio'); });
   });
 }
+async function loadEpisode(epId) {
+  currentEpisodeId = epId;
+  const episode = episodes.find(e => e.id === epId);
+  if (episode) { document.getElementById('epTitleInput').value = episode.title; document.getElementById('epDescInput').value = episode.desc || ''; }
+  const takesData = await getTakesByEpisode(epId);
+  // Limpar URLs antigas
+  takes.forEach(t => { if (t.blobURL) URL.revokeObjectURL(t.blobURL); });
+  takes = takesData.map(t => ({ ...t, blobURL: URL.createObjectURL(t.blob) }));
+  renderTakes();
+  toast(`Episódio "${episode?.title}" carregado`, 'success');
+}
+async function createNewEpisode(title) {
+  const newEp = { id: Date.now(), title: title, desc: '', createdAt: Date.now() };
+  await saveEpisode(newEp);
+  episodes.push(newEp);
+  currentEpisodeId = newEp.id;
+  document.getElementById('epTitleInput').value = title;
+  document.getElementById('epDescInput').value = '';
+  takes.forEach(t => { if (t.blobURL) URL.revokeObjectURL(t.blobURL); });
+  takes = [];
+  renderTakes();
+  toast(`Episódio "${title}" criado`, 'success');
+  await renderEpisodesList();
+  showPage('studio');
+}
+
+// ====================== NAVEGAÇÃO E EVENTOS ======================
 function showPage(page) {
   document.getElementById('studioPage').style.display = page === 'studio' ? 'block' : 'none';
   document.getElementById('episodesPage').style.display = page === 'episodes' ? 'block' : 'none';
   document.getElementById('settingsPage').style.display = page === 'settings' ? 'block' : 'none';
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.querySelector(`.nav-btn[data-page="${page}"]`).classList.add('active');
-  if(page === 'episodes') renderEpisodes();
+  if (page === 'episodes') renderEpisodesList();
 }
-document.querySelectorAll('.nav-btn').forEach(btn => {
-  btn.addEventListener('click', () => showPage(btn.dataset.page));
-});
-document.getElementById('fabNewEpBtn').onclick = () => {
-  const title = prompt("Título do novo episódio", "Episódio incrível");
-  if(title){
-    const newEp = { id: Date.now(), title, desc: "", createdAt: Date.now(), takes: [] };
-    episodes.push(newEp);
-    currentEpisodeId = newEp.id;
-    document.getElementById('epTitleInput').value = title;
-    document.getElementById('epDescInput').value = "";
-    takes = [];
-    renderTakes();
-    showPage('studio');
-    toast(`Novo episódio: ${title}`, 'success');
-    localStorage.setItem('podcast_episodes', JSON.stringify(episodes));
-  }
-};
-document.getElementById('newEpisodeBtn').onclick = () => document.getElementById('fabNewEpBtn').click();
-document.getElementById('clearDataBtn').onclick = () => {
-  if(confirm("Apagar todos os episódios e takes?")){
-    localStorage.clear();
-    episodes = [{ id: Date.now(), title: "Episódio #1", desc: "", createdAt: Date.now(), takes: [] }];
-    takes = [];
-    currentEpisodeId = episodes[0].id;
-    renderTakes();
-    renderEpisodes();
-    toast("Dados resetados", 'info');
-  }
-};
-// carregar dados salvos
-const saved = localStorage.getItem('podcast_episodes');
-if(saved) {
-  episodes = JSON.parse(saved);
-  currentEpisodeId = episodes[0]?.id || Date.now();
-}
-document.getElementById('epTitleInput').addEventListener('change', () => { let ep = episodes.find(e=>e.id===currentEpisodeId); if(ep) ep.title = document.getElementById('epTitleInput').value; localStorage.setItem('podcast_episodes', JSON.stringify(episodes)); });
-document.getElementById('epDescInput').addEventListener('change', () => { let ep = episodes.find(e=>e.id===currentEpisodeId); if(ep) ep.desc = document.getElementById('epDescInput').value; localStorage.setItem('podcast_episodes', JSON.stringify(episodes)); });
 
-// Inicializar microfones + mixer em interação (por causa autoplay)
-document.body.addEventListener('click', async () => { if (!mixerCtx) await initMixer(); if (mixerCtx.state === 'suspended') mixerCtx.resume(); }, { once: true });
-loadAudioDevices();
-setInterval(() => {
-  if (micSource && mixerCtx) {
-    const analyser = mixerCtx.createAnalyser();
-    try { micSource.connect(analyser); const arr = new Uint8Array(analyser.frequencyBinCount); analyser.getByteFrequencyData(arr); let lvl = Math.min(100, (arr.reduce((a,b)=>a+b,0)/arr.length)/2.55); document.getElementById('meterFill').style.width = lvl+'%'; } catch(e){}
-  }
-}, 120);
-toast("🎙️ Conecte fone + microfone externo. Música toca e é mixada na gravação!", "info");
+async function loadAudioDevices() {
+  await navigator.mediaDevices.getUserMedia({ audio: true });
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  const mics = devices.filter(d => d.kind === 'audioinput');
+  const select = document.getElementById('micDeviceSelect');
+  select.innerHTML = mics.map(m => `<option value="${m.deviceId}">${m.label || 'Microfone'}</option>`).join('');
+  if (mics.length) { await connectMicrophone(mics[0].deviceId); select.onchange = () => connectMicrophone(select.value); }
+  else toast('Nenhum microfone detectado', 'error');
+}
+function toast(msg, type='info') {
+  const t = document.createElement('div'); t.className = 'toast'; t.innerText = msg;
+  document.getElementById('toastZone').appendChild(t);
+  setTimeout(() => t.remove(), 2800);
+}
+
+// Eventos DOM
+document.getElementById('recBtn').onclick = startRecording;
+document.getElementById('pauseRecBtn').onclick = pauseRecording;
+document.getElementById('stopRecBtn').onclick = stopRecording;
+document.getElementById('fabRecBtn').onclick = () => { if(isRecording) stopRecording(); else startRecording(); };
+document.getElementById('eqBass').addEventListener('input', updateEQ);
+document.getElementById('eqMid').addEventListener('input', updateEQ);
+document.getElementById('eqTreble').addEventListener('input', updateEQ);
+document.getElementById('compToggleBtn').onclick = () => { compressorEnabled = !compressorEnabled; updateCompressorGate(); document.getElementById('compToggleBtn').innerText = compressorEnabled ? 'ON' : 'OFF'; };
+document.getElementById('gateToggleBtn').onclick = () => { gateEnabled = !gateEnabled; updateCompressorGate(); document.getElementById('gateToggleBtn').innerText = gateEnabled ? 'ON' : 'OFF'; };
+document.getElementById('musicVolume').addEventListener('input', updateMusicVolume);
+document.getElementById('stopMusicBtn').onclick = stopMusic;
+document.getElementById('musicFileInput').addEventListener('change', async (e) => { if (e.target.files.length) await loadMusic(e.target.files[0]); });
+document.getElementById('clearDataBtn').onclick = async () => {
+  if(confirm("Apagar TODOS os episódios e takes?")){ await deleteAllData(); episodes = []; takes.forEach(t=>URL.revokeObjectURL(t.blobURL)); takes = []; renderTakes(); renderEpisodesList(); toast('Todos os dados removidos', 'info'); }
+};
+document.getElementById('newEpisodeBtn').onclick = () => { let title = prompt("Nome do episódio", "Meu Podcast"); if(title) createNewEpisode(title); };
+document.getElementById('fabNewEpBtn').onclick = () => document.getElementById('newEpisodeBtn').click();
+document.getElementById('epTitleInput').addEventListener('change', async () => { let ep = episodes.find(e => e.id === currentEpisodeId); if(ep) { ep.title = document.getElementById('epTitleInput').value; await saveEpisode(ep); } });
+document.getElementById('epDescInput').addEventListener('change', async () => { let ep = episodes.find(e => e.id === currentEpisodeId); if(ep) { ep.desc = document.getElementById('epDescInput').value; await saveEpisode(ep); } });
+document.getElementById('noiseSuppressBtn').onclick = async () => { let isOn = document.getElementById('noiseSuppressBtn').innerText === 'ON'; document.getElementById('noiseSuppressBtn').innerText = isOn ? 'OFF' : 'ON'; await connectMicrophone(document.getElementById('micDeviceSelect').value); };
+document.getElementById('autoGainBtn').onclick = async () => { let isOn = document.getElementById('autoGainBtn').innerText === 'ON'; document.getElementById('autoGainBtn').innerText = isOn ? 'OFF' : 'ON'; await connectMicrophone(document.getElementById('micDeviceSelect').value); };
+
+// ====================== INICIALIZAÇÃO ======================
+(async function init() {
+  await openDB();
+  episodes = await getAllEpisodes();
+  if (episodes.length === 0) await createNewEpisode("Episódio inaugural");
+  else await loadEpisode(episodes[0].id);
+  await loadAudioDevices();
+  document.body.addEventListener('click', async () => { if (audioCtx && audioCtx.state === 'suspended') await audioCtx.resume(); }, { once: true });
+  setInterval(() => {
+    if (micSource && audioCtx) {
+      try {
+        const analyser = audioCtx.createAnalyser();
+        micSource.connect(analyser);
+        const arr = new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteFrequencyData(arr);
+        let avg = arr.reduce((a,b)=>a+b,0)/arr.length;
+        let percent = Math.min(100, (avg/255)*100);
+        document.getElementById('meterFill').style.width = percent + '%';
+        analyser.disconnect();
+      } catch(e) {}
+    }
+  }, 100);
+  toast('🎙️ Estúdio pronto! Conecte seu microfone e música.', 'success');
+})();
 </script>
 </body>
 </html>
