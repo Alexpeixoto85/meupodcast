@@ -1096,6 +1096,60 @@ input[type=range].vol-sl{
   padding:16px;
   border-top:1px solid var(--border);
 }
+
+/* ─── BUILTIN TRACK ROW (reuse music-track-row) ─── */
+.music-track-row{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:var(--radius2);
+  padding:10px 12px;
+  display:flex;align-items:center;gap:10px;
+  transition:all 0.2s;
+}
+.music-track-row.active{
+  border-color:rgba(255,92,53,0.3);
+  background:linear-gradient(135deg,rgba(255,92,53,0.06),rgba(255,92,53,0.01));
+}
+.music-play-btn{
+  width:34px;height:34px;border-radius:50%;
+  border:1px solid var(--border2);
+  background:var(--bg3);
+  color:var(--text2);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;flex-shrink:0;transition:all 0.2s;
+}
+.music-play-btn.playing{
+  background:var(--accent);border-color:var(--accent);color:#fff;
+}
+.music-track-info{flex:1;min-width:0;}
+.music-track-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.music-track-meta{font-size:10px;color:var(--text3);margin-top:2px;}
+.music-fmt-badge{
+  font-size:9px;font-weight:700;letter-spacing:0.5px;
+  padding:2px 6px;border-radius:4px;flex-shrink:0;
+}
+.music-fmt-badge.audio{background:rgba(45,202,115,0.12);color:var(--green);}
+.music-fmt-badge.video{background:rgba(255,187,0,0.12);color:var(--amber);}
+.music-playing-badge{
+  font-size:9px;font-weight:700;
+  padding:2px 6px;border-radius:4px;
+  background:rgba(255,92,53,0.12);color:var(--accent);
+  flex-shrink:0;letter-spacing:0.3px;
+}
+.music-vol-wrap{
+  display:flex;align-items:center;gap:8px;
+  font-size:11px;color:var(--text3);font-weight:600;
+}
+.music-vol-wrap input[type=range]{flex:1;accent-color:var(--accent);}
+.music-drop-zone{
+  border:2px dashed var(--border2);border-radius:var(--radius);
+  padding:24px 16px;text-align:center;margin-bottom:14px;
+  transition:all 0.2s;
+}
+.music-drop-zone.drag-over{border-color:var(--accent);background:rgba(255,92,53,0.04);}
+.music-drop-icon{font-size:28px;margin-bottom:8px;}
+.music-drop-title{font-size:14px;font-weight:600;margin-bottom:4px;}
+.music-drop-sub{font-size:11px;color:var(--text3);line-height:1.5;}
 </style>
 </head>
 <body>
@@ -1327,27 +1381,64 @@ input[type=range].vol-sl{
       <p style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.6;">Aplique efeitos em tempo real à voz durante a gravação ou pós-produção.</p>
       <div class="fx-grid">
 
+        <!-- GANHO DE VOLUME EXTRA -->
+        <div class="fx-card" style="background:linear-gradient(135deg,rgba(255,92,53,0.08),rgba(255,92,53,0.02));border-color:rgba(255,92,53,0.25);">
+          <div class="fx-title">🔊 Ganho de Entrada (Boost)</div>
+          <div class="fx-row" style="align-items:center;">
+            <span class="fx-label" style="width:56px;">Boost</span>
+            <input type="range" class="fx-slider" min="0" max="24" value="0" step="1" id="inputGain" oninput="updateFX();applyLiveEQ()">
+            <span class="fx-val" id="inputGainVal" style="min-width:40px;color:var(--accent2);">0 dB</span>
+          </div>
+          <div style="font-size:10px;color:var(--text3);margin-top:6px;line-height:1.6;">
+            ⚡ Amplifica o sinal antes da gravação. Use com cuidado para evitar distorção.
+          </div>
+          <div class="fx-row" style="margin-top:10px;align-items:center;">
+            <span class="fx-label" style="width:56px;">Limiter</span>
+            <button class="toggle on" id="togLimiter" onclick="toggleFX(this)" style="margin-left:auto;"></button>
+            <span style="font-size:10px;color:var(--text3);margin-left:8px;">Proteção de pico</span>
+          </div>
+        </div>
+
         <div class="fx-card">
-          <div class="fx-title">🎚 EQ Paramétrico</div>
+          <div class="fx-title">🎚 EQ Paramétrico <span id="eqActiveLabel" style="font-size:9px;color:var(--green);font-weight:600;margin-left:6px;display:none;">● ATIVO</span></div>
+          <div class="toggle-row" style="margin-bottom:8px;">
+            <span class="toggle-label">EQ Ativo</span>
+            <button class="toggle on" id="togEQ" onclick="toggleFX(this);applyLiveEQ()"></button>
+          </div>
           <div class="fx-row">
-            <span class="fx-label">Graves</span>
-            <input type="range" class="fx-slider" min="-12" max="12" value="2" id="eqBass" oninput="updateFX()">
+            <span class="fx-label">Sub-graves<br><span style="font-size:9px;color:var(--text3);">80Hz</span></span>
+            <input type="range" class="fx-slider" min="-12" max="12" value="0" id="eqSubBass" oninput="updateFX();applyLiveEQ()">
+            <span class="fx-val" id="eqSubBassVal">0</span>
+          </div>
+          <div class="fx-row">
+            <span class="fx-label">Graves<br><span style="font-size:9px;color:var(--text3);">250Hz</span></span>
+            <input type="range" class="fx-slider" min="-12" max="12" value="2" id="eqBass" oninput="updateFX();applyLiveEQ()">
             <span class="fx-val" id="eqBassVal">+2</span>
           </div>
           <div class="fx-row">
-            <span class="fx-label">Médios</span>
-            <input type="range" class="fx-slider" min="-12" max="12" value="0" id="eqMid" oninput="updateFX()">
+            <span class="fx-label">Médios<br><span style="font-size:9px;color:var(--text3);">1kHz</span></span>
+            <input type="range" class="fx-slider" min="-12" max="12" value="0" id="eqMid" oninput="updateFX();applyLiveEQ()">
             <span class="fx-val" id="eqMidVal">0</span>
           </div>
           <div class="fx-row">
-            <span class="fx-label">Agudos</span>
-            <input type="range" class="fx-slider" min="-12" max="12" value="3" id="eqTreble" oninput="updateFX()">
+            <span class="fx-label">Presença<br><span style="font-size:9px;color:var(--text3);">3kHz</span></span>
+            <input type="range" class="fx-slider" min="-12" max="12" value="1" id="eqPresence" oninput="updateFX();applyLiveEQ()">
+            <span class="fx-val" id="eqPresenceVal">+1</span>
+          </div>
+          <div class="fx-row">
+            <span class="fx-label">Agudos<br><span style="font-size:9px;color:var(--text3);">8kHz</span></span>
+            <input type="range" class="fx-slider" min="-12" max="12" value="3" id="eqTreble" oninput="updateFX();applyLiveEQ()">
             <span class="fx-val" id="eqTrebleVal">+3</span>
           </div>
           <div class="fx-row">
-            <span class="fx-label">Presença</span>
-            <input type="range" class="fx-slider" min="-12" max="12" value="1" id="eqPresence" oninput="updateFX()">
-            <span class="fx-val" id="eqPresenceVal">+1</span>
+            <span class="fx-label">Brilho<br><span style="font-size:9px;color:var(--text3);">16kHz</span></span>
+            <input type="range" class="fx-slider" min="-12" max="12" value="0" id="eqAir" oninput="updateFX();applyLiveEQ()">
+            <span class="fx-val" id="eqAirVal">0</span>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">
+            <button class="btn btn-ghost btn-sm" style="flex:1;font-size:10px;" onclick="applyEQPreset('podcast')">🎙 Podcast</button>
+            <button class="btn btn-ghost btn-sm" style="flex:1;font-size:10px;" onclick="applyEQPreset('voz')">🗣 Voz Quente</button>
+            <button class="btn btn-ghost btn-sm" style="flex:1;font-size:10px;" onclick="applyEQPreset('flat')">⬜ Flat</button>
           </div>
         </div>
 
@@ -1436,6 +1527,16 @@ input[type=range].vol-sl{
 
     <!-- ── TAB: MÚSICA ── -->
     <div class="studio-panel" id="panel-musica">
+
+      <!-- Trilhas instrumentais embutidas -->
+      <div style="margin-bottom:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div class="section-label">🎼 Trilhas Instrumentais</div>
+          <span style="font-size:10px;color:var(--text3);">Síntese no app · zero download</span>
+        </div>
+        <div id="builtinTracksGrid" style="display:flex;flex-direction:column;gap:8px;"></div>
+      </div>
+      <div style="margin-bottom:14px;border-bottom:1px solid var(--border);"></div>
 
       <!-- Drop zone universal -->
       <div id="musicDropZone" class="music-drop-zone"
@@ -2171,7 +2272,23 @@ async function startRecord() {
     state.analyser = state.audioCtx.createAnalyser();
     state.analyser.fftSize = 1024;
     state.sourceNode = state.audioCtx.createMediaStreamSource(state.stream);
-    state.sourceNode.connect(state.analyser);
+
+    // ── Build EQ + Gain chain ──────────────────────────────────────
+    _eqNodes = buildEQChain(state.audioCtx);
+    applyEQValues(_eqNodes);
+    const useLimiter = document.getElementById('togLimiter')?.classList.contains('on');
+    const lastEQNode = _eqNodes.air;
+    if (useLimiter) {
+      lastEQNode.connect(_eqNodes.limiter);
+      _eqNodes.limiter.connect(state.analyser);
+    } else {
+      lastEQNode.connect(state.analyser);
+    }
+    state.sourceNode.connect(_eqNodes.gain);
+    // Also connect to destination so audio monitoring works
+    // (analyser is already connected downstream)
+    state.analyser.connect(state.audioCtx.destination);
+
 
     const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/webm';
     state.mediaRecorder = new MediaRecorder(state.stream, { mimeType });
@@ -2387,6 +2504,28 @@ function playTake(idx) {
   state.currentTake = idx;
   document.getElementById('tPlayPause').textContent = '⏸';
   document.getElementById('transportTrackName').textContent = `Take ${idx + 1}`;
+
+  // ── Connect player through EQ chain ──────────────────────────────
+  try {
+    if (_playerEqCtx) { try { _playerEqCtx.close(); } catch(e){} }
+    _playerEqCtx   = new (window.AudioContext || window.webkitAudioContext)();
+    _playerEqNodes = buildEQChain(_playerEqCtx);
+    applyEQValues(_playerEqNodes);
+    const useLimiter = document.getElementById('togLimiter')?.classList.contains('on');
+    const lastNode = _playerEqNodes.air;
+    if (useLimiter) {
+      lastNode.connect(_playerEqNodes.limiter);
+      _playerEqNodes.limiter.connect(_playerEqCtx.destination);
+    } else {
+      lastNode.connect(_playerEqCtx.destination);
+    }
+    const srcNode = _playerEqCtx.createMediaElementSource(state.playerAudio);
+    srcNode.connect(_playerEqNodes.gain);
+  } catch(eqErr) {
+    // EQ setup failed (e.g., already connected) — fallback to direct play
+    console.warn('Player EQ setup failed, playing without EQ:', eqErr);
+  }
+
   // Use real audio duration once metadata loads
   state.playerAudio.onloadedmetadata = () => {
     const realDur = isFinite(state.playerAudio.duration) ? state.playerAudio.duration : (tk.duration || 0);
@@ -2588,21 +2727,629 @@ function deleteTake(idx) {
 // FX CONTROLS
 // ═══════════════════════════════════════════════════════════════════
 function updateFX() {
-  const v = id => document.getElementById(id).value;
-  document.getElementById('eqBassVal').textContent = v('eqBass') > 0 ? '+' + v('eqBass') : v('eqBass');
-  document.getElementById('eqMidVal').textContent = v('eqMid') > 0 ? '+' + v('eqMid') : v('eqMid');
-  document.getElementById('eqTrebleVal').textContent = v('eqTreble') > 0 ? '+' + v('eqTreble') : v('eqTreble');
-  document.getElementById('eqPresenceVal').textContent = v('eqPresence') > 0 ? '+' + v('eqPresence') : v('eqPresence');
-  document.getElementById('compThreshVal').textContent = v('compThresh');
-  document.getElementById('compRatioVal').textContent = v('compRatio') + ':1';
-  document.getElementById('gateThreshVal').textContent = v('gateThresh');
-  document.getElementById('reverbSizeVal').textContent = v('reverbSize') + '%';
-  document.getElementById('reverbWetVal').textContent = v('reverbWet') + '%';
-  document.getElementById('delayTimeVal').textContent = v('delayTime');
-  document.getElementById('pitchShiftVal').textContent = v('pitchShift');
-  document.getElementById('enhanceAmtVal').textContent = v('enhanceAmt') + '%';
+  const v = id => document.getElementById(id) ? document.getElementById(id).value : 0;
+  const fmt = (n) => n > 0 ? '+' + n : String(n);
+  if (document.getElementById('eqSubBassVal')) document.getElementById('eqSubBassVal').textContent = fmt(v('eqSubBass'));
+  if (document.getElementById('eqBassVal'))    document.getElementById('eqBassVal').textContent    = fmt(v('eqBass'));
+  if (document.getElementById('eqMidVal'))     document.getElementById('eqMidVal').textContent     = fmt(v('eqMid'));
+  if (document.getElementById('eqPresenceVal'))document.getElementById('eqPresenceVal').textContent= fmt(v('eqPresence'));
+  if (document.getElementById('eqTrebleVal'))  document.getElementById('eqTrebleVal').textContent  = fmt(v('eqTreble'));
+  if (document.getElementById('eqAirVal'))     document.getElementById('eqAirVal').textContent     = fmt(v('eqAir'));
+  if (document.getElementById('inputGainVal')) {
+    const g = parseInt(v('inputGain'));
+    document.getElementById('inputGainVal').textContent = g > 0 ? '+' + g + ' dB' : g + ' dB';
+  }
+  if (document.getElementById('compThreshVal'))   document.getElementById('compThreshVal').textContent  = v('compThresh');
+  if (document.getElementById('compRatioVal'))    document.getElementById('compRatioVal').textContent   = v('compRatio') + ':1';
+  if (document.getElementById('gateThreshVal'))   document.getElementById('gateThreshVal').textContent  = v('gateThresh');
+  if (document.getElementById('reverbSizeVal'))   document.getElementById('reverbSizeVal').textContent  = v('reverbSize') + '%';
+  if (document.getElementById('reverbWetVal'))    document.getElementById('reverbWetVal').textContent   = v('reverbWet') + '%';
+  if (document.getElementById('delayTimeVal'))    document.getElementById('delayTimeVal').textContent   = v('delayTime');
+  if (document.getElementById('pitchShiftVal'))   document.getElementById('pitchShiftVal').textContent  = v('pitchShift');
+  if (document.getElementById('enhanceAmtVal'))   document.getElementById('enhanceAmtVal').textContent  = v('enhanceAmt') + '%';
 }
 function toggleFX(btn) { btn.classList.toggle('on'); }
+
+// ═══════════════════════════════════════════════════════════════════
+// EQ + GAIN CHAIN — Web Audio API (aplicado em tempo real)
+// ═══════════════════════════════════════════════════════════════════
+// Nós de EQ globais (recriados a cada gravação)
+let _eqNodes = null;    // {gain, subBass, bass, mid, presence, treble, air, limiter}
+
+function buildEQChain(ctx) {
+  const gain    = ctx.createGain();
+  const subBass = ctx.createBiquadFilter();
+  const bass    = ctx.createBiquadFilter();
+  const mid     = ctx.createBiquadFilter();
+  const presence= ctx.createBiquadFilter();
+  const treble  = ctx.createBiquadFilter();
+  const air     = ctx.createBiquadFilter();
+  const limiter = ctx.createDynamicsCompressor();
+
+  subBass.type    = 'lowshelf';   subBass.frequency.value = 80;
+  bass.type       = 'peaking';    bass.frequency.value    = 250;  bass.Q.value = 0.8;
+  mid.type        = 'peaking';    mid.frequency.value     = 1000; mid.Q.value = 0.8;
+  presence.type   = 'peaking';    presence.frequency.value= 3000; presence.Q.value = 1.0;
+  treble.type     = 'peaking';    treble.frequency.value  = 8000; treble.Q.value = 0.8;
+  air.type        = 'highshelf';  air.frequency.value     = 12000;
+
+  limiter.threshold.value = -0.5;
+  limiter.knee.value      = 0;
+  limiter.ratio.value     = 20;
+  limiter.attack.value    = 0.001;
+  limiter.release.value   = 0.1;
+
+  // Connect chain: gain → subBass → bass → mid → presence → treble → air → (limiter) → dest
+  gain.connect(subBass);
+  subBass.connect(bass);
+  bass.connect(mid);
+  mid.connect(presence);
+  presence.connect(treble);
+  treble.connect(air);
+  // limiter will be connected to destination conditionally
+
+  return { gain, subBass, bass, mid, presence, treble, air, limiter };
+}
+
+function applyEQValues(nodes) {
+  if (!nodes) return;
+  const eqOn = document.getElementById('togEQ') ? document.getElementById('togEQ').classList.contains('on') : false;
+  const gainDb  = parseFloat(document.getElementById('inputGain')?.value || 0);
+  // Convert dB gain to linear
+  nodes.gain.gain.value = Math.pow(10, gainDb / 20);
+
+  // EQ bands — only if EQ toggle is on
+  const factor = eqOn ? 1 : 0;
+  nodes.subBass.gain.value = factor * parseFloat(document.getElementById('eqSubBass')?.value || 0);
+  nodes.bass.gain.value    = factor * parseFloat(document.getElementById('eqBass')?.value    || 0);
+  nodes.mid.gain.value     = factor * parseFloat(document.getElementById('eqMid')?.value     || 0);
+  nodes.presence.gain.value= factor * parseFloat(document.getElementById('eqPresence')?.value|| 0);
+  nodes.treble.gain.value  = factor * parseFloat(document.getElementById('eqTreble')?.value  || 0);
+  nodes.air.gain.value     = factor * parseFloat(document.getElementById('eqAir')?.value     || 0);
+
+  // Show EQ active label
+  const lbl = document.getElementById('eqActiveLabel');
+  if (lbl) lbl.style.display = eqOn ? 'inline' : 'none';
+}
+
+function applyLiveEQ() {
+  applyEQValues(_eqNodes);
+  // also apply to player if active
+  if (_playerEqNodes) applyEQValues(_playerEqNodes);
+}
+
+// ── EQ presets ────────────────────────────────────────────────────
+function applyEQPreset(name) {
+  const set = (id, val) => { const el = document.getElementById(id); if(el) el.value = val; };
+  if (name === 'podcast') {
+    set('eqSubBass', -4); set('eqBass', 3); set('eqMid', 1);
+    set('eqPresence', 4); set('eqTreble', 2); set('eqAir', 1);
+    toast('🎙 Preset Podcast aplicado', 'success');
+  } else if (name === 'voz') {
+    set('eqSubBass', -6); set('eqBass', 4); set('eqMid', 2);
+    set('eqPresence', 5); set('eqTreble', 3); set('eqAir', 2);
+    toast('🗣 Preset Voz Quente aplicado', 'success');
+  } else {
+    set('eqSubBass', 0); set('eqBass', 0); set('eqMid', 0);
+    set('eqPresence', 0); set('eqTreble', 0); set('eqAir', 0);
+    toast('⬜ EQ Flat (neutro)', 'success');
+  }
+  updateFX();
+  applyLiveEQ();
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Player EQ nodes (for playback)
+let _playerEqNodes = null;
+let _playerEqCtx   = null;
+
+function buildPlayerEQ() {
+  if (_playerEqCtx) { try { _playerEqCtx.close(); } catch(e){} }
+  _playerEqCtx   = new (window.AudioContext || window.webkitAudioContext)();
+  _playerEqNodes = buildEQChain(_playerEqCtx);
+  applyEQValues(_playerEqNodes);
+  const useLimiter = document.getElementById('togLimiter')?.classList.contains('on');
+  const lastNode = _playerEqNodes.air;
+  if (useLimiter) {
+    lastNode.connect(_playerEqNodes.limiter);
+    _playerEqNodes.limiter.connect(_playerEqCtx.destination);
+  } else {
+    lastNode.connect(_playerEqCtx.destination);
+  }
+  return { ctx: _playerEqCtx, nodes: _playerEqNodes };
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// 6 TRILHAS INSTRUMENTAIS EMBUTIDAS — Síntese Web Audio
+// Estilos: Lo-fi Chill, Bossa Nova, Jazz Suave, Ambient, Folk, Cinematic
+// ═══════════════════════════════════════════════════════════════════
+const BUILTIN_TRACKS = [
+  {
+    id: 'bi_lofi',
+    name: '☕ Lo-fi Chill',
+    desc: 'Batida relaxante · hip-hop lo-fi · ideal para podcasts casuais',
+    color: '#00d4ff',
+    bpm: 80,
+    style: 'lofi'
+  },
+  {
+    id: 'bi_bossa',
+    name: '🌊 Bossa Nova',
+    desc: 'Violão suave · ritmo brasileiro · atmosfera aconchegante',
+    color: '#2dca73',
+    bpm: 110,
+    style: 'bossa'
+  },
+  {
+    id: 'bi_jazz',
+    name: '🎷 Jazz Suave',
+    desc: 'Piano e contrabaixo · Jazz trio · elegante e sofisticado',
+    color: '#ffbb00',
+    bpm: 95,
+    style: 'jazz'
+  },
+  {
+    id: 'bi_ambient',
+    name: '🌌 Ambient Podcast',
+    desc: 'Pads atmosféricos · drones suaves · foco total na voz',
+    color: '#4d8dff',
+    bpm: 60,
+    style: 'ambient'
+  },
+  {
+    id: 'bi_folk',
+    name: '🪕 Indie Folk',
+    desc: 'Violão acústico · ritmo orgânico · intimista e autêntico',
+    color: '#ff8060',
+    bpm: 100,
+    style: 'folk'
+  },
+  {
+    id: 'bi_cinematic',
+    name: '🎬 Cinematic',
+    desc: 'Cordas épicas · orquestral minimalista · impacto emocional',
+    color: '#c084fc',
+    bpm: 70,
+    style: 'cinematic'
+  }
+];
+
+let _builtinCtx      = null;
+let _builtinNodes    = [];   // oscillators/buffers currently playing
+let _activeBuiltinId = null;
+
+function renderBuiltinTracks() {
+  const grid = document.getElementById('builtinTracksGrid');
+  if (!grid) return;
+  grid.innerHTML = BUILTIN_TRACKS.map(tr => {
+    const isActive = _activeBuiltinId === tr.id;
+    return `
+    <div class="music-track-row ${isActive ? 'active' : ''}" id="btr_${tr.id}" style="border-left:3px solid ${tr.color}22;">
+      <button class="music-play-btn ${isActive ? 'playing' : ''}" onclick="toggleBuiltinTrack('${tr.id}')" title="${isActive ? 'Parar' : 'Tocar'}">
+        ${isActive ? '⏸' : '▶'}
+      </button>
+      <div class="music-track-info">
+        <div class="music-track-name" style="color:${isActive ? tr.color : 'var(--text)'};">${tr.name}</div>
+        <div class="music-track-meta">${tr.desc}</div>
+      </div>
+      ${isActive ? `<div class="music-playing-badge" style="background:${tr.color}22;color:${tr.color};">▶ AO VIVO</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function toggleBuiltinTrack(id) {
+  if (_activeBuiltinId === id) {
+    stopBuiltinTrack();
+    toast('🔇 Trilha parada', '');
+    return;
+  }
+  stopBuiltinTrack();
+  _activeBuiltinId = id;
+  const tr = BUILTIN_TRACKS.find(t => t.id === id);
+  playBuiltinTrack(tr);
+  renderBuiltinTracks();
+  toast('🎵 ' + tr.name + ' tocando...', 'success');
+}
+
+function stopBuiltinTrack() {
+  if (_builtinCtx) {
+    _builtinNodes.forEach(n => { try { n.stop && n.stop(); n.disconnect && n.disconnect(); } catch(e){} });
+    _builtinNodes = [];
+    try { _builtinCtx.close(); } catch(e) {}
+    _builtinCtx = null;
+  }
+  _activeBuiltinId = null;
+  renderBuiltinTracks();
+}
+
+function getBuiltinVolume() {
+  return parseInt(document.getElementById('bgVolSlider')?.value || 25) / 100 * 0.18;
+}
+
+// ── Note frequency helper ──────────────────────────────────────────
+function noteHz(midi) { return 440 * Math.pow(2, (midi - 69) / 12); }
+
+function playBuiltinTrack(tr) {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  _builtinCtx = ctx;
+  _builtinNodes = [];
+
+  const masterGain = ctx.createGain();
+  masterGain.gain.value = getBuiltinVolume();
+  // gentle EQ for bg music
+  const hiPass = ctx.createBiquadFilter();
+  hiPass.type = 'highpass'; hiPass.frequency.value = 60;
+  const shelf = ctx.createBiquadFilter();
+  shelf.type = 'highshelf'; shelf.frequency.value = 8000; shelf.gain.value = -3;
+  masterGain.connect(hiPass); hiPass.connect(shelf); shelf.connect(ctx.destination);
+
+  // Store master for volume updates
+  _builtinCtx._masterGain = masterGain;
+
+  const beat = 60 / tr.bpm; // seconds per beat
+
+  if (tr.style === 'lofi') synthLofi(ctx, masterGain, beat);
+  else if (tr.style === 'bossa') synthBossa(ctx, masterGain, beat);
+  else if (tr.style === 'jazz') synthJazz(ctx, masterGain, beat);
+  else if (tr.style === 'ambient') synthAmbient(ctx, masterGain, beat);
+  else if (tr.style === 'folk') synthFolk(ctx, masterGain, beat);
+  else if (tr.style === 'cinematic') synthCinematic(ctx, masterGain, beat);
+}
+
+// ── LO-FI CHILL ─────────────────────────────────────────────────
+function synthLofi(ctx, dest, beat) {
+  const now = ctx.currentTime;
+  const loop = 8 * beat; // 2 bars at 80bpm
+
+  function schedBeat(time, freq, dur, vol, type='sine') {
+    const osc = ctx.createOscillator();
+    const g   = ctx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    g.gain.setValueAtTime(0, time);
+    g.gain.linearRampToValueAtTime(vol, time + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, time + dur);
+    osc.connect(g); g.connect(dest);
+    osc.start(time); osc.stop(time + dur + 0.1);
+    _builtinNodes.push(osc, g);
+  }
+
+  function makeKick(t) {
+    const osc = ctx.createOscillator();
+    const g   = ctx.createGain();
+    osc.frequency.setValueAtTime(150, t);
+    osc.frequency.exponentialRampToValueAtTime(40, t + 0.12);
+    g.gain.setValueAtTime(0.6, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
+    osc.connect(g); g.connect(dest);
+    osc.start(t); osc.stop(t + 0.25);
+    _builtinNodes.push(osc, g);
+  }
+
+  function makeSnare(t) {
+    const buf = ctx.createBuffer(1, ctx.sampleRate * 0.15, ctx.sampleRate);
+    const d   = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.04));
+    const src = ctx.createBufferSource();
+    const g   = ctx.createGain();
+    const flt = ctx.createBiquadFilter();
+    src.buffer = buf;
+    flt.type = 'bandpass'; flt.frequency.value = 2000; flt.Q.value = 0.5;
+    g.gain.value = 0.35;
+    src.connect(flt); flt.connect(g); g.connect(dest);
+    src.start(t); src.stop(t + 0.2);
+    _builtinNodes.push(src, g, flt);
+  }
+
+  // Chord progression: Cm7 / Fm7 / Gm7 / Fm7
+  const chords = [
+    [60,63,67,70],[65,68,72,75],[67,70,74,77],[65,68,72,75]
+  ];
+
+  function scheduleLoop(startTime) {
+    if (!_builtinCtx || ctx !== _builtinCtx) return;
+    const t0 = startTime;
+    // Beats: kick on 1,3, snare on 2,4
+    for (let b = 0; b < 8; b++) {
+      const t = t0 + b * beat;
+      if (b % 4 === 0 || b % 4 === 2) makeKick(t);
+      if (b % 4 === 1 || b % 4 === 3) makeSnare(t + beat * 0.5);
+      // hi-hat 8th notes
+      const hBuf = ctx.createBuffer(1, ctx.sampleRate * 0.05, ctx.sampleRate);
+      const hd = hBuf.getChannelData(0);
+      for (let i = 0; i < hd.length; i++) hd[i] = (Math.random()*2-1)*Math.exp(-i/(ctx.sampleRate*0.015));
+      const hs = ctx.createBufferSource(); hs.buffer = hBuf;
+      const hg = ctx.createGain(); hg.gain.value = 0.12;
+      const hf = ctx.createBiquadFilter(); hf.type='highpass'; hf.frequency.value=8000;
+      hs.connect(hf); hf.connect(hg); hg.connect(dest);
+      hs.start(t); hs.stop(t+0.08);
+      _builtinNodes.push(hs, hg, hf);
+    }
+    // Chords - one chord per 2 beats
+    chords.forEach((chord, ci) => {
+      const ct = t0 + ci * beat * 2;
+      chord.forEach(midi => {
+        schedBeat(ct, noteHz(midi - 12), beat * 2 * 0.9, 0.09, 'triangle');
+      });
+    });
+    // Bass line
+    const bassNotes = [36,36,38,36, 41,41,43,41];
+    bassNotes.forEach((midi, i) => {
+      schedBeat(t0 + i * beat, noteHz(midi), beat * 0.85, 0.18, 'sawtooth');
+    });
+    setTimeout(() => scheduleLoop(startTime + loop), (loop - 0.1) * 1000);
+  }
+  scheduleLoop(now + 0.1);
+}
+
+// ── BOSSA NOVA ──────────────────────────────────────────────────
+function synthBossa(ctx, dest, beat) {
+  const now = ctx.currentTime;
+  const loop = 8 * beat;
+
+  function pluck(t, midi, dur, vol) {
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const g    = ctx.createGain();
+    osc1.type = 'triangle'; osc1.frequency.value = noteHz(midi);
+    osc2.type = 'sawtooth'; osc2.frequency.value = noteHz(midi) * 1.003;
+    osc2.detune.value = 5;
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(vol * 0.3, t + 0.08);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    osc1.connect(g); osc2.connect(g); g.connect(dest);
+    osc1.start(t); osc1.stop(t + dur + 0.1);
+    osc2.start(t); osc2.stop(t + dur + 0.1);
+    _builtinNodes.push(osc1, osc2, g);
+  }
+
+  // Bossa rhythm: 1 - -  - 4 - 6 - (in 8th notes)
+  const rhythmPattern = [1,0,0,1,0,1,0,1]; // 8th notes
+  // Am7 D7 Gmaj7 Cmaj7
+  const chords = [[57,60,64,67],[50,54,57,60],[55,59,62,66],[48,52,55,59]];
+  const bassNotes = [45,50,43,48];
+
+  function scheduleLoop(startTime) {
+    if (!_builtinCtx || ctx !== _builtinCtx) return;
+    const halfBeat = beat / 2;
+    chords.forEach((chord, ci) => {
+      rhythmPattern.forEach((hit, ri) => {
+        if (!hit) return;
+        const t = startTime + ci * beat * 2 + ri * halfBeat;
+        chord.forEach(midi => pluck(t, midi, halfBeat * 1.8, 0.07));
+      });
+    });
+    // Bass: on beats 1 and 3
+    bassNotes.forEach((midi, i) => {
+      pluck(startTime + i * beat * 2, midi, beat * 1.8, 0.2);
+      pluck(startTime + i * beat * 2 + beat, midi + 5, beat * 0.9, 0.12);
+    });
+    setTimeout(() => scheduleLoop(startTime + loop), (loop - 0.1) * 1000);
+  }
+  scheduleLoop(now + 0.1);
+}
+
+// ── JAZZ SUAVE ──────────────────────────────────────────────────
+function synthJazz(ctx, dest, beat) {
+  const now = ctx.currentTime;
+  const loop = 8 * beat;
+
+  function note(t, midi, dur, vol, type='sine') {
+    const osc = ctx.createOscillator();
+    const g   = ctx.createGain();
+    osc.type = type; osc.frequency.value = noteHz(midi);
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(vol, t + 0.02);
+    g.gain.setValueAtTime(vol, t + dur - 0.05);
+    g.gain.linearRampToValueAtTime(0, t + dur);
+    osc.connect(g); g.connect(dest);
+    osc.start(t); osc.stop(t + dur + 0.05);
+    _builtinNodes.push(osc, g);
+  }
+
+  // Cmaj9 / Am9 / Dm9 / G13 jazz chords
+  const chords = [
+    [60,64,67,71,74],[57,60,64,67,71],[50,53,57,60,64],[55,59,62,65,69]
+  ];
+  const swing = beat * 0.65; // swing feel
+
+  function scheduleLoop(startTime) {
+    if (!_builtinCtx || ctx !== _builtinCtx) return;
+    // Piano comping - swing 8ths
+    chords.forEach((chord, ci) => {
+      const base = startTime + ci * beat * 2;
+      // beat 1
+      chord.slice(0,3).forEach(m => note(base, m, beat * 0.45, 0.08, 'sine'));
+      // beat 2 (swing)
+      chord.slice(1,4).forEach(m => note(base + swing, m, beat * 0.4, 0.06, 'triangle'));
+      // beat 3
+      chord.slice(0,3).forEach(m => note(base + beat, m, beat * 0.45, 0.07, 'sine'));
+      // beat 4 (swing)
+      chord.slice(2,5).forEach(m => note(base + beat + swing, m, beat * 0.35, 0.05, 'triangle'));
+    });
+    // Walking bass
+    const walkNotes = [36,38,40,41, 45,43,41,40];
+    walkNotes.forEach((m, i) => note(startTime + i * beat, m, beat * 0.85, 0.18, 'sawtooth'));
+    // Ride cymbal (filtered noise)
+    for (let i = 0; i < 8; i++) {
+      const t = startTime + i * beat;
+      const buf = ctx.createBuffer(1, ctx.sampleRate * 0.08, ctx.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let j = 0; j < d.length; j++) d[j] = (Math.random()*2-1)*Math.exp(-j/(ctx.sampleRate*0.025));
+      const s = ctx.createBufferSource(); s.buffer = buf;
+      const f = ctx.createBiquadFilter(); f.type='bandpass'; f.frequency.value=6000; f.Q.value=2;
+      const g = ctx.createGain(); g.gain.value = 0.08;
+      s.connect(f); f.connect(g); g.connect(dest);
+      s.start(t); s.stop(t + 0.1);
+      _builtinNodes.push(s, f, g);
+    }
+    setTimeout(() => scheduleLoop(startTime + loop), (loop - 0.1) * 1000);
+  }
+  scheduleLoop(now + 0.1);
+}
+
+// ── AMBIENT PODCAST ─────────────────────────────────────────────
+function synthAmbient(ctx, dest, beat) {
+  const now = ctx.currentTime;
+  const loop = 16 * beat;
+
+  function pad(t, midi, dur, vol) {
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const osc3 = ctx.createOscillator();
+    const g    = ctx.createGain();
+    const rev  = ctx.createConvolver();
+    // simple reverb buffer
+    const rvbuf= ctx.createBuffer(2, ctx.sampleRate*1.5, ctx.sampleRate);
+    for (let ch=0;ch<2;ch++){
+      const d=rvbuf.getChannelData(ch);
+      for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/(ctx.sampleRate*0.5));
+    }
+    rev.buffer = rvbuf;
+
+    osc1.type='sine'; osc1.frequency.value = noteHz(midi);
+    osc2.type='sine'; osc2.frequency.value = noteHz(midi+12);
+    osc3.type='sine'; osc3.frequency.value = noteHz(midi+19);
+    osc2.detune.value = 8; osc3.detune.value = -5;
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(vol, t + 2.0);
+    g.gain.setValueAtTime(vol, t + dur - 2.0);
+    g.gain.linearRampToValueAtTime(0, t + dur);
+    [osc1,osc2,osc3].forEach(o => { o.connect(g); o.start(t); o.stop(t+dur+0.1); _builtinNodes.push(o); });
+    g.connect(rev); g.connect(dest); rev.connect(dest);
+    _builtinNodes.push(g, rev);
+  }
+
+  // C major pentatonic drones
+  const pads = [60,67,64,67];
+  function scheduleLoop(startTime) {
+    if (!_builtinCtx || ctx !== _builtinCtx) return;
+    pads.forEach((midi, i) => {
+      pad(startTime + i * beat * 4, midi, beat * 5, 0.07);
+    });
+    setTimeout(() => scheduleLoop(startTime + loop), (loop - 0.5) * 1000);
+  }
+  scheduleLoop(now + 0.1);
+}
+
+// ── INDIE FOLK ──────────────────────────────────────────────────
+function synthFolk(ctx, dest, beat) {
+  const now = ctx.currentTime;
+  const loop = 8 * beat;
+
+  function strum(t, chord, dir, vol) {
+    chord.forEach((midi, i) => {
+      const delay = dir === 'down' ? i * 0.018 : (chord.length - 1 - i) * 0.018;
+      const osc1  = ctx.createOscillator();
+      const osc2  = ctx.createOscillator();
+      const g     = ctx.createGain();
+      osc1.type='triangle'; osc1.frequency.value = noteHz(midi);
+      osc2.type='sine';     osc2.frequency.value = noteHz(midi) * 1.002;
+      const at = t + delay;
+      g.gain.setValueAtTime(vol, at);
+      g.gain.exponentialRampToValueAtTime(vol * 0.4, at + 0.12);
+      g.gain.exponentialRampToValueAtTime(0.0001, at + beat * 1.8);
+      osc1.connect(g); osc2.connect(g); g.connect(dest);
+      osc1.start(at); osc1.stop(at + beat * 2);
+      osc2.start(at); osc2.stop(at + beat * 2);
+      _builtinNodes.push(osc1, osc2, g);
+    });
+  }
+
+  // G D Em C strumming pattern
+  const chords = [
+    [55,59,62,67], [50,54,57,62], [52,55,59,64], [48,52,55,60]
+  ];
+  const strumPattern = ['down','up','down','down','up','down','up','down'];
+
+  function scheduleLoop(startTime) {
+    if (!_builtinCtx || ctx !== _builtinCtx) return;
+    chords.forEach((chord, ci) => {
+      const base = startTime + ci * beat * 2;
+      strumPattern.slice(0,4).forEach((dir, si) => {
+        strum(base + si * beat * 0.5, chord, dir, 0.06);
+      });
+    });
+    // Fingerpicked melody
+    const melody = [67,69,71,72, 71,69,67,65];
+    melody.forEach((midi, i) => {
+      const osc = ctx.createOscillator();
+      const g   = ctx.createGain();
+      osc.type='sine'; osc.frequency.value = noteHz(midi);
+      const t = startTime + i * beat;
+      g.gain.setValueAtTime(0.12, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + beat * 0.8);
+      osc.connect(g); g.connect(dest);
+      osc.start(t); osc.stop(t + beat);
+      _builtinNodes.push(osc, g);
+    });
+    setTimeout(() => scheduleLoop(startTime + loop), (loop - 0.1) * 1000);
+  }
+  scheduleLoop(now + 0.1);
+}
+
+// ── CINEMATIC ───────────────────────────────────────────────────
+function synthCinematic(ctx, dest, beat) {
+  const now = ctx.currentTime;
+  const loop = 16 * beat;
+
+  function strings(t, midi, dur, vol) {
+    const oscs = [];
+    for (let i=0; i<4; i++) {
+      const osc = ctx.createOscillator();
+      osc.type = i < 2 ? 'sawtooth' : 'triangle';
+      osc.frequency.value = noteHz(midi + i * 12) * (1 + (i * 0.002));
+      osc.detune.value = (Math.random() - 0.5) * 8;
+      oscs.push(osc);
+    }
+    const g   = ctx.createGain();
+    const lpf = ctx.createBiquadFilter();
+    lpf.type='lowpass'; lpf.frequency.value = 1800;
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(vol, t + 1.2);
+    g.gain.setValueAtTime(vol, t + dur - 1.5);
+    g.gain.linearRampToValueAtTime(0, t + dur);
+    oscs.forEach(o => { o.connect(lpf); o.start(t); o.stop(t+dur+0.1); _builtinNodes.push(o); });
+    lpf.connect(g); g.connect(dest);
+    _builtinNodes.push(lpf, g);
+  }
+
+  function timpani(t, midi, vol) {
+    const osc = ctx.createOscillator();
+    const g   = ctx.createGain();
+    osc.frequency.setValueAtTime(noteHz(midi), t);
+    osc.frequency.exponentialRampToValueAtTime(noteHz(midi) * 0.7, t + 0.4);
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.8);
+    osc.connect(g); g.connect(dest);
+    osc.start(t); osc.stop(t + 1);
+    _builtinNodes.push(osc, g);
+  }
+
+  // Cm / Fm / Gm / Ab progression
+  const harmony = [
+    [48,51,55], [53,56,60], [55,58,62], [56,59,63]
+  ];
+
+  function scheduleLoop(startTime) {
+    if (!_builtinCtx || ctx !== _builtinCtx) return;
+    harmony.forEach((chord, ci) => {
+      const base = startTime + ci * beat * 4;
+      chord.forEach(midi => strings(base, midi, beat * 4.2, 0.06));
+      timpani(base, chord[0] - 12, 0.2);
+    });
+    setTimeout(() => scheduleLoop(startTime + loop), (loop - 0.5) * 1000);
+  }
+  scheduleLoop(now + 0.1);
+}
+
+// ── Update built-in volume when slider changes ─────────────────────
+function updateBgVolBuiltin() {
+  if (_builtinCtx && _builtinCtx._masterGain) {
+    _builtinCtx._masterGain.gain.value = getBuiltinVolume();
+  }
+}
+
 
 // ═══════════════════════════════════════════════════════════════════
 // BACKGROUND MUSIC — Síntese FM de alta qualidade (estilo podcast real)
@@ -2904,6 +3651,30 @@ async function clearAllTracks() {
   _musicTracks = [];
   renderMusicGrid();
   toast('Todas as trilhas removidas', 'success');
+}
+
+// ── Volume slider handler (user uploads + builtins) ───────────────────
+function updateBgVol() {
+  const pct = parseInt(document.getElementById('bgVolSlider').value);
+  document.getElementById('bgVolVal').textContent = pct + '%';
+  // Uploaded track volume
+  if (state.bgGain) {
+    state.bgGain.gain.value = (pct / 100) * 0.15;
+  }
+  // Built-in synth volume
+  updateBgVolBuiltin();
+}
+
+// ── Delete single uploaded track ──────────────────────────────────────
+async function deleteTrack(id) {
+  if (!confirm('Excluir esta trilha?')) return;
+  const tr = _musicTracks.find(t => t.id === id);
+  if (!tr) return;
+  if (state.activeBgMusic === id) { stopBgMusic(); state.activeBgMusic = null; }
+  await musicDbDelete(id);
+  _musicTracks = _musicTracks.filter(t => t.id !== id);
+  renderMusicGrid();
+  toast('Trilha removida', 'success');
 }
 
 
@@ -3349,6 +4120,7 @@ async function init() {
   initVideoCam();
   estimateDBSize();
   renderChapters();
+  renderBuiltinTracks();
 
   if (state.episodes.length) {
     await loadEpisode(state.episodes[state.episodes.length - 1].id);
@@ -3403,39 +4175,38 @@ function applyMicPreset() {
   const togNS = document.getElementById('togNoiseSuppression');
   const togAGC = document.getElementById('togAGC');
   phantomRow.style.display = type === 'condenser' ? 'flex' : 'none';
+  const setEQ = (sub,bass,mid,pre,tre,air,gain) => {
+    ['eqSubBass','eqBass','eqMid','eqPresence','eqTreble','eqAir','inputGain']
+      .forEach((id,i)=>{ const el=document.getElementById(id); if(el) el.value=[sub,bass,mid,pre,tre,air,gain][i]; });
+  };
   if (type === 'condenser') {
-    // Condensador: alta sensibilidade, menos AGC, phantom ativo
     togPhantom.classList.add('on');
     togNS.classList.add('on');
-    togAGC.classList.remove('on'); // condensador já é sensível, sem AGC
-    // Preset EQ: cortar graves (rumble) e realçar presença
-    document.getElementById('eqBass').value = -3; 
-    document.getElementById('eqPresence').value = 4;
-    document.getElementById('eqTreble').value = 2;
-    updateFX();
+    togAGC.classList.remove('on');
+    setEQ(-4, -3, 0, 4, 2, 1, 4);
+    updateFX(); applyLiveEQ();
     toast('🎤 Preset Condensador aplicado (phantom +48V, EQ otimizado)', 'success');
   } else if (type === 'dynamic') {
     togPhantom.classList.remove('on');
     togNS.classList.add('on');
     togAGC.classList.add('on');
-    document.getElementById('eqBass').value = 2;
-    document.getElementById('eqPresence').value = 1;
-    document.getElementById('eqTreble').value = 1;
-    updateFX();
-    toast('🎤 Preset Dinâmico aplicado', 'success');
+    setEQ(-2, 2, 1, 3, 1, 0, 8);
+    updateFX(); applyLiveEQ();
+    toast('🎤 Preset Dinâmico aplicado (+8dB boost)', 'success');
   } else if (type === 'usb') {
     togPhantom.classList.remove('on');
     togNS.classList.add('on');
     togAGC.classList.add('on');
-    document.getElementById('eqBass').value = 0;
-    document.getElementById('eqPresence').value = 2;
-    updateFX();
+    setEQ(-3, 0, 1, 2, 1, 0, 2);
+    updateFX(); applyLiveEQ();
     toast('🎤 Preset USB aplicado', 'success');
   } else {
     togPhantom.classList.remove('on');
     togNS.classList.add('on');
     togAGC.classList.add('on');
-    toast('🎤 Preset Celular aplicado', 'success');
+    setEQ(-6, 1, 0, 3, 2, 1, 10);
+    updateFX(); applyLiveEQ();
+    toast('🎤 Preset Celular aplicado (+10dB boost)', 'success');
   }
 }
 
