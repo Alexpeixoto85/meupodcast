@@ -2,4237 +2,882 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>PodcastStudio</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<title>PodCastMix · Estúdio Móvel</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
 <style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
 :root {
-  --bg:       #080b10;
-  --bg2:      #0d1117;
-  --bg3:      #141c26;
-  --bg4:      #1c2535;
-  --surface:  #1a2233;
-  --surface2: #212d42;
-  --border:   rgba(255,255,255,0.06);
-  --border2:  rgba(255,255,255,0.11);
-  --accent:   #ff5c35;
-  --accent2:  #ff8060;
-  --accent3:  #ffb3a0;
-  --glow:     rgba(255,92,53,0.25);
-  --green:    #2dca73;
-  --red:      #ff4444;
-  --amber:    #ffbb00;
-  --cyan:     #00d4ff;
-  --blue:     #4d8dff;
-  --text:     #eef2f8;
-  --text2:    #8a99b3;
-  --text3:    #4a5a74;
-  --radius:   16px;
-  --radius2:  12px;
-  --radius3:  8px;
-  --nav-h:    68px;
-  --top-h:    60px;
-  --mono:     'Space Mono', monospace;
-  --sans:     'Plus Jakarta Sans', sans-serif;
-  --ease:     cubic-bezier(0.4,0,0.2,1);
+  --bg: #0a0c10;
+  --surface: #13171f;
+  --surface2: #1a1f2a;
+  --card: #1e2532;
+  --border: rgba(255,255,255,0.08);
+  --accent: #ff5e3a;
+  --accent-glow: rgba(255,94,58,0.3);
+  --text: #f0f3f8;
+  --text2: #9aa6b9;
+  --text3: #5f6c84;
+  --green: #2ecc71;
+  --red: #e74c3c;
+  --amber: #f39c12;
+  --radius: 20px;
+  --radius-sm: 14px;
+  --nav-h: 70px;
+  --top-h: 64px;
+  --font: 'Inter', sans-serif;
 }
 
-/* ─── TEMA CLARO ─────────────────────── */
-body.theme-light {
-  --bg:       #f4f0eb;
-  --bg2:      #faf8f5;
-  --bg3:      #ede9e2;
-  --bg4:      #e2ddd5;
-  --surface:  #faf8f5;
-  --surface2: #ede9e2;
-  --border:   rgba(0,0,0,0.08);
-  --border2:  rgba(0,0,0,0.13);
-  --accent:   #d94f2a;
-  --accent2:  #e8693d;
-  --accent3:  #f0896a;
-  --glow:     rgba(217,79,42,0.18);
-  --green:    #1e9e55;
-  --red:      #d63030;
-  --amber:    #c68f00;
-  --cyan:     #0099bb;
-  --blue:     #2d6ee0;
-  --text:     #1a1a1a;
-  --text2:    #4a4a4a;
-  --text3:    #8a8a8a;
-}
-body.theme-light .topbar,
-body.theme-light .bottom-nav {
-  background: rgba(244,240,235,0.97);
-}
-body.theme-light .viz-card {
-  background: linear-gradient(180deg, #ede9e2 0%, #faf8f5 100%);
-}
-body.theme-light .toast {
-  background: #faf8f5;
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  overflow: hidden;
+  height: 100%;
+  position: fixed;
+  width: 100%;
 }
 
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-
-html,body{
-  font-family:var(--sans);
-  background:var(--bg);
-  color:var(--text);
-  height:100%;
-  overflow:hidden;
+/* scroll suave mobile */
+.app-scroll {
+  position: fixed;
+  top: var(--top-h);
+  bottom: var(--nav-h);
+  left: 0;
+  right: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px 14px 24px;
 }
 
-/* ─── TOPBAR ─────────────────────────── */
-.topbar{
-  position:fixed;top:0;left:0;right:0;z-index:100;
-  height:var(--top-h);
-  background:rgba(8,11,16,0.95);
-  backdrop-filter:blur(24px);
-  -webkit-backdrop-filter:blur(24px);
-  border-bottom:1px solid var(--border);
-  display:flex;align-items:center;
-  padding:0 20px;
-  gap:14px;
+/* header */
+.top-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--top-h);
+  background: rgba(10,12,16,0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  z-index: 20;
+}
+.logo h1 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ff5e3a, #ffb347);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  letter-spacing: -0.5px;
+}
+.logo span {
+  font-size: 0.7rem;
+  color: var(--text3);
+  font-weight: 500;
+  display: block;
+  margin-top: -4px;
+}
+.status-pill {
+  background: var(--surface2);
+  padding: 6px 12px;
+  border-radius: 40px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 10px;
+  background: #6c7a8f;
+}
+.dot.rec { background: var(--red); box-shadow: 0 0 6px var(--red); animation: pulse 1s infinite; }
+.dot.paused { background: var(--amber); }
+
+/* bottom nav */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--nav-h);
+  background: rgba(10,12,16,0.96);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 20;
+}
+.nav-btn {
+  background: none;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text3);
+  transition: 0.2s;
+  padding: 8px 12px;
+  border-radius: 30px;
+}
+.nav-btn.active {
+  color: var(--accent);
+  background: rgba(255,94,58,0.12);
+}
+.nav-icon {
+  font-size: 1.5rem;
+}
+.rec-fab {
+  background: linear-gradient(145deg, var(--accent), #e63e17);
+  width: 56px;
+  height: 56px;
+  border-radius: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  box-shadow: 0 0 16px var(--accent-glow);
+  margin-top: -12px;
+  transition: 0.1s ease;
+}
+.rec-fab:active { transform: scale(0.94); }
+
+/* cards */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+}
+.section-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text3);
+  margin-bottom: 12px;
+}
+.btn-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.btn {
+  padding: 12px 18px;
+  border-radius: 40px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  border: none;
+  background: var(--surface2);
+  color: var(--text);
+  cursor: pointer;
+  transition: 0.1s;
+  flex: 1 0 auto;
+  text-align: center;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), #e63e17);
+  box-shadow: 0 4px 12px rgba(255,94,58,0.3);
+}
+.btn-danger { background: rgba(231,76,60,0.2); color: var(--red); }
+.btn-success { background: rgba(46,204,113,0.2); color: var(--green); }
+.btn:active { transform: scale(0.97); }
+
+/* timer */
+.timer {
+  font-family: monospace;
+  font-size: 2.6rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-align: center;
+  background: var(--surface);
+  padding: 12px;
+  border-radius: 60px;
+  margin-bottom: 12px;
+}
+.meter {
+  background: #0f111a;
+  border-radius: 40px;
+  height: 6px;
+  overflow: hidden;
+  margin: 10px 0;
+}
+.meter-fill {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg, var(--green), var(--amber), var(--accent));
 }
 
-.logo-mark{
-  width:34px;height:34px;
-  background:linear-gradient(135deg,var(--accent),#ff8c00);
-  border-radius:10px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:16px;flex-shrink:0;
-  box-shadow:0 0 20px var(--glow);
+/* takes list */
+.take-item {
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.take-name {
+  font-weight: 600;
+  flex: 1;
+}
+.take-actions button {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  padding: 8px;
+  cursor: pointer;
+  color: var(--text2);
+}
+/* music tracks */
+.track-row {
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.track-play {
+  width: 42px;
+  height: 42px;
+  border-radius: 42px;
+  background: var(--surface);
+  border: none;
+  font-size: 1.2rem;
+  color: var(--text);
+}
+.track-info {
+  flex: 1;
+}
+.track-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.track-meta {
+  font-size: 0.7rem;
+  color: var(--text3);
+}
+/* eq sliders */
+.eq-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.eq-row label {
+  width: 80px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+input[type="range"] {
+  flex: 1;
+  height: 4px;
+  -webkit-appearance: none;
+  background: var(--surface);
+  border-radius: 4px;
+}
+input[type="range"]:focus {
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 18px;
+  background: var(--accent);
+  cursor: pointer;
+}
+/* select / inputs */
+select, input, textarea {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 30px;
+  padding: 12px 14px;
+  color: var(--text);
+  font-size: 0.85rem;
+  width: 100%;
+}
+/* modal */
+.modal-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(8px);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  visibility: hidden;
+  opacity: 0;
+  transition: 0.2s;
+}
+.modal-mask.open {
+  visibility: visible;
+  opacity: 1;
+}
+.modal-card {
+  background: var(--card);
+  width: 100%;
+  border-radius: 28px 28px 0 0;
+  padding: 24px 20px 32px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+/* toasts */
+.toast-zone {
+  position: fixed;
+  bottom: 80px;
+  left: 16px;
+  right: 16px;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+.toast {
+  background: var(--surface);
+  border-left: 4px solid var(--accent);
+  padding: 12px 16px;
+  border-radius: 40px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  backdrop-filter: blur(12px);
 }
 
-.logo-text{
-  font-family:var(--sans);
-  font-weight:800;font-size:16px;
-  letter-spacing:-0.3px;
-  color:var(--text);
-  flex:1;
-}
-.logo-text span{
-  display:block;
-  font-size:10px;font-weight:500;
-  color:var(--text3);letter-spacing:0.5px;
-  margin-top:-1px;
-}
-
-.top-status{
-  display:flex;align-items:center;gap:8px;
-  background:var(--bg3);
-  border:1px solid var(--border2);
-  border-radius:20px;
-  padding:5px 10px 5px 8px;
-}
-.status-dot{
-  width:7px;height:7px;border-radius:50%;
-  background:var(--text3);transition:all 0.3s;
-}
-.status-dot.recording{
-  background:var(--red);
-  box-shadow:0 0 8px var(--red);
-  animation:blink 1s ease infinite;
-}
-.status-dot.paused{background:var(--amber);}
-.status-text{font-size:11px;font-weight:600;color:var(--text2);letter-spacing:0.2px;}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
-
-/* ─── LAYOUT ─────────────────────────── */
-.app{
-  position:fixed;
-  top:var(--top-h);
-  bottom:var(--nav-h);
-  left:0;right:0;
-  overflow:hidden;
-}
-
-/* ─── PAGES ─────────────────────────── */
-.page{
-  position:absolute;inset:0;
-  overflow-y:auto;overflow-x:hidden;
-  display:none;
-  -webkit-overflow-scrolling:touch;
-}
-.page.active{display:block;}
-.page::-webkit-scrollbar{display:none;}
-
-/* ─── BOTTOM NAV ─────────────────────── */
-.bottom-nav{
-  position:fixed;bottom:0;left:0;right:0;z-index:100;
-  height:var(--nav-h);
-  background:rgba(8,11,16,0.97);
-  backdrop-filter:blur(24px);
-  -webkit-backdrop-filter:blur(24px);
-  border-top:1px solid var(--border);
-  display:flex;align-items:stretch;
-  padding-bottom:env(safe-area-inset-bottom,0);
-}
-.nav-item{
-  flex:1;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  gap:4px;border:none;background:transparent;
-  cursor:pointer;padding:0 6px;
-  transition:all 0.2s var(--ease);
-  color:var(--text3);
-  position:relative;
-}
-.nav-item.active{color:var(--accent);}
-.nav-item.active .nav-icon{
-  background:rgba(255,92,53,0.12);
-  border-color:rgba(255,92,53,0.2);
-}
-.nav-icon{
-  width:40px;height:34px;
-  border-radius:10px;
-  border:1px solid transparent;
-  display:flex;align-items:center;justify-content:center;
-  font-size:18px;
-  transition:all 0.2s var(--ease);
-}
-.nav-label{font-size:10px;font-weight:600;letter-spacing:0.2px;}
-
-/* REC FAB */
-.nav-rec{
-  flex:0 0 72px;
-  display:flex;align-items:center;justify-content:center;
-  border:none;background:transparent;cursor:pointer;
-  padding:0;
-  position:relative;
-}
-.rec-fab{
-  width:52px;height:52px;
-  border-radius:50%;
-  background:linear-gradient(135deg,var(--accent),#ff3300);
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:0 4px 20px var(--glow),0 0 0 3px rgba(255,92,53,0.15);
-  transition:all 0.2s var(--ease);
-  position:relative;
-}
-.rec-fab:active{transform:scale(0.93);}
-.rec-fab.recording{
-  background:linear-gradient(135deg,var(--red),#cc0000);
-  animation:rec-pulse 2s ease infinite;
-}
-@keyframes rec-pulse{
-  0%,100%{box-shadow:0 4px 20px rgba(255,68,68,0.5),0 0 0 3px rgba(255,68,68,0.15);}
-  50%{box-shadow:0 4px 30px rgba(255,68,68,0.8),0 0 0 6px rgba(255,68,68,0.2);}
-}
-.rec-fab svg{transition:all 0.2s;}
-
-/* ─── SECTION HEADERS ─────────────────── */
-.page-header{
-  padding:24px 20px 0;
-  display:flex;align-items:flex-start;justify-content:space-between;
-  margin-bottom:20px;
-}
-.page-title{
-  font-family:var(--sans);
-  font-size:26px;font-weight:800;
-  letter-spacing:-0.5px;line-height:1.1;
-}
-.page-sub{
-  font-size:13px;color:var(--text3);
-  margin-top:4px;font-weight:500;
-}
-
-/* ─── CARDS ─────────────────────────── */
-.card{
-  background:var(--bg2);
-  border:1px solid var(--border);
-  border-radius:var(--radius);
-  padding:16px;
-  margin:0 16px 12px;
-}
-.card-label{
-  font-size:10px;font-weight:700;
-  text-transform:uppercase;letter-spacing:1.2px;
-  color:var(--text3);margin-bottom:12px;
-}
-
-/* ─── STUDIO PAGE ─────────────────────── */
-.studio-ep-header{
-  margin:0 0 0;
-  padding:20px 20px 0;
-}
-.ep-name-input{
-  font-family:var(--sans);
-  font-size:22px;font-weight:800;
-  background:none;border:none;
-  color:var(--text);width:100%;outline:none;
-  letter-spacing:-0.4px;line-height:1.2;
-  padding:0;
-}
-.ep-name-input::placeholder{color:var(--text3);}
-.ep-desc-input{
-  margin-top:6px;font-size:13px;color:var(--text2);
-  background:none;border:none;width:100%;outline:none;
-  font-family:var(--sans);resize:none;height:36px;
-  font-weight:400;padding:0;
-}
-.ep-desc-input::placeholder{color:var(--text3);}
-
-/* ─── STUDIO TABS ─────────────────────── */
-.studio-tabs-wrap{
-  padding:0;
-  margin:16px 0 0;
-  overflow-x:auto;
-  -webkit-overflow-scrolling:touch;
-  border-bottom:1px solid var(--border);
-}
-.studio-tabs-wrap::-webkit-scrollbar{display:none;}
-.studio-tabs{
-  display:flex;gap:0;
-  padding:0 16px;
-  min-width:max-content;
-}
-.studio-tab{
-  font-family:var(--sans);
-  font-size:12px;font-weight:600;
-  padding:10px 14px;
-  border:none;background:transparent;
-  color:var(--text3);cursor:pointer;
-  border-bottom:2px solid transparent;
-  margin-bottom:-1px;
-  white-space:nowrap;
-  transition:all 0.2s;
-  letter-spacing:0.2px;
-}
-.studio-tab:hover{color:var(--text2);}
-.studio-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
-
-.studio-panel{display:none;padding:16px;}
-.studio-panel.active{display:block;}
-
-/* ─── VISUALIZER ─────────────────────── */
-.viz-card{
-  background:linear-gradient(180deg,var(--bg3) 0%,var(--bg2) 100%);
-  border:1px solid var(--border);
-  border-radius:var(--radius);
-  overflow:hidden;
-  position:relative;
-  height:130px;
-  margin-bottom:14px;
-}
-#vizCanvas{width:100%;height:100%;display:block;}
-.rec-overlay{
-  position:absolute;inset:0;
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:8px;
-  pointer-events:none;
-  transition:opacity 0.3s;
-}
-.rec-overlay.hidden{opacity:0;}
-.rec-overlay p{
-  font-size:12px;color:var(--text3);
-  font-weight:500;
-}
-
-.wave-bars{
-  display:flex;gap:3px;align-items:center;height:28px;
-}
-.wave-bar{
-  width:3px;border-radius:2px;
-  background:var(--accent);
-  animation:wave 1.3s ease infinite;
-  opacity:0.5;
-}
-.wave-bar:nth-child(1){animation-delay:0s;height:10px;}
-.wave-bar:nth-child(2){animation-delay:0.15s;height:18px;}
-.wave-bar:nth-child(3){animation-delay:0.3s;height:24px;}
-.wave-bar:nth-child(4){animation-delay:0.15s;height:18px;}
-.wave-bar:nth-child(5){animation-delay:0s;height:10px;}
-@keyframes wave{0%,100%{transform:scaleY(0.5)}50%{transform:scaleY(1)}}
-
-/* ─── TIMER ─────────────────────────── */
-.timer-row{
-  display:flex;align-items:center;
-  justify-content:space-between;
-  margin-bottom:14px;
-  background:var(--bg2);
-  border:1px solid var(--border);
-  border-radius:var(--radius2);
-  padding:12px 16px;
-}
-.timer-display{
-  font-family:var(--mono);
-  font-size:36px;font-weight:700;
-  letter-spacing:3px;
-  color:var(--text);
-  line-height:1;
-  transition:color 0.3s;
-}
-.timer-display.recording{color:var(--red);}
-.timer-right{display:flex;flex-direction:column;gap:6px;align-items:flex-end;}
-.timer-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);}
-
-.mode-pills{display:flex;gap:4px;}
-.mode-btn{
-  font-family:var(--sans);
-  font-size:11px;font-weight:600;
-  padding:5px 10px;border-radius:20px;
-  border:1px solid var(--border2);
-  background:transparent;color:var(--text3);
-  cursor:pointer;transition:all 0.2s;
-  letter-spacing:0.2px;
-}
-.mode-btn.active{
-  background:var(--accent);
-  border-color:var(--accent);
-  color:#fff;
-}
-
-/* ─── CONTROL STRIP ─────────────────── */
-.control-strip{
-  display:grid;
-  grid-template-columns:1fr 1fr 1fr 1fr;
-  gap:8px;
-  margin-bottom:14px;
-}
-.ctrl-btn{
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:5px;
-  padding:12px 8px;
-  border-radius:var(--radius2);
-  border:1px solid var(--border);
-  background:var(--bg2);
-  color:var(--text2);
-  cursor:pointer;font-family:var(--sans);
-  transition:all 0.2s;
-  font-size:10px;font-weight:600;letter-spacing:0.3px;
-  text-transform:uppercase;
-}
-.ctrl-btn:active{transform:scale(0.95);}
-.ctrl-btn .ci{font-size:18px;line-height:1;}
-.ctrl-btn.primary{
-  background:linear-gradient(135deg,rgba(255,92,53,0.2),rgba(255,92,53,0.08));
-  border-color:rgba(255,92,53,0.35);
-  color:var(--accent2);
-}
-.ctrl-btn.danger{
-  background:rgba(255,68,68,0.08);
-  border-color:rgba(255,68,68,0.25);
-  color:var(--red);
-}
-.ctrl-btn.success{
-  background:rgba(45,202,115,0.08);
-  border-color:rgba(45,202,115,0.25);
-  color:var(--green);
-}
-.ctrl-btn:disabled{opacity:0.35;cursor:not-allowed;}
-
-/* ─── TRANSPORT BAR ─────────────────── */
-.transport-bar{
-  background:var(--bg2);
-  border:1px solid var(--border);
-  border-radius:var(--radius2);
-  padding:12px 16px;
-  margin-bottom:14px;
-}
-.transport-btns{
-  display:flex;align-items:center;justify-content:center;gap:10px;
-  margin-bottom:10px;
-}
-.t-btn{
-  width:36px;height:36px;border-radius:50%;
-  border:1px solid var(--border2);
-  background:var(--bg3);
-  color:var(--text2);cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  font-size:13px;
-  transition:all 0.2s;
-}
-.t-btn.primary{
-  width:44px;height:44px;font-size:16px;
-  background:var(--accent);border-color:var(--accent);color:#fff;
-  box-shadow:0 4px 16px var(--glow);
-}
-.t-btn.danger{
-  background:rgba(255,68,68,0.1);
-  border-color:rgba(255,68,68,0.25);color:var(--red);
-}
-.t-btn:active{transform:scale(0.92);}
-
-.progress-area{display:flex;align-items:center;gap:10px;}
-.prog-time{font-family:var(--mono);font-size:11px;color:var(--text3);min-width:36px;}
-.prog-bar{
-  flex:1;height:4px;background:var(--bg4);
-  border-radius:2px;cursor:pointer;
-  position:relative;overflow:hidden;
-}
-.prog-fill{
-  height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));
-  border-radius:2px;transition:width 0.1s linear;
-}
-.vol-row{
-  display:flex;align-items:center;gap:8px;
-  margin-top:10px;padding-top:10px;
-  border-top:1px solid var(--border);
-}
-.vol-label{font-size:11px;color:var(--text3);font-weight:600;}
-input[type=range].vol-sl{
-  flex:1;accent-color:var(--accent);cursor:pointer;height:4px;
-}
-.vol-val{font-size:11px;font-family:var(--mono);color:var(--text2);min-width:32px;text-align:right;}
-.transport-track{
-  margin-top:8px;font-size:11px;color:var(--text3);font-weight:500;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-
-/* ─── TAKES ─────────────────────────── */
-.takes-header{
-  display:flex;align-items:center;justify-content:space-between;
-  margin-bottom:10px;
-}
-.section-label{
-  font-size:10px;font-weight:700;
-  text-transform:uppercase;letter-spacing:1.2px;
-  color:var(--text3);
-}
-.takes-count{
-  font-size:11px;font-family:var(--mono);color:var(--text3);
-  background:var(--bg4);
-  border-radius:10px;padding:2px 8px;
-}
-
-.take-card{
-  background:var(--bg2);
-  border:1px solid var(--border);
-  border-radius:var(--radius2);
-  padding:12px 14px;
-  margin-bottom:8px;
-  display:flex;align-items:center;gap:12px;
-}
-.take-stripe{
-  width:3px;height:44px;
-  border-radius:2px;
-  background:linear-gradient(180deg,var(--accent),rgba(255,92,53,0.3));
-  flex-shrink:0;
-}
-.take-info{flex:1;min-width:0;}
-.take-name{
-  font-size:13px;font-weight:600;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-.take-meta{
-  font-size:11px;color:var(--text3);margin-top:2px;
-  font-family:var(--mono);
-}
-.take-waveform{
-  flex:1;height:32px;border-radius:4px;
-  background:var(--bg3);overflow:hidden;
-}
-.take-actions{display:flex;gap:6px;}
-.icon-btn{
-  width:30px;height:30px;border-radius:8px;
-  border:1px solid var(--border2);
-  background:var(--bg3);
-  color:var(--text2);cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  font-size:12px;transition:all 0.18s;
-}
-.icon-btn:hover{background:var(--bg4);color:var(--text);}
-.icon-btn:active{transform:scale(0.9);}
-.icon-btn.del{color:var(--red);}
-
-/* ─── FX GRID ─────────────────────────── */
-.fx-grid{display:flex;flex-direction:column;gap:10px;}
-.fx-card{
-  background:var(--bg2);
-  border:1px solid var(--border);
-  border-radius:var(--radius2);
-  padding:14px;
-}
-.fx-title{
-  font-size:12px;font-weight:700;
-  color:var(--text2);margin-bottom:12px;
-  display:flex;align-items:center;gap:6px;
-}
-.fx-row{
-  display:flex;align-items:center;gap:8px;
-  margin-bottom:8px;
-}
-.fx-label{font-size:11px;color:var(--text3);flex-shrink:0;width:72px;}
-.fx-slider{flex:1;accent-color:var(--accent);cursor:pointer;}
-.fx-val{
-  font-size:11px;font-family:var(--mono);
-  color:var(--text2);width:34px;text-align:right;
-}
-.toggle-row{
-  display:flex;align-items:center;
-  justify-content:space-between;
-  margin-bottom:10px;
-}
-.toggle-label{font-size:12px;font-weight:500;color:var(--text2);}
-.toggle{
-  width:38px;height:22px;border-radius:11px;
-  background:var(--bg4);border:none;cursor:pointer;
-  position:relative;transition:background 0.2s;
-  flex-shrink:0;
-}
-.toggle.on{background:var(--accent);}
-.toggle::after{
-  content:'';position:absolute;
-  width:16px;height:16px;border-radius:50%;
-  background:white;top:3px;left:3px;
-  transition:left 0.2s;
-  box-shadow:0 1px 3px rgba(0,0,0,0.3);
-}
-.toggle.on::after{left:19px;}
-
-/* ─── MUSIC GRID ─────────────────────── */
-.music-grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:8px;
-}
-.music-item{
-  background:var(--bg2);border:1px solid var(--border);
-  border-radius:var(--radius2);padding:12px 8px;
-  cursor:pointer;transition:all 0.2s;text-align:center;
-}
-.music-item:active{transform:scale(0.95);}
-.music-item.active{
-  border-color:var(--accent);
-  background:rgba(255,92,53,0.08);
-}
-.music-icon{font-size:22px;margin-bottom:4px;}
-.music-name{font-size:11px;font-weight:600;color:var(--text2);}
-.music-bpm{font-size:10px;color:var(--text3);font-family:var(--mono);}
-
-/* ─── TRANSCRIPT ─────────────────────── */
-.transcript-controls{
-  display:flex;gap:6px;flex-wrap:wrap;
-  margin-bottom:12px;
-}
-.transcript-area{
-  background:var(--bg3);
-  border:1px solid var(--border);
-  border-radius:var(--radius2);
-  padding:14px;
-  min-height:120px;
-  font-size:14px;color:var(--text2);
-  line-height:1.75;
-  outline:none;
-}
-.transcript-hint{
-  font-size:11px;color:var(--text3);
-  margin-top:8px;font-style:italic;
-}
-
-/* ─── EXPORT FORM ─────────────────────── */
-.export-form{display:flex;flex-direction:column;gap:12px;}
-.form-row{display:flex;flex-direction:column;gap:5px;}
-.form-label{
-  font-size:11px;font-weight:700;
-  text-transform:uppercase;letter-spacing:0.8px;
-  color:var(--text3);
-}
-.form-select,.form-input{
-  background:var(--bg3);border:1px solid var(--border2);
-  border-radius:var(--radius3);color:var(--text);
-  padding:11px 12px;font-size:13px;font-family:var(--sans);
-  outline:none;transition:border-color 0.2s;width:100%;
-  font-weight:500;
-}
-.form-select:focus,.form-input:focus{border-color:var(--accent);}
-
-/* ─── EPISODES PAGE ─────────────────── */
-.ep-grid{
-  display:flex;flex-direction:column;gap:10px;
-  padding:0 16px 16px;
-}
-.ep-full-card{
-  background:var(--bg2);border:1px solid var(--border);
-  border-radius:var(--radius);padding:16px;
-  cursor:pointer;transition:all 0.2s;
-  position:relative;overflow:hidden;
-}
-.ep-full-card::before{
-  content:'';
-  position:absolute;left:0;top:0;bottom:0;
-  width:3px;
-  background:linear-gradient(180deg,var(--accent),transparent);
-}
-.ep-full-card:active{transform:scale(0.98);}
-.ep-full-card-title{
-  font-family:var(--sans);
-  font-size:16px;font-weight:700;
-  margin-bottom:5px;
-  padding-left:12px;
-}
-.ep-full-card-desc{
-  font-size:12px;color:var(--text3);
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
-  overflow:hidden;line-height:1.6;padding-left:12px;
-}
-.ep-full-card-footer{
-  display:flex;align-items:center;
-  justify-content:space-between;
-  margin-top:12px;padding-top:10px;
-  border-top:1px solid var(--border);
-}
-.ep-full-card-actions{display:flex;gap:6px;}
-
-/* ─── SETTINGS PAGE ─────────────────── */
-.settings-section{margin:0 16px 24px;}
-.settings-title{
-  font-size:11px;font-weight:700;
-  text-transform:uppercase;letter-spacing:1.2px;
-  color:var(--text3);
-  padding:0 0 8px;
-  border-bottom:1px solid var(--border);
-  margin-bottom:0;
-}
-.settings-row{
-  display:flex;align-items:center;
-  justify-content:space-between;
-  padding:14px 0;
-  border-bottom:1px solid var(--border);
-  gap:12px;
-}
-.settings-row:last-child{border-bottom:none;}
-.settings-row-info{flex:1;}
-.settings-row-label{font-size:14px;font-weight:600;}
-.settings-row-desc{font-size:11px;color:var(--text3);margin-top:2px;}
-
-/* ─── STATS CHIPS ─────────────────────── */
-.stats-row{
-  display:grid;grid-template-columns:repeat(4,1fr);
-  gap:6px;margin-bottom:14px;
-}
-.stat-chip{
-  background:var(--bg2);border:1px solid var(--border);
-  border-radius:var(--radius3);
-  padding:10px 8px;text-align:center;
-}
-.stat-chip-val{
-  font-family:var(--mono);
-  font-size:16px;font-weight:700;
-  line-height:1;
-}
-.stat-chip-val.green{color:var(--green);}
-.stat-chip-val.cyan{color:var(--cyan);}
-.stat-chip-val.amber{color:var(--amber);}
-.stat-chip-val.accent{color:var(--accent2);}
-.stat-chip-label{
-  font-size:9px;font-weight:700;
-  text-transform:uppercase;letter-spacing:0.8px;
-  color:var(--text3);margin-top:3px;
-}
-
-/* ─── METER ─────────────────────────── */
-.meter-section{
-  background:var(--bg2);border:1px solid var(--border);
-  border-radius:var(--radius2);padding:12px 14px;
-  margin-bottom:14px;
-}
-.meter-title{
-  font-size:10px;font-weight:700;
-  text-transform:uppercase;letter-spacing:1.2px;
-  color:var(--text3);margin-bottom:10px;
-}
-.meter-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
-.meter-row:last-child{margin-bottom:0;}
-.meter-label{font-size:10px;font-weight:700;font-family:var(--mono);color:var(--text3);width:14px;}
-.meter-bar{
-  flex:1;height:6px;background:var(--bg4);
-  border-radius:3px;overflow:hidden;
-}
-.meter-fill{
-  height:100%;border-radius:3px;
-  background:linear-gradient(90deg,var(--green),var(--amber) 70%,var(--red));
-  transition:width 0.08s;
-}
-.meter-val{
-  font-size:10px;font-family:var(--mono);
-  color:var(--text3);width:28px;text-align:right;
-}
-
-/* ─── CHECKLIST ─────────────────────── */
-.checklist{display:flex;flex-direction:column;gap:7px;}
-.check-item{
-  display:flex;align-items:center;gap:8px;
-  font-size:12px;font-weight:500;
-}
-.check-item.done{color:var(--green);}
-.check-item.pending{color:var(--text3);}
-.check-dot{
-  width:18px;height:18px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-size:10px;flex-shrink:0;
-}
-.check-item.done .check-dot{
-  background:rgba(45,202,115,0.15);color:var(--green);
-}
-.check-item.pending .check-dot{
-  background:var(--bg4);color:var(--text3);
-}
-
-/* ─── TIPS ─────────────────────────── */
-.tip-box{
-  background:linear-gradient(135deg,rgba(255,92,53,0.06),rgba(255,92,53,0.02));
-  border:1px solid rgba(255,92,53,0.15);
-  border-radius:var(--radius2);
-  padding:12px 14px;
-  font-size:12px;color:var(--text2);
-  line-height:1.6;font-weight:500;
-}
-
-/* ─── BUTTONS ─────────────────────────── */
-.btn{
-  display:inline-flex;align-items:center;gap:7px;
-  padding:11px 18px;border-radius:var(--radius3);
-  font-size:13px;font-weight:600;cursor:pointer;
-  border:1px solid transparent;transition:all 0.2s;
-  font-family:var(--sans);white-space:nowrap;
-  letter-spacing:0.1px;
-}
-.btn:active{transform:scale(0.96);}
-.btn-primary{
-  background:linear-gradient(135deg,var(--accent),#ff3300);
-  color:#fff;
-  box-shadow:0 4px 16px var(--glow);
-}
-.btn-danger{
-  background:rgba(255,68,68,0.12);
-  border-color:rgba(255,68,68,0.25);
-  color:var(--red);
-}
-.btn-ghost{
-  background:var(--bg3);
-  border-color:var(--border2);
-  color:var(--text2);
-}
-.btn-success{
-  background:rgba(45,202,115,0.12);
-  border-color:rgba(45,202,115,0.25);
-  color:var(--green);
-}
-.btn:disabled{opacity:0.35;cursor:not-allowed;}
-.btn-sm{padding:8px 12px;font-size:11px;}
-
-/* ─── BADGE ─────────────────────────── */
-.badge{
-  font-size:10px;font-weight:700;
-  padding:3px 7px;border-radius:5px;
-  letter-spacing:0.3px;
-}
-.badge.draft{background:rgba(255,187,0,0.12);color:var(--amber);}
-.badge.ready{background:rgba(45,202,115,0.12);color:var(--green);}
-.badge.recording{background:rgba(255,68,68,0.12);color:var(--red);}
-
-/* ─── MODAL ─────────────────────────── */
-.modal-overlay{
-  position:fixed;inset:0;z-index:200;
-  background:rgba(0,0,0,0.75);
-  backdrop-filter:blur(8px);
-  -webkit-backdrop-filter:blur(8px);
-  display:flex;align-items:flex-end;
-  opacity:0;pointer-events:none;
-  transition:opacity 0.25s;
-}
-.modal-overlay.open{opacity:1;pointer-events:all;}
-.modal{
-  background:var(--bg2);
-  border:1px solid var(--border2);
-  border-radius:var(--radius) var(--radius) 0 0;
-  padding:20px 20px calc(20px + env(safe-area-inset-bottom,0));
-  width:100%;
-  transform:translateY(30px);
-  transition:transform 0.3s var(--ease);
-}
-.modal-overlay.open .modal{transform:translateY(0);}
-.modal-handle{
-  width:36px;height:4px;border-radius:2px;
-  background:var(--bg4);margin:0 auto 16px;
-}
-.modal-title{
-  font-size:20px;font-weight:800;
-  letter-spacing:-0.3px;margin-bottom:16px;
-}
-.modal-actions{
-  display:flex;gap:10px;
-  justify-content:flex-end;margin-top:20px;
-}
-
-/* ─── TOAST ─────────────────────────── */
-.toast-container{
-  position:fixed;top:calc(var(--top-h) + 12px);
-  right:12px;left:12px;z-index:300;
-  display:flex;flex-direction:column;gap:8px;
-  pointer-events:none;
-}
-.toast{
-  background:var(--bg3);
-  border:1px solid var(--border2);
-  border-radius:var(--radius2);
-  padding:11px 16px;
-  font-size:13px;font-weight:500;
-  color:var(--text);
-  animation:toastIn 0.3s var(--ease);
-  display:flex;align-items:center;gap:10px;
-  box-shadow:0 8px 24px rgba(0,0,0,0.4);
-}
-.toast.success{border-color:rgba(45,202,115,0.3);}
-.toast.error{border-color:rgba(255,68,68,0.3);}
-.toast-icon{
-  width:20px;height:20px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-size:11px;flex-shrink:0;
-}
-.toast.success .toast-icon{background:rgba(45,202,115,0.15);color:var(--green);}
-.toast.error .toast-icon{background:rgba(255,68,68,0.15);color:var(--red);}
-.toast:not(.success):not(.error) .toast-icon{background:var(--bg4);color:var(--text3);}
-@keyframes toastIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
-
-/* ─── VIDEO PREVIEW ─────────────────── */
-.video-preview{
-  background:#000;border-radius:var(--radius2);
-  aspect-ratio:16/9;overflow:hidden;
-  display:none;margin-bottom:12px;
-}
-.video-preview video{width:100%;height:100%;object-fit:cover;}
-.video-preview.active{display:block;}
-
-/* ─── DEVICE ROW ─────────────────────── */
-.device-row{
-  display:flex;align-items:center;gap:10px;
-  margin-bottom:10px;
-}
-.device-label{
-  font-size:11px;font-weight:700;
-  text-transform:uppercase;letter-spacing:0.8px;
-  color:var(--text3);flex-shrink:0;width:64px;
-}
-
-/* ─── DB SIZE ─────────────────────────── */
-#dbSize{font-size:11px;color:var(--text3);}
-
-/* ─── EMPTY STATE ─────────────────────── */
-.empty-state{
-  text-align:center;padding:32px 20px;
-  color:var(--text3);
-}
-.empty-icon{font-size:36px;margin-bottom:10px;}
-.empty-text{font-size:13px;font-weight:500;}
-
-/* ─── SCROLL HELPERS ─────────────────── */
-.scroll-area{overflow-y:auto;-webkit-overflow-scrolling:touch;}
-.scroll-area::-webkit-scrollbar{display:none;}
-
-/* ─── MUSIC VOL ─────────────────────── */
-.music-vol-wrap{
-  display:flex;align-items:center;gap:10px;
-  margin-top:14px;padding:12px 14px;
-  background:var(--bg2);border:1px solid var(--border);
-  border-radius:var(--radius2);
-}
-.music-vol-wrap label{font-size:12px;font-weight:600;color:var(--text2);flex-shrink:0;}
-.music-vol-wrap input{flex:1;accent-color:var(--cyan);}
-.music-vol-wrap span{font-size:11px;font-family:var(--mono);color:var(--text2);min-width:34px;text-align:right;}
-
-/* ─── MUSIC PLAYING BADGE ────────── */
-.music-playing-badge{
-  font-size:9px;font-weight:700;letter-spacing:0.5px;
-  color:var(--green);text-transform:uppercase;
-  flex-shrink:0;
-}
-
-/* ─── MUSIC TRACK ROW ────────────── */
-.music-track-row{
-  display:flex;align-items:center;gap:10px;
-  background:var(--bg2);border:1px solid var(--border);
-  border-radius:var(--radius2);padding:10px 12px;
-  transition:all 0.2s;
-}
-.music-track-row.active{
-  border-color:rgba(255,92,53,0.35);
-  background:rgba(255,92,53,0.06);
-}
-.music-play-btn{
-  width:34px;height:34px;border-radius:50%;
-  border:1px solid var(--border2);
-  background:var(--bg3);
-  color:var(--text);font-size:13px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;transition:all 0.18s;
-}
-.music-play-btn.playing{
-  background:var(--accent);border-color:var(--accent);color:#fff;
-  box-shadow:0 2px 12px var(--glow);
-}
-.music-track-info{flex:1;min-width:0;}
-.music-track-name{
-  font-size:13px;font-weight:600;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-.music-track-meta{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:2px;}
-
-/* ─── MUSIC DROP ZONE ────────────── */
-.music-drop-zone{
-  border:2px dashed var(--border2);
-  border-radius:var(--radius);
-  padding:24px 16px;text-align:center;
-  background:var(--bg2);margin-bottom:14px;
-  transition:all 0.2s;cursor:pointer;
-}
-.music-drop-zone.drag-over{
-  border-color:var(--accent);
-  background:rgba(255,92,53,0.06);
-}
-.music-drop-icon{font-size:32px;margin-bottom:8px;}
-.music-drop-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;}
-.music-drop-sub{font-size:10px;color:var(--text3);line-height:1.6;}
-
-/* ─── MUSIC FORMAT BADGE ─────────── */
-.music-fmt-badge{
-  font-size:9px;font-weight:700;letter-spacing:0.5px;
-  padding:2px 6px;border-radius:4px;
-  background:var(--bg4);color:var(--text3);
-  flex-shrink:0;font-family:var(--mono);
-}
-.music-fmt-badge.audio{background:rgba(45,202,115,0.12);color:var(--green);}
-.music-fmt-badge.video{background:rgba(77,141,255,0.12);color:var(--blue);}
-
-/* ─── VIDEO RECORDING UI ─────────── */
-.video-rec-card{
-  background:var(--bg2);border:1px solid var(--border);
-  border-radius:var(--radius);overflow:hidden;
-  margin-bottom:14px;position:relative;
-}
-.video-rec-preview{
-  width:100%;aspect-ratio:16/9;background:#000;
-  display:block;object-fit:cover;
-}
-.video-rec-overlay{
-  position:absolute;top:10px;right:10px;
-  display:flex;gap:6px;
-}
-.video-rec-badge{
-  background:rgba(255,68,68,0.9);color:#fff;
-  font-size:10px;font-weight:700;letter-spacing:0.5px;
-  padding:4px 10px;border-radius:20px;
-  display:none;align-items:center;gap:5px;
-}
-.video-rec-badge.active{display:flex;}
-.video-rec-dot{width:6px;height:6px;border-radius:50%;background:#fff;animation:blink 1s ease infinite;}
-.video-pip{
-  position:absolute;bottom:10px;right:10px;
-  width:90px;height:60px;border-radius:8px;
-  object-fit:cover;border:2px solid rgba(255,255,255,0.3);
-  display:none;
-}
-.video-pip.active{display:block;}
-.video-controls-bar{
-  display:flex;align-items:center;gap:8px;
-  padding:10px 14px;border-top:1px solid var(--border);
-  background:var(--bg3);
-}
-.cam-selector{
-  flex:1;font-size:12px;padding:6px 10px;
-  background:var(--bg4);border:1px solid var(--border2);
-  color:var(--text);border-radius:8px;font-family:var(--sans);
-}
-.video-takes-list{margin-top:8px;}
-.video-take-card{
-  background:var(--bg3);border:1px solid var(--border);
-  border-radius:var(--radius2);padding:10px 14px;
-  display:flex;align-items:center;gap:10px;margin-bottom:6px;
-}
-.video-take-thumb{
-  width:60px;height:40px;border-radius:6px;
-  object-fit:cover;background:#111;flex-shrink:0;
-}
-.video-take-info{flex:1;min-width:0;}
-.video-take-name{font-size:12px;font-weight:600;}
-.video-take-meta{font-size:10px;color:var(--text3);font-family:var(--mono);}
-
-/* ─── NOVOS RECURSOS PODCAST ─────── */
-.podcast-tips-grid{
-  display:grid;grid-template-columns:1fr 1fr;gap:8px;
-  margin-bottom:14px;
-}
-.tip-card{
-  background:var(--bg2);border:1px solid var(--border);
-  border-radius:var(--radius2);padding:12px;
-  font-size:11px;color:var(--text2);line-height:1.5;
-}
-.tip-card-icon{font-size:20px;margin-bottom:6px;}
-.tip-card-title{font-weight:700;color:var(--text);margin-bottom:3px;font-size:12px;}
-
-.chapter-list{display:flex;flex-direction:column;gap:6px;}
-.chapter-item{
-  background:var(--bg2);border:1px solid var(--border);
-  border-radius:var(--radius2);padding:10px 14px;
-  display:flex;align-items:center;gap:10px;
-}
-.chapter-time{font-family:var(--mono);font-size:11px;color:var(--accent);min-width:44px;}
-.chapter-name{font-size:13px;font-weight:500;flex:1;}
-.chapter-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:2px 6px;}
-
-.noise-indicator{
-  display:flex;align-items:center;gap:8px;
-  padding:10px 14px;border-radius:var(--radius2);
-  background:var(--bg2);border:1px solid var(--border);
-  margin-bottom:12px;font-size:12px;
-}
-.noise-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-.noise-dot.good{background:var(--green);}
-.noise-dot.warn{background:var(--amber);}
-.noise-dot.bad{background:var(--red);}
-
-/* ─── SPEAKERS ─────────────────────── */
-.speakers-box{
-  background:var(--bg2);border:1px solid var(--border);
-  border-radius:var(--radius2);padding:12px 14px;
-  margin-top:12px;
-}
-#speakersDetected{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;}
-
-/* ─── STUDIO INFO PANEL ─────────────── */
-.info-panel{
-  padding:16px;
-  border-top:1px solid var(--border);
-}
-
-/* ─── BUILTIN TRACK ROW (reuse music-track-row) ─── */
-.music-track-row{
-  background:var(--bg2);
-  border:1px solid var(--border);
-  border-radius:var(--radius2);
-  padding:10px 12px;
-  display:flex;align-items:center;gap:10px;
-  transition:all 0.2s;
-}
-.music-track-row.active{
-  border-color:rgba(255,92,53,0.3);
-  background:linear-gradient(135deg,rgba(255,92,53,0.06),rgba(255,92,53,0.01));
-}
-.music-play-btn{
-  width:34px;height:34px;border-radius:50%;
-  border:1px solid var(--border2);
-  background:var(--bg3);
-  color:var(--text2);cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  font-size:13px;flex-shrink:0;transition:all 0.2s;
-}
-.music-play-btn.playing{
-  background:var(--accent);border-color:var(--accent);color:#fff;
-}
-.music-track-info{flex:1;min-width:0;}
-.music-track-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.music-track-meta{font-size:10px;color:var(--text3);margin-top:2px;}
-.music-fmt-badge{
-  font-size:9px;font-weight:700;letter-spacing:0.5px;
-  padding:2px 6px;border-radius:4px;flex-shrink:0;
-}
-.music-fmt-badge.audio{background:rgba(45,202,115,0.12);color:var(--green);}
-.music-fmt-badge.video{background:rgba(255,187,0,0.12);color:var(--amber);}
-.music-playing-badge{
-  font-size:9px;font-weight:700;
-  padding:2px 6px;border-radius:4px;
-  background:rgba(255,92,53,0.12);color:var(--accent);
-  flex-shrink:0;letter-spacing:0.3px;
-}
-.music-vol-wrap{
-  display:flex;align-items:center;gap:8px;
-  font-size:11px;color:var(--text3);font-weight:600;
-}
-.music-vol-wrap input[type=range]{flex:1;accent-color:var(--accent);}
-.music-drop-zone{
-  border:2px dashed var(--border2);border-radius:var(--radius);
-  padding:24px 16px;text-align:center;margin-bottom:14px;
-  transition:all 0.2s;
-}
-.music-drop-zone.drag-over{border-color:var(--accent);background:rgba(255,92,53,0.04);}
-.music-drop-icon{font-size:28px;margin-bottom:8px;}
-.music-drop-title{font-size:14px;font-weight:600;margin-bottom:4px;}
-.music-drop-sub{font-size:11px;color:var(--text3);line-height:1.5;}
+@keyframes pulse { 0%,100%{ opacity:1; } 50%{ opacity:0.4; } }
 </style>
 </head>
 <body>
 
-<!-- TOAST -->
-<div class="toast-container" id="toastContainer"></div>
+<div class="top-bar">
+  <div class="logo"><h1>PodCastMix</h1><span>estúdio híbrido</span></div>
+  <div class="status-pill"><div class="dot" id="statusLed"></div><span id="statusLabel">Pronto</span></div>
+</div>
 
-<!-- MODAL: Novo Episódio -->
-<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">Novo Episódio</div>
-    <div class="export-form">
-      <div class="form-row">
-        <label class="form-label">Título</label>
-        <input class="form-input" id="newEpTitle" placeholder="Ex: Ep. 01 — Apresentação" maxlength="80">
-      </div>
-      <div class="form-row">
-        <label class="form-label">Descrição</label>
-        <input class="form-input" id="newEpDesc" placeholder="Descrição breve...">
-      </div>
-      <div class="form-row">
-        <label class="form-label">Tipo</label>
-        <select class="form-select" id="newEpType">
-          <option value="solo">Solo</option>
-          <option value="entrevista">Entrevista</option>
-          <option value="painel">Painel</option>
-          <option value="narrativo">Narrativo</option>
-        </select>
+<div class="app-scroll" id="appScroll">
+  <!-- página estúdio -->
+  <div id="studioPage">
+    <!-- cabeçalho episódio -->
+    <div class="card">
+      <input type="text" id="epTitleInput" placeholder="Título do episódio" value="Episódio #1">
+      <textarea id="epDescInput" rows="2" placeholder="Descrição..." style="margin-top:8px; resize:none;"></textarea>
+    </div>
+
+    <!-- seleção microfone externo -->
+    <div class="card">
+      <div class="section-title">🎙️ MICROFONE</div>
+      <select id="micDeviceSelect"></select>
+      <div style="font-size:12px; color:var(--text3); margin-top:6px;">🔌 Microfones externos / USB / Bluetooth aparecem aqui</div>
+    </div>
+
+    <!-- Mixer visual + timer -->
+    <div class="card">
+      <div class="timer" id="timerDisplay">00:00:00</div>
+      <div class="meter"><div class="meter-fill" id="meterFill"></div></div>
+      <div class="btn-row" style="margin-top:12px;">
+        <button class="btn btn-primary" id="recBtn">⏺ GRAVAR</button>
+        <button class="btn" id="pauseRecBtn" disabled>⏸ Pausar</button>
+        <button class="btn btn-danger" id="stopRecBtn" disabled>⏹ Parar</button>
+        <button class="btn btn-success" id="saveTakeBtn" disabled>💾 Salvar</button>
       </div>
     </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
-      <button class="btn btn-primary" onclick="createEpisode()">Criar</button>
+
+    <!-- TRILHA SONORA (mixagem automática) -->
+    <div class="card">
+      <div class="section-title">🎵 FUNDO MUSICAL (mixagem automática na gravação)</div>
+      <div id="musicLibraryList"></div>
+      <div class="btn-row" style="margin-top:8px;">
+        <label class="btn" style="flex:1;">📁 Importar áudio<input type="file" id="musicFileInput" accept="audio/mpeg,audio/wav,audio/ogg,audio/mp4,audio/webm" style="display:none;"></label>
+        <button class="btn" id="stopMusicBtn">🔇 Parar música</button>
+      </div>
+      <div style="margin-top:12px;">
+        <label style="font-size:0.7rem;">Volume música durante gravação (ducking automático)</label>
+        <input type="range" id="musicVolume" min="0" max="100" value="28">
+        <span id="musicVolVal">28%</span>
+      </div>
+    </div>
+
+    <!-- EQ e efeitos (voz) -->
+    <div class="card">
+      <div class="section-title">🎚️ EQ + COMPRESSOR (voz)</div>
+      <div class="eq-row"><label>Graves (80Hz)</label><input type="range" id="eqBass" min="-12" max="12" value="2"><span id="eqBassVal">+2</span></div>
+      <div class="eq-row"><label>Médios (1kHz)</label><input type="range" id="eqMid" min="-12" max="12" value="1"><span id="eqMidVal">+1</span></div>
+      <div class="eq-row"><label>Agudos (8kHz)</label><input type="range" id="eqTreble" min="-12" max="12" value="3"><span id="eqTrebleVal">+3</span></div>
+      <div class="eq-row"><label>Compressor</label><button class="btn" id="compToggleBtn" style="padding:6px 12px;">ON</button><span style="margin-left:8px;">Redução automática</span></div>
+      <div class="eq-row"><label>Gate ruído</label><button class="btn" id="gateToggleBtn" style="padding:6px 12px;">ON</button></div>
+    </div>
+
+    <!-- Takes salvos -->
+    <div class="card">
+      <div class="section-title">📼 TAKES GRAVADOS</div>
+      <div id="takesContainer"><div style="color:var(--text3); text-align:center;">Nenhum take ainda</div></div>
+    </div>
+  </div>
+
+  <!-- página episódios (simplificada) -->
+  <div id="episodesPage" style="display:none;">
+    <div class="card">
+      <div class="section-title">📋 MEUS EPISÓDIOS</div>
+      <div id="episodesList"></div>
+      <button class="btn btn-primary" id="newEpisodeBtn" style="margin-top:12px;">+ Novo Episódio</button>
+    </div>
+  </div>
+
+  <!-- página configurações (rápida) -->
+  <div id="settingsPage" style="display:none;">
+    <div class="card">
+      <div class="section-title">⚙️ Áudio</div>
+      <div class="eq-row"><label>Cancelamento ruído</label><button class="btn" id="noiseSuppressBtn" style="padding:6px 12px;">ON</button></div>
+      <div class="eq-row"><label>Ganho automático</label><button class="btn" id="autoGainBtn" style="padding:6px 12px;">ON</button></div>
+      <div class="section-title" style="margin-top:16px;">💾 Armazenamento</div>
+      <button class="btn btn-danger" id="clearDataBtn">Limpar todos os dados</button>
     </div>
   </div>
 </div>
 
-<!-- TOPBAR -->
-<header class="topbar">
-  <div class="logo-mark">🎙</div>
-  <div class="logo-text">
-    PodcastStudio
-    <span>ESTÚDIO ONLINE</span>
-  </div>
-  <button id="themeToggleBtn" onclick="toggleTheme()" style="background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:5px 10px;font-size:13px;cursor:pointer;color:var(--text2);flex-shrink:0;" title="Alternar tema">☀️</button>
-  <div class="top-status">
-    <div class="status-dot" id="statusDot"></div>
-    <span class="status-text" id="statusText">Pronto</span>
-  </div>
-</header>
-
-<!-- APP -->
-<div class="app">
-
-  <!-- ════════ PAGE: STUDIO ════════ -->
-  <div class="page active" id="page-studio">
-
-    <!-- Episode header -->
-    <div class="studio-ep-header">
-      <input class="ep-name-input" id="epTitle" placeholder="Nome do episódio..." value="Episódio 01 — Piloto">
-      <textarea class="ep-desc-input" id="epDesc" placeholder="Descrição...">Primeiro episódio do nosso podcast.</textarea>
-    </div>
-
-    <!-- Studio sub-tabs -->
-    <div class="studio-tabs-wrap">
-      <div class="studio-tabs">
-        <button class="studio-tab active" onclick="switchStudioTab('gravacao',this)">Gravação</button>
-        <button class="studio-tab" onclick="switchStudioTab('voz',this)">Voz FX</button>
-        <button class="studio-tab" onclick="switchStudioTab('musica',this)">Música</button>
-        <button class="studio-tab" onclick="switchStudioTab('transcricao',this)">Transcrição</button>
-        <button class="studio-tab" onclick="switchStudioTab('video',this)">📹 Vídeo</button>
-        <button class="studio-tab" onclick="switchStudioTab('capitulos',this)">📖 Capítulos</button>
-        <button class="studio-tab" onclick="switchStudioTab('exportar',this)">Exportar</button>
-      </div>
-    </div>
-
-    <!-- ── TAB: GRAVAÇÃO ── -->
-    <div class="studio-panel active" id="panel-gravacao">
-
-      <!-- Video preview (funcional) -->
-      <div class="video-preview" id="videoPreview" style="position:relative;">
-        <video id="videoEl" autoplay muted playsinline style="width:100%;border-radius:var(--radius2);"></video>
-        <div class="video-rec-overlay">
-          <div class="video-rec-badge" id="videoRecBadge">
-            <div class="video-rec-dot"></div>REC
-          </div>
-        </div>
-        <video id="videoPip" class="video-pip" autoplay muted playsinline></video>
-      </div>
-
-      <!-- Visualizer -->
-      <div class="viz-card">
-        <canvas id="vizCanvas"></canvas>
-        <div class="rec-overlay" id="recOverlay">
-          <div class="wave-bars">
-            <div class="wave-bar"></div><div class="wave-bar"></div>
-            <div class="wave-bar"></div><div class="wave-bar"></div>
-            <div class="wave-bar"></div>
-          </div>
-          <p>Toque em REC para gravar</p>
-        </div>
-      </div>
-
-      <!-- Stats -->
-      <div class="stats-row">
-        <div class="stat-chip">
-          <div class="stat-chip-val green" id="statDuration">0:00</div>
-          <div class="stat-chip-label">Duração</div>
-        </div>
-        <div class="stat-chip">
-          <div class="stat-chip-val cyan" id="statTakes">0</div>
-          <div class="stat-chip-label">Takes</div>
-        </div>
-        <div class="stat-chip">
-          <div class="stat-chip-val amber" id="statWords">0</div>
-          <div class="stat-chip-label">Palavras</div>
-        </div>
-        <div class="stat-chip">
-          <div class="stat-chip-val accent" id="statSize">0 MB</div>
-          <div class="stat-chip-label">Tamanho</div>
-        </div>
-      </div>
-
-      <!-- Timer + Mode -->
-      <div class="timer-row">
-        <div class="timer-display" id="timerDisplay">00:00:00</div>
-        <div class="timer-right">
-          <div class="timer-label">Modo</div>
-          <div class="mode-pills">
-            <button class="mode-btn active" id="modeAudio" onclick="setMode('audio')">🎙 Áudio</button>
-            <button class="mode-btn" id="modeVideo" onclick="setMode('video')">🎥 Vídeo</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Level Meters -->
-      <div class="meter-section">
-        <div class="meter-title">Nível de Entrada</div>
-        <div class="meter-row">
-          <span class="meter-label">L</span>
-          <div class="meter-bar"><div class="meter-fill" id="meterL" style="width:0%"></div></div>
-          <span class="meter-val" id="meterLVal">-∞</span>
-        </div>
-        <div class="meter-row">
-          <span class="meter-label">R</span>
-          <div class="meter-bar"><div class="meter-fill" id="meterR" style="width:0%"></div></div>
-          <span class="meter-val" id="meterRVal">-∞</span>
-        </div>
-      </div>
-
-      <!-- Control Strip -->
-      <div class="control-strip">
-        <button class="ctrl-btn primary" id="btnRec" onclick="toggleRecord()">
-          <span class="ci">⏺</span>REC
-        </button>
-        <button class="ctrl-btn" id="btnPause" onclick="pauseRecord()" disabled>
-          <span class="ci">⏸</span>Pausar
-        </button>
-        <button class="ctrl-btn danger" id="btnStop" onclick="stopRecord()" disabled>
-          <span class="ci">⏹</span>Parar
-        </button>
-        <button class="ctrl-btn success" id="btnSave" onclick="saveRecording()" disabled>
-          <span class="ci">💾</span>Salvar
-        </button>
-      </div>
-
-      <!-- Transport -->
-      <div class="transport-bar">
-        <div class="transport-btns">
-          <button class="t-btn" onclick="transportSkip(-10)">⏮</button>
-          <button class="t-btn primary" id="tPlayPause" onclick="transportPlayPause()">▶</button>
-          <button class="t-btn" onclick="transportSkip(10)">⏭</button>
-          <button class="t-btn danger" onclick="transportStop()">⏹</button>
-        </div>
-        <div class="progress-area">
-          <span class="prog-time" id="transportPos">0:00</span>
-          <div class="prog-bar" id="progressBar" onclick="seekTransport(event)">
-            <div class="prog-fill" id="progressFill" style="width:0%"></div>
-          </div>
-          <span class="prog-time" id="transportDur">0:00</span>
-        </div>
-        <div class="vol-row">
-          <span class="vol-label">Volume</span>
-          <input type="range" class="vol-sl" min="0" max="100" value="80" id="masterVol" oninput="updateMasterVol()">
-          <span class="vol-val" id="masterVolVal">80%</span>
-        </div>
-        <div class="transport-track" id="transportTrackName">Sem take selecionado</div>
-      </div>
-
-      <!-- Takes -->
-      <div class="takes-header">
-        <div class="section-label">Takes gravados</div>
-        <div class="takes-count" id="takesCount">0</div>
-      </div>
-      <div id="takesList">
-        <div class="empty-state">
-          <div class="empty-icon">🎤</div>
-          <div class="empty-text">Nenhum take ainda. Grave o primeiro!</div>
-        </div>
-      </div>
-
-      <!-- Microfone selector (inline) -->
-      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);">
-        <div class="section-label" style="margin-bottom:10px;">Dispositivos</div>
-        <div class="device-row">
-          <span class="device-label">Mic</span>
-          <select class="form-select" id="micSelect" style="padding:8px 10px;font-size:12px;"></select>
-        </div>
-        <div class="device-row">
-          <span class="device-label">Câmera</span>
-          <select class="form-select" id="camSelect" style="padding:8px 10px;font-size:12px;"></select>
-        </div>
-      </div>
-
-      <!-- Checklist -->
-      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);">
-        <div class="section-label" style="margin-bottom:10px;">Checklist de Publicação</div>
-        <div class="checklist" id="checklist"></div>
-      </div>
-
-      <!-- Tip -->
-      <div class="tip-box" id="tipsBox" style="margin-top:14px;margin-bottom:8px;"></div>
-
-    </div><!-- /panel-gravacao -->
-
-    <!-- ── TAB: VOZ FX ── -->
-    <div class="studio-panel" id="panel-voz">
-      <p style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.6;">Aplique efeitos em tempo real à voz durante a gravação ou pós-produção.</p>
-      <div class="fx-grid">
-
-        <!-- GANHO DE VOLUME EXTRA -->
-        <div class="fx-card" style="background:linear-gradient(135deg,rgba(255,92,53,0.08),rgba(255,92,53,0.02));border-color:rgba(255,92,53,0.25);">
-          <div class="fx-title">🔊 Ganho de Entrada (Boost)</div>
-          <div class="fx-row" style="align-items:center;">
-            <span class="fx-label" style="width:56px;">Boost</span>
-            <input type="range" class="fx-slider" min="0" max="24" value="0" step="1" id="inputGain" oninput="updateFX();applyLiveEQ()">
-            <span class="fx-val" id="inputGainVal" style="min-width:40px;color:var(--accent2);">0 dB</span>
-          </div>
-          <div style="font-size:10px;color:var(--text3);margin-top:6px;line-height:1.6;">
-            ⚡ Amplifica o sinal antes da gravação. Use com cuidado para evitar distorção.
-          </div>
-          <div class="fx-row" style="margin-top:10px;align-items:center;">
-            <span class="fx-label" style="width:56px;">Limiter</span>
-            <button class="toggle on" id="togLimiter" onclick="toggleFX(this)" style="margin-left:auto;"></button>
-            <span style="font-size:10px;color:var(--text3);margin-left:8px;">Proteção de pico</span>
-          </div>
-        </div>
-
-        <div class="fx-card">
-          <div class="fx-title">🎚 EQ Paramétrico <span id="eqActiveLabel" style="font-size:9px;color:var(--green);font-weight:600;margin-left:6px;display:none;">● ATIVO</span></div>
-          <div class="toggle-row" style="margin-bottom:8px;">
-            <span class="toggle-label">EQ Ativo</span>
-            <button class="toggle on" id="togEQ" onclick="toggleFX(this);applyLiveEQ()"></button>
-          </div>
-          <div class="fx-row">
-            <span class="fx-label">Sub-graves<br><span style="font-size:9px;color:var(--text3);">80Hz</span></span>
-            <input type="range" class="fx-slider" min="-12" max="12" value="0" id="eqSubBass" oninput="updateFX();applyLiveEQ()">
-            <span class="fx-val" id="eqSubBassVal">0</span>
-          </div>
-          <div class="fx-row">
-            <span class="fx-label">Graves<br><span style="font-size:9px;color:var(--text3);">250Hz</span></span>
-            <input type="range" class="fx-slider" min="-12" max="12" value="2" id="eqBass" oninput="updateFX();applyLiveEQ()">
-            <span class="fx-val" id="eqBassVal">+2</span>
-          </div>
-          <div class="fx-row">
-            <span class="fx-label">Médios<br><span style="font-size:9px;color:var(--text3);">1kHz</span></span>
-            <input type="range" class="fx-slider" min="-12" max="12" value="0" id="eqMid" oninput="updateFX();applyLiveEQ()">
-            <span class="fx-val" id="eqMidVal">0</span>
-          </div>
-          <div class="fx-row">
-            <span class="fx-label">Presença<br><span style="font-size:9px;color:var(--text3);">3kHz</span></span>
-            <input type="range" class="fx-slider" min="-12" max="12" value="1" id="eqPresence" oninput="updateFX();applyLiveEQ()">
-            <span class="fx-val" id="eqPresenceVal">+1</span>
-          </div>
-          <div class="fx-row">
-            <span class="fx-label">Agudos<br><span style="font-size:9px;color:var(--text3);">8kHz</span></span>
-            <input type="range" class="fx-slider" min="-12" max="12" value="3" id="eqTreble" oninput="updateFX();applyLiveEQ()">
-            <span class="fx-val" id="eqTrebleVal">+3</span>
-          </div>
-          <div class="fx-row">
-            <span class="fx-label">Brilho<br><span style="font-size:9px;color:var(--text3);">16kHz</span></span>
-            <input type="range" class="fx-slider" min="-12" max="12" value="0" id="eqAir" oninput="updateFX();applyLiveEQ()">
-            <span class="fx-val" id="eqAirVal">0</span>
-          </div>
-          <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">
-            <button class="btn btn-ghost btn-sm" style="flex:1;font-size:10px;" onclick="applyEQPreset('podcast')">🎙 Podcast</button>
-            <button class="btn btn-ghost btn-sm" style="flex:1;font-size:10px;" onclick="applyEQPreset('voz')">🗣 Voz Quente</button>
-            <button class="btn btn-ghost btn-sm" style="flex:1;font-size:10px;" onclick="applyEQPreset('flat')">⬜ Flat</button>
-          </div>
-        </div>
-
-        <div class="fx-card">
-          <div class="fx-title">🔇 Compressor / Gate</div>
-          <div class="toggle-row">
-            <span class="toggle-label">Compressor</span>
-            <button class="toggle on" id="togCompressor" onclick="toggleFX(this)"></button>
-          </div>
-          <div class="fx-row">
-            <span class="fx-label">Threshold</span>
-            <input type="range" class="fx-slider" min="-60" max="0" value="-24" id="compThresh" oninput="updateFX()">
-            <span class="fx-val" id="compThreshVal">-24</span>
-          </div>
-          <div class="fx-row">
-            <span class="fx-label">Ratio</span>
-            <input type="range" class="fx-slider" min="1" max="20" value="4" id="compRatio" oninput="updateFX()">
-            <span class="fx-val" id="compRatioVal">4:1</span>
-          </div>
-          <div class="toggle-row" style="margin-top:8px;">
-            <span class="toggle-label">Noise Gate</span>
-            <button class="toggle on" id="togGate" onclick="toggleFX(this)"></button>
-          </div>
-          <div class="fx-row">
-            <span class="fx-label">Gate (-dB)</span>
-            <input type="range" class="fx-slider" min="-80" max="-20" value="-40" id="gateThresh" oninput="updateFX()">
-            <span class="fx-val" id="gateThreshVal">-40</span>
-          </div>
-        </div>
-
-        <div class="fx-card">
-          <div class="fx-title">🔊 Reverb & Delay</div>
-          <div class="toggle-row">
-            <span class="toggle-label">Reverb</span>
-            <button class="toggle" id="togReverb" onclick="toggleFX(this)"></button>
-          </div>
-          <div class="fx-row">
-            <span class="fx-label">Tamanho</span>
-            <input type="range" class="fx-slider" min="0" max="100" value="20" id="reverbSize" oninput="updateFX()">
-            <span class="fx-val" id="reverbSizeVal">20%</span>
-          </div>
-          <div class="fx-row">
-            <span class="fx-label">Wet/Dry</span>
-            <input type="range" class="fx-slider" min="0" max="100" value="15" id="reverbWet" oninput="updateFX()">
-            <span class="fx-val" id="reverbWetVal">15%</span>
-          </div>
-          <div class="toggle-row" style="margin-top:8px;">
-            <span class="toggle-label">Delay</span>
-            <button class="toggle" id="togDelay" onclick="toggleFX(this)"></button>
-          </div>
-          <div class="fx-row">
-            <span class="fx-label">Tempo (ms)</span>
-            <input type="range" class="fx-slider" min="50" max="800" value="200" id="delayTime" oninput="updateFX()">
-            <span class="fx-val" id="delayTimeVal">200</span>
-          </div>
-        </div>
-
-        <div class="fx-card">
-          <div class="fx-title">🎤 Enriquecimento</div>
-          <div class="toggle-row">
-            <span class="toggle-label">De-Esser</span>
-            <button class="toggle on" id="togDeEsser" onclick="toggleFX(this)"></button>
-          </div>
-          <div class="toggle-row">
-            <span class="toggle-label">Pitch Correction</span>
-            <button class="toggle" id="togPitch" onclick="toggleFX(this)"></button>
-          </div>
-          <div class="fx-row">
-            <span class="fx-label">Pitch (st)</span>
-            <input type="range" class="fx-slider" min="-12" max="12" value="0" id="pitchShift" oninput="updateFX()">
-            <span class="fx-val" id="pitchShiftVal">0</span>
-          </div>
-          <div class="toggle-row" style="margin-top:4px;">
-            <span class="toggle-label">Voice Enhance</span>
-            <button class="toggle on" id="togEnhance" onclick="toggleFX(this)"></button>
-          </div>
-          <div class="fx-row">
-            <span class="fx-label">Intensidade</span>
-            <input type="range" class="fx-slider" min="0" max="100" value="40" id="enhanceAmt" oninput="updateFX()">
-            <span class="fx-val" id="enhanceAmtVal">40%</span>
-          </div>
-        </div>
-
-      </div>
-    </div><!-- /panel-voz -->
-
-    <!-- ── TAB: MÚSICA ── -->
-    <div class="studio-panel" id="panel-musica">
-
-      <!-- Trilhas instrumentais embutidas -->
-      <div style="margin-bottom:16px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-          <div class="section-label">🎼 Trilhas Instrumentais</div>
-          <span style="font-size:10px;color:var(--text3);">Síntese no app · zero download</span>
-        </div>
-        <div id="builtinTracksGrid" style="display:flex;flex-direction:column;gap:8px;"></div>
-      </div>
-      <div style="margin-bottom:14px;border-bottom:1px solid var(--border);"></div>
-
-      <!-- Drop zone universal -->
-      <div id="musicDropZone" class="music-drop-zone"
-           ondragover="event.preventDefault();this.classList.add('drag-over')"
-           ondragleave="this.classList.remove('drag-over')"
-           ondrop="handleMusicDrop(event)">
-        <div class="music-drop-icon">🎵</div>
-        <div class="music-drop-title">Arraste qualquer áudio ou vídeo aqui</div>
-        <div class="music-drop-sub">MP3 · WAV · OGG · AAC · FLAC · M4A · MP4 · MKV · AVI · MOV · WebM · e mais</div>
-        <label class="btn btn-ghost btn-sm" style="cursor:pointer;margin-top:10px;">
-          📁 Selecionar arquivos
-          <input type="file" accept="*/*" multiple style="display:none;" onchange="importMedia(this)">
-        </label>
-      </div>
-
-      <!-- Status de conversão -->
-      <div id="musicConvertStatus" style="display:none;margin-bottom:12px;">
-        <div id="musicConvertLabel" style="font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:600;">⚙️ Convertendo...</div>
-        <div style="background:var(--bg4);border-radius:4px;height:6px;overflow:hidden;">
-          <div id="musicConvertBar" style="height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0%;transition:width 0.25s;border-radius:4px;"></div>
-        </div>
-        <div id="musicConvertDetail" style="font-size:10px;color:var(--text3);margin-top:4px;"></div>
-      </div>
-
-      <!-- Volume + ducking -->
-      <div class="music-vol-wrap" style="margin-bottom:10px;">
-        <label>Volume</label>
-        <input type="range" min="0" max="100" value="25" id="bgVolSlider" oninput="updateBgVol()">
-        <span id="bgVolVal">25%</span>
-      </div>
-      <div class="fx-card" style="margin-bottom:14px;padding:10px 14px;">
-        <div class="toggle-row">
-          <span class="toggle-label">🦆 Auto-ducking durante fala</span>
-          <button class="toggle on" id="togDucking" onclick="toggleFX(this)"></button>
-        </div>
-      </div>
-
-      <!-- Lista de trilhas -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <div class="section-label">Minhas Trilhas <span id="musicCountBadge" style="font-family:var(--mono);color:var(--text3);font-weight:400;font-size:10px;margin-left:4px;"></span></div>
-        <button class="btn btn-ghost btn-sm" onclick="clearAllTracks()" style="font-size:10px;padding:4px 8px;color:var(--red);">Limpar tudo</button>
-      </div>
-      <div id="musicGrid" style="display:flex;flex-direction:column;gap:8px;"></div>
-      <div id="musicEmptyState" style="text-align:center;padding:24px 20px;color:var(--text3);">
-        <div style="font-size:32px;margin-bottom:8px;">🎼</div>
-        <div style="font-size:13px;font-weight:500;">Nenhuma trilha ainda</div>
-        <div style="font-size:11px;margin-top:4px;">Arraste arquivos ou use o botão acima</div>
-      </div>
-    </div><!-- /panel-musica -->
-
-    <!-- ── TAB: TRANSCRIÇÃO ── -->
-    <div class="studio-panel" id="panel-transcricao">
-      <p style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.6;">Transcrição automática em tempo real via reconhecimento de voz do navegador.</p>
-
-      <div class="transcript-controls">
-        <button class="btn btn-primary btn-sm" id="btnTranscribe" onclick="toggleTranscription()">🎙 Iniciar</button>
-        <button class="btn btn-ghost btn-sm" onclick="clearTranscript()">🗑 Limpar</button>
-        <button class="btn btn-ghost btn-sm" onclick="copyTranscript()">📋 Copiar</button>
-        <button class="btn btn-ghost btn-sm" onclick="downloadTranscript()">⬇ .txt</button>
-      </div>
-
-      <div class="transcript-area" id="transcriptArea" contenteditable="true">
-        <span style="color:var(--text3);font-style:italic;">A transcrição aparecerá aqui...</span>
-      </div>
-      <div class="transcript-hint" id="transcriptHint">Clique em "Iniciar" para transcrever</div>
-
-      <div class="speakers-box">
-        <div class="section-label" style="margin-bottom:8px;">Identificação de Falantes</div>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <div style="font-size:12px;color:var(--text3);flex:1;">Até 4 falantes detectados automaticamente</div>
-          <button class="toggle on" id="togSpeakers" onclick="toggleFX(this)"></button>
-        </div>
-        <div id="speakersDetected"></div>
-      </div>
-    </div><!-- /panel-transcricao -->
-
-    <!-- ── TAB: VÍDEO ── -->
-    <div class="studio-panel" id="panel-video">
-      <p style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.6;">Grave episódios em vídeo com câmera e microfone. Perfeito para vídeo-podcasts e YouTube.</p>
-
-      <div class="video-rec-card">
-        <video id="videoCamPreview" class="video-rec-preview" autoplay muted playsinline></video>
-        <div class="video-rec-overlay">
-          <div class="video-rec-badge" id="videoPanelRecBadge">
-            <div class="video-rec-dot"></div>REC
-          </div>
-        </div>
-      </div>
-
-      <div class="video-controls-bar">
-        <select class="cam-selector" id="camSelectVideo" onchange="updateVideoCam()">
-          <option>Carregando câmeras...</option>
-        </select>
-        <button class="ctrl-btn primary" id="btnVideoRec" onclick="toggleVideoRecord()" style="flex-shrink:0;padding:8px 14px;">
-          <span class="ci">⏺</span>Gravar Vídeo
-        </button>
-        <button class="ctrl-btn success" id="btnVideoSave" onclick="saveVideoTake()" disabled style="flex-shrink:0;padding:8px 14px;">
-          <span class="ci">💾</span>Salvar
-        </button>
-      </div>
-
-      <div style="margin-top:14px;">
-        <div class="takes-header">
-          <div class="section-label">Takes de Vídeo</div>
-          <div class="takes-count" id="videoTakesCount">0</div>
-        </div>
-        <div id="videoTakesList">
-          <div class="empty-state" style="padding:16px 0;">
-            <div class="empty-icon" style="font-size:28px;">🎬</div>
-            <div class="empty-text">Nenhum take de vídeo ainda.</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="fx-card" style="margin-top:14px;">
-        <div class="fx-title">⚙️ Configurações de Vídeo</div>
-        <div class="fx-row" style="margin-top:10px;">
-          <span class="fx-label">Resolução</span>
-          <select class="form-select" id="videoRes" style="flex:1;">
-            <option value="1280x720">720p HD</option>
-            <option value="1920x1080" selected>1080p Full HD</option>
-          </select>
-        </div>
-        <div class="toggle-row" style="margin-top:8px;">
-          <span class="toggle-label">Mostrar câmera durante gravação de áudio (PiP)</span>
-          <button class="toggle" id="togPiP" onclick="toggleFX(this)"></button>
-        </div>
-      </div>
-    </div><!-- /panel-video -->
-
-    <!-- ── TAB: CAPÍTULOS ── -->
-    <div class="studio-panel" id="panel-capitulos">
-      <p style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.6;">Marque capítulos durante ou após a gravação. Aparecem nos players de podcast como Spotify e Apple Podcasts.</p>
-
-      <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center;">
-        <button class="btn btn-primary btn-sm" onclick="addChapterNow()">⏱ Marcar Agora</button>
-        <input class="form-input" id="chapterNameInput" placeholder="Nome do capítulo..." style="flex:1;padding:8px 12px;font-size:13px;">
-        <button class="btn btn-ghost btn-sm" onclick="addChapterManual()">+ Adicionar</button>
-      </div>
-
-      <div class="chapter-list" id="chapterList">
-        <div class="empty-state" style="padding:16px 0;">
-          <div class="empty-icon" style="font-size:24px;">📖</div>
-          <div class="empty-text">Nenhum capítulo ainda.</div>
-        </div>
-      </div>
-
-      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);display:flex;gap:8px;">
-        <button class="btn btn-ghost btn-sm" onclick="exportChapters()" style="flex:1;justify-content:center;">⬇ Exportar .chapters</button>
-        <button class="btn btn-ghost btn-sm" onclick="exportChaptersJson()" style="flex:1;justify-content:center;">⬇ Exportar JSON</button>
-      </div>
-
-      <div class="fx-card" style="margin-top:14px;">
-        <div class="fx-title">📊 Sobre capítulos</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.7;">
-          • Spotify, Apple Podcasts e Overcast suportam capítulos<br>
-          • Adicione capítulos para cada tema ou convidado<br>
-          • Formatos: Podlove, JSON, MP3chapters<br>
-          • Episódios com capítulos têm <strong>+40% de retenção</strong>
-        </div>
-      </div>
-    </div><!-- /panel-capitulos -->
-
-    <!-- ── TAB: EXPORTAR ── -->
-    <div class="studio-panel" id="panel-exportar">
-      <p style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.6;">Configure e exporte seu episódio finalizado.</p>
-      <div class="export-form">
-
-        <div class="form-row">
-          <label class="form-label">Formato</label>
-          <select class="form-select" id="exportFormat">
-            <option value="webm">WebM (padrão)</option>
-            <option value="mp3">MP3</option>
-            <option value="wav">WAV (sem perda)</option>
-            <option value="ogg">OGG Vorbis</option>
-          </select>
-        </div>
-
-        <div class="form-row">
-          <label class="form-label">Qualidade</label>
-          <select class="form-select" id="exportQuality">
-            <option value="192">Alta — 192 kbps</option>
-            <option value="128" selected>Média — 128 kbps</option>
-            <option value="96">Econômica — 96 kbps</option>
-          </select>
-        </div>
-
-        <div class="form-row">
-          <label class="form-label">Incluir na exportação</label>
-          <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px;">
-            <label style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text2);cursor:pointer;">
-              <input type="checkbox" checked id="expVoice"> Voz tratada
-            </label>
-            <label style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text2);cursor:pointer;">
-              <input type="checkbox" checked id="expMusic"> Fundo musical
-            </label>
-            <label style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text2);cursor:pointer;">
-              <input type="checkbox" id="expVideo"> Vídeo (se gravado)
-            </label>
-            <label style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text2);cursor:pointer;">
-              <input type="checkbox" checked id="expTranscript"> Transcrição (.txt)
-            </label>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <label class="form-label">Metadados</label>
-          <input class="form-input" placeholder="Nome do Podcast" id="podcastName" style="margin-bottom:6px;" value="Meu Podcast">
-          <input class="form-input" placeholder="Autor" id="podcastAuthor" value="Apresentador">
-        </div>
-
-        <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;">
-          <button class="btn btn-primary" onclick="exportEpisode()" style="justify-content:center;">
-            ⬇ Exportar Episódio
-          </button>
-          <button class="btn btn-ghost" onclick="publishToRSS()" style="justify-content:center;">
-            📡 Gerar Feed RSS
-          </button>
-        </div>
-      </div>
-    </div><!-- /panel-exportar -->
-
-  </div><!-- /page-studio -->
-
-  <!-- ════════ PAGE: EPISÓDIOS ════════ -->
-  <div class="page" id="page-episodes">
-    <div class="page-header">
-      <div>
-        <div class="page-title">Episódios</div>
-        <div class="page-sub" id="epCount">0 episódios salvos</div>
-      </div>
-      <button class="btn btn-primary btn-sm" onclick="openModal()">+ Novo</button>
-    </div>
-    <div class="ep-grid" id="epGrid">
-      <div class="empty-state">
-        <div class="empty-icon">🎙</div>
-        <div class="empty-text">Nenhum episódio ainda. Crie o primeiro!</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ════════ PAGE: CONFIGURAÇÕES ════════ -->
-  <div class="page" id="page-settings">
-    <div class="page-header">
-      <div>
-        <div class="page-title">Configurações</div>
-        <div class="page-sub">Ajustes do estúdio</div>
-      </div>
-    </div>
-
-    <div class="settings-section">
-      <div class="settings-title">Áudio</div>
-      <div class="settings-row">
-        <div class="settings-row-info">
-          <div class="settings-row-label">Tipo de Microfone</div>
-          <div class="settings-row-desc">Otimiza EQ e ganho para o microfone</div>
-        </div>
-        <select class="form-select" style="width:140px;" id="micType" onchange="applyMicPreset()">
-          <option value="dynamic">Dinâmico</option>
-          <option value="condenser" selected>Condensador</option>
-          <option value="usb">USB</option>
-          <option value="mobile">Celular</option>
-        </select>
-      </div>
-      <div class="settings-row" id="condenserPhantomRow" style="display:flex;">
-        <div class="settings-row-info">
-          <div class="settings-row-label">🔴 Phantom Power (+48V)</div>
-          <div class="settings-row-desc">Necessário para microfones condensadores</div>
-        </div>
-        <button class="toggle on" id="togPhantom" onclick="toggleFX(this)"></button>
-      </div>
-      <div class="settings-row">
-        <div class="settings-row-info">
-          <div class="settings-row-label">Sample Rate</div>
-          <div class="settings-row-desc">Taxa de amostragem</div>
-        </div>
-        <select class="form-select" style="width:130px;" id="sampleRate">
-          <option value="44100">44100 Hz</option>
-          <option value="48000" selected>48000 Hz</option>
-        </select>
-      </div>
-      <div class="settings-row">
-        <div class="settings-row-info">
-          <div class="settings-row-label">Canais</div>
-          <div class="settings-row-desc">Mono ou estéreo</div>
-        </div>
-        <select class="form-select" style="width:100px;" id="channels">
-          <option value="1">Mono</option>
-          <option value="2" selected>Estéreo</option>
-        </select>
-      </div>
-      <div class="settings-row">
-        <div class="settings-row-info">
-          <div class="settings-row-label">Cancelamento de ruído</div>
-          <div class="settings-row-desc">Filtro de ruído de fundo</div>
-        </div>
-        <button class="toggle on" id="togNoiseSuppression" onclick="toggleFX(this)"></button>
-      </div>
-      <div class="settings-row">
-        <div class="settings-row-info">
-          <div class="settings-row-label">Ganho automático</div>
-          <div class="settings-row-desc">Ajuste automático de nível</div>
-        </div>
-        <button class="toggle on" id="togAGC" onclick="toggleFX(this)"></button>
-      </div>
-    </div>
-
-    <div class="settings-section">
-      <div class="settings-title">Armazenamento</div>
-      <div class="settings-row">
-        <div class="settings-row-info">
-          <div class="settings-row-label">Banco de dados local</div>
-          <div id="dbSize" class="settings-row-desc">Calculando...</div>
-        </div>
-        <button class="btn btn-danger btn-sm" onclick="clearDB()">Limpar</button>
-      </div>
-    </div>
-
-    <div class="settings-section">
-      <div class="settings-title">Sobre</div>
-      <div class="settings-row">
-        <div class="settings-row-info">
-          <div class="settings-row-label">PodcastStudio</div>
-          <div class="settings-row-desc">v1.0 — Estúdio online completo · IndexedDB</div>
-        </div>
-        <span style="font-size:11px;color:var(--text3);">🎙</span>
-      </div>
-    </div>
-  </div>
-
-</div><!-- /app -->
-
-<!-- BOTTOM NAV -->
-<nav class="bottom-nav">
-  <button class="nav-item active" onclick="showPage('studio',this)" id="nav-studio">
-    <div class="nav-icon">🎙</div>
-    <span class="nav-label">Estúdio</span>
-  </button>
-  <button class="nav-item" onclick="showPage('episodes',this)" id="nav-episodes">
-    <div class="nav-icon">📋</div>
-    <span class="nav-label">Episódios</span>
-  </button>
-  <button class="nav-rec" id="navRecBtn" onclick="toggleRecord()">
-    <div class="rec-fab" id="recFab">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="white" id="recFabIcon">
-        <circle cx="12" cy="12" r="8"/>
-      </svg>
-    </div>
-  </button>
-  <button class="nav-item" onclick="showPage('settings',this)" id="nav-settings">
-    <div class="nav-icon">⚙️</div>
-    <span class="nav-label">Config</span>
-  </button>
-  <button class="nav-item" onclick="openModal()" id="nav-new">
-    <div class="nav-icon">➕</div>
-    <span class="nav-label">Novo Ep</span>
-  </button>
-</nav>
+<!-- bottom nav -->
+<div class="bottom-nav">
+  <button class="nav-btn active" data-page="studio">🎙<span>Estúdio</span></button>
+  <button class="nav-btn" data-page="episodes">📋<span>Episódios</span></button>
+  <div class="rec-fab" id="fabRecBtn">⏺</div>
+  <button class="nav-btn" data-page="settings">⚙️<span>Config</span></button>
+  <button class="nav-btn" id="fabNewEpBtn">➕<span>Novo</span></button>
+</div>
+<div class="toast-zone" id="toastZone"></div>
 
 <script>
-// ═══════════════════════════════════════════════════════════════════
-// INDEXEDDB
-// ═══════════════════════════════════════════════════════════════════
-const DB_NAME = 'PodcastStudio';
-const DB_VERSION = 3;   // v3: store music usa Blob nativo (sem ArrayBuffer)
-let db;
+// ----------------------------- MIXER CENTRAL (microfone + música em tempo real) -------------------------
+let mixerCtx = null;
+let micStream = null;
+let micSource = null;
+let micGainNode = null;        // ganho após EQ
+let musicSourceNode = null;    // AudioBufferSourceNode atual
+let musicGainNode = null;      // volume música
+let musicBuffer = null;        // buffer da faixa ativa
+let mixerDestination = null;   // MediaStreamDestination (para gravação)
+let recorder = null;
+let recordedChunks = [];
+let isRecording = false;
+let isPaused = false;
+let recordingTimer = null;
+let recordingSeconds = 0;
 
-function openDB() {
-  return new Promise((res, rej) => {
-    const req = indexedDB.open(DB_NAME, DB_VERSION);
-    req.onupgradeneeded = e => {
-      const d = e.target.result;
-      if (!d.objectStoreNames.contains('episodes')) {
-        d.createObjectStore('episodes', { keyPath: 'id', autoIncrement: true })
-          .createIndex('title', 'title', { unique: false });
-      }
-      if (!d.objectStoreNames.contains('recordings')) {
-        d.createObjectStore('recordings', { keyPath: 'id', autoIncrement: true })
-          .createIndex('episodeId', 'episodeId', { unique: false });
-      }
-      // Store de música: guarda Blob diretamente (IndexedDB suporta Blob nativo)
-      if (!d.objectStoreNames.contains('music')) {
-        d.createObjectStore('music', { keyPath: 'id', autoIncrement: true });
-      }
-    };
-    req.onsuccess = e => { db = e.target.result; res(db); };
-    req.onerror = e => rej(e);
-  });
-}
-function dbAdd(store, data) {
-  return new Promise((res, rej) => {
-    const tx = db.transaction(store, 'readwrite');
-    const req = tx.objectStore(store).add(data);
-    req.onsuccess = () => res(req.result);
-    req.onerror = e => rej(e);
-  });
-}
-function dbGetAll(store) {
-  return new Promise((res, rej) => {
-    const tx = db.transaction(store, 'readonly');
-    const req = tx.objectStore(store).getAll();
-    req.onsuccess = () => res(req.result);
-    req.onerror = e => rej(e);
-  });
-}
-function dbDelete(store, id) {
-  return new Promise((res, rej) => {
-    const tx = db.transaction(store, 'readwrite');
-    const req = tx.objectStore(store).delete(id);
-    req.onsuccess = () => res();
-    req.onerror = e => rej(e);
-  });
-}
-function dbUpdate(store, data) {
-  return new Promise((res, rej) => {
-    const tx = db.transaction(store, 'readwrite');
-    const req = tx.objectStore(store).put(data);
-    req.onsuccess = () => res();
-    req.onerror = e => rej(e);
-  });
-}
-function dbGet(store, id) {
-  return new Promise((res, rej) => {
-    const tx = db.transaction(store, 'readonly');
-    const req = tx.objectStore(store).get(id);
-    req.onsuccess = () => res(req.result);
-    req.onerror = e => rej(e);
-  });
-}
-function dbClear(store) {
-  return new Promise((res, rej) => {
-    const tx = db.transaction(store, 'readwrite');
-    const req = tx.objectStore(store).clear();
-    req.onsuccess = () => res();
-    req.onerror = e => rej(e);
-  });
+// estado
+let currentEpisodeId = Date.now();
+let episodes = [{ id: currentEpisodeId, title: "Episódio #1", desc: "", createdAt: Date.now(), takes: [] }];
+let takes = [];  // { id, blobURL, duration, name }
+let activeMusicFile = null;   // { buffer, name }
+
+// EQ nodes (biquad)
+let bassFilter, midFilter, trebleFilter;
+let compressorNode, gateNode;
+let noiseSuppression = true;
+let autoGain = true;
+
+// UI elements
+const toastZone = document.getElementById('toastZone');
+function toast(msg, type='info') {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.innerText = msg;
+  toastZone.appendChild(t);
+  setTimeout(() => t.remove(), 2800);
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════════════════════════════
-let state = {
-  episodes: [],
-  currentEpisodeId: null,
-  isRecording: false,
-  isPaused: false,
-  mode: 'audio',
-  mediaRecorder: null,
-  audioCtx: null,
-  analyser: null,
-  sourceNode: null,
-  stream: null,
-  chunks: [],
-  timerInterval: null,
-  timerSecs: 0,
-  takes: [],
-  currentTake: null,
-  playerAudio: new Audio(),
-  isPlaying: false,
-  recognition: null,
-  isTranscribing: false,
-  transcript: '',
-  bgAudioCtx: null,
-  bgBuffer: null,
-  bgSource: null,
-  bgGain: null,
-  activeBgMusic: null,
-  currentStudioTab: 'gravacao',
-  currentPage: 'studio',
-};
-
-// ═══════════════════════════════════════════════════════════════════
-// NAVIGATION
-// ═══════════════════════════════════════════════════════════════════
-function showPage(name, btn) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page-' + name).classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-  const nb = document.getElementById('nav-' + name);
-  if (nb) nb.classList.add('active');
-  state.currentPage = name;
-  if (name === 'episodes') renderEpisodesPage();
+// Inicializa mixer (chamado na primeira interação)
+async function initMixer() {
+  if (mixerCtx && mixerCtx.state !== 'closed') return mixerCtx;
+  mixerCtx = new (window.AudioContext || window.webkitAudioContext)();
+  // criar nós de EQ e processamento
+  bassFilter = mixerCtx.createBiquadFilter();
+  bassFilter.type = 'peaking'; bassFilter.frequency.value = 80; bassFilter.Q.value = 0.7;
+  midFilter = mixerCtx.createBiquadFilter();
+  midFilter.type = 'peaking'; midFilter.frequency.value = 1000; midFilter.Q.value = 0.7;
+  trebleFilter = mixerCtx.createBiquadFilter();
+  trebleFilter.type = 'peaking'; trebleFilter.frequency.value = 8000; trebleFilter.Q.value = 0.7;
+  
+  compressorNode = mixerCtx.createDynamicsCompressor();
+  compressorNode.threshold.value = -24;
+  compressorNode.ratio.value = 4;
+  compressorNode.attack.value = 0.003;
+  compressorNode.release.value = 0.25;
+  
+  gateNode = mixerCtx.createGain();
+  // Simulação simplificada de gate (expansor) usaremos gain automático depois
+  
+  micGainNode = mixerCtx.createGain();
+  musicGainNode = mixerCtx.createGain();
+  musicGainNode.gain.value = 0.28;
+  
+  mixerDestination = mixerCtx.createMediaStreamDestination();
+  
+  // Cadeia: microfone -> filtros -> compressor -> gate -> ganho -> destination
+  // Música -> ganho -> destination
+  return mixerCtx;
 }
 
-function switchStudioTab(tab, el) {
-  state.currentStudioTab = tab;
-  document.querySelectorAll('.studio-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.studio-panel').forEach(p => p.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('panel-' + tab).classList.add('active');
-  if (tab === 'video') { initVideoCam(); }
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// MODAL
-// ═══════════════════════════════════════════════════════════════════
-function openModal() {
-  document.getElementById('modalOverlay').classList.add('open');
-  setTimeout(() => document.getElementById('newEpTitle').focus(), 300);
-}
-function closeModal() {
-  document.getElementById('modalOverlay').classList.remove('open');
-}
-
-async function createEpisode() {
-  const title = document.getElementById('newEpTitle').value.trim() || 'Sem título';
-  const desc = document.getElementById('newEpDesc').value.trim();
-  const type = document.getElementById('newEpType').value;
-  const ep = { title, desc, type, status: 'draft', createdAt: Date.now(), transcript: '', takes: [] };
-  const id = await dbAdd('episodes', ep);
-  ep.id = id;
-  state.episodes.push(ep);
-  state.currentEpisodeId = id;
-  document.getElementById('epTitle').value = title;
-  document.getElementById('epDesc').value = desc;
-  closeModal();
-  renderSidebar();
-  showPage('studio');
-  toast('Episódio criado!', 'success');
-  document.getElementById('newEpTitle').value = '';
-  document.getElementById('newEpDesc').value = '';
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// RENDER
-// ═══════════════════════════════════════════════════════════════════
-function renderSidebar() { /* no sidebar in mobile */ }
-
-function renderEpisodesPage() {
-  const grid = document.getElementById('epGrid');
-  const count = document.getElementById('epCount');
-  const n = state.episodes.length;
-  count.textContent = `${n} episódio${n !== 1 ? 's' : ''} salvo${n !== 1 ? 's' : ''}`;
-  if (!n) {
-    grid.innerHTML = '<div class="empty-state"><div class="empty-icon">🎙</div><div class="empty-text">Nenhum episódio ainda.</div></div>';
-    return;
+// Conectar microfone
+async function connectMicrophone(deviceId = null) {
+  if (micStream) {
+    micStream.getTracks().forEach(t => t.stop());
+    if (micSource) micSource.disconnect();
   }
-  grid.innerHTML = state.episodes.map(ep => `
-    <div class="ep-full-card" onclick="loadEpisode(${ep.id}); showPage('studio');">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding-left:12px;">
-        <span class="badge ${ep.status}">${ep.status === 'draft' ? 'Rascunho' : 'Pronto'}</span>
-        <span style="font-size:11px;color:var(--text3);">${new Date(ep.createdAt).toLocaleDateString('pt-BR')}</span>
-      </div>
-      <div class="ep-full-card-title">${ep.title}</div>
-      <div class="ep-full-card-desc">${ep.desc || 'Sem descrição'}</div>
-      <div class="ep-full-card-footer">
-        <span style="font-size:12px;color:var(--text3);font-family:var(--mono);">${ep.takes ? ep.takes.length : 0} takes · ${formatTime2(ep.duration || 0)}</span>
-        <div class="ep-full-card-actions">
-          <button class="icon-btn del" onclick="event.stopPropagation();deleteEpisode(${ep.id})">🗑</button>
-        </div>
-      </div>
-    </div>
-  `).join('');
+  const constraints = { audio: { deviceId: deviceId ? { exact: deviceId } : undefined, echoCancellation: false, noiseSuppression: noiseSuppression, autoGainControl: autoGain } };
+  micStream = await navigator.mediaDevices.getUserMedia(constraints);
+  await initMixer();
+  micSource = mixerCtx.createMediaStreamSource(micStream);
+  // conexão com efeitos
+  micSource.connect(bassFilter);
+  bassFilter.connect(midFilter);
+  midFilter.connect(trebleFilter);
+  trebleFilter.connect(compressorNode);
+  compressorNode.connect(micGainNode);
+  micGainNode.connect(mixerDestination);
+  micGainNode.connect(mixerCtx.destination); // monitoramento
+  musicGainNode.connect(mixerDestination);
+  musicGainNode.connect(mixerCtx.destination);
+  
+  updateMicEQ();
+  toast(`🎤 Microfone conectado ${deviceId ? 'externo' : 'padrão'}`, 'success');
+  return true;
 }
 
+function updateMicEQ() {
+  if (!bassFilter) return;
+  bassFilter.gain.value = parseFloat(document.getElementById('eqBass').value);
+  midFilter.gain.value = parseFloat(document.getElementById('eqMid').value);
+  trebleFilter.gain.value = parseFloat(document.getElementById('eqTreble').value);
+  document.getElementById('eqBassVal').innerText = bassFilter.gain.value;
+  document.getElementById('eqMidVal').innerText = midFilter.gain.value;
+  document.getElementById('eqTrebleVal').innerText = trebleFilter.gain.value;
+}
+
+// Carregar música e tocar em loop (mixagem ativa)
+async function loadAndPlayMusic(file) {
+  if (musicSourceNode) {
+    try { musicSourceNode.stop(); musicSourceNode.disconnect(); } catch(e) {}
+  }
+  const arrayBuffer = await file.arrayBuffer();
+  const decoded = await mixerCtx.decodeAudioData(arrayBuffer);
+  musicBuffer = decoded;
+  const src = mixerCtx.createBufferSource();
+  src.buffer = musicBuffer;
+  src.loop = true;
+  src.connect(musicGainNode);
+  src.start();
+  musicSourceNode = src;
+  activeMusicFile = { name: file.name, buffer: decoded };
+  toast(`🎵 "${file.name}" tocando e será mixado na gravação`, 'success');
+}
+
+function stopBackgroundMusic() {
+  if (musicSourceNode) {
+    try { musicSourceNode.stop(); musicSourceNode.disconnect(); } catch(e) {}
+    musicSourceNode = null;
+  }
+  activeMusicFile = null;
+  toast('🔇 Música desligada', 'info');
+}
+
+// Ducking automático durante fala (simples: reduz volume da música quando detecta entrada de voz)
+let duckingInterval = null;
+function startDuckingDetection() {
+  if (duckingInterval) clearInterval(duckingInterval);
+  if (!micSource) return;
+  const analyser = mixerCtx.createAnalyser();
+  analyser.fftSize = 256;
+  micSource.connect(analyser);
+  const data = new Uint8Array(analyser.frequencyBinCount);
+  duckingInterval = setInterval(() => {
+    if (!isRecording || isPaused || !musicGainNode) return;
+    analyser.getByteFrequencyData(data);
+    let sum = 0;
+    for (let i=0; i<data.length; i++) sum += data[i];
+    let avg = sum / data.length;
+    let targetGain = (avg > 30) ? 0.12 : (parseInt(document.getElementById('musicVolume').value) / 100);
+    targetGain = Math.min(0.35, targetGain);
+    if (avg > 45) targetGain = 0.08;
+    musicGainNode.gain.value = targetGain;
+  }, 150);
+}
+function stopDuckingDetection() {
+  if (duckingInterval) clearInterval(duckingInterval);
+}
+
+// RECORDER usando mixerDestination.stream
+async function startRecording() {
+  if (isRecording) return;
+  if (!mixerCtx || mixerCtx.state === 'closed') await initMixer();
+  if (!micStream) await connectMicrophone(document.getElementById('micDeviceSelect').value);
+  if (mixerCtx.state === 'suspended') await mixerCtx.resume();
+  
+  const stream = mixerDestination.stream;
+  if (!stream) throw new Error("Sem stream de mixagem");
+  recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+  recordedChunks = [];
+  recorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+  recorder.start(100);
+  isRecording = true;
+  isPaused = false;
+  recordingSeconds = 0;
+  if (recordingTimer) clearInterval(recordingTimer);
+  recordingTimer = setInterval(() => { if (!isPaused) { recordingSeconds++; updateTimerDisplay(); } }, 1000);
+  document.getElementById('statusLed').className = 'dot rec';
+  document.getElementById('statusLabel').innerText = 'GRAVANDO';
+  document.getElementById('recBtn').innerHTML = '⏺ REC...';
+  document.getElementById('pauseRecBtn').disabled = false;
+  document.getElementById('stopRecBtn').disabled = false;
+  document.getElementById('saveTakeBtn').disabled = true;
+  startDuckingDetection();
+  toast('🔴 Gravação iniciada — música sendo mixada automaticamente!', 'success');
+}
+
+function pauseRecording() {
+  if (!isRecording) return;
+  if (recorder && recorder.state === 'recording') {
+    recorder.pause();
+    isPaused = true;
+    document.getElementById('statusLed').className = 'dot paused';
+    document.getElementById('statusLabel').innerText = 'PAUSADO';
+    document.getElementById('pauseRecBtn').innerHTML = '▶ Retomar';
+    toast('Gravação pausada', 'info');
+  } else if (recorder && recorder.state === 'paused') {
+    recorder.resume();
+    isPaused = false;
+    document.getElementById('statusLed').className = 'dot rec';
+    document.getElementById('statusLabel').innerText = 'GRAVANDO';
+    document.getElementById('pauseRecBtn').innerHTML = '⏸ Pausar';
+    toast('Gravação retomada', 'info');
+  }
+}
+
+function stopRecording() {
+  if (!isRecording) return;
+  if (recorder && recorder.state !== 'inactive') {
+    recorder.stop();
+    recorder.onstop = () => {
+      if (recordedChunks.length) {
+        const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+        const url = URL.createObjectURL(blob);
+        const takeName = `Take ${takes.length+1} - ${new Date().toLocaleTimeString()}`;
+        const newTake = { id: Date.now(), blobURL: url, duration: recordingSeconds, name: takeName, blobData: blob };
+        takes.push(newTake);
+        renderTakes();
+        document.getElementById('saveTakeBtn').disabled = false;
+        toast(`✅ Take salvo: ${takeName}`, 'success');
+      }
+      recordedChunks = [];
+    };
+  }
+  clearInterval(recordingTimer);
+  isRecording = false; isPaused = false;
+  document.getElementById('statusLed').className = 'dot';
+  document.getElementById('statusLabel').innerText = 'Pronto';
+  document.getElementById('recBtn').innerHTML = '⏺ GRAVAR';
+  document.getElementById('pauseRecBtn').disabled = true;
+  document.getElementById('stopRecBtn').disabled = true;
+  stopDuckingDetection();
+  if (musicGainNode) musicGainNode.gain.value = parseInt(document.getElementById('musicVolume').value)/100;
+}
+
+function saveCurrentTakePermanently() {
+  if (!takes.length) return;
+  const last = takes[takes.length-1];
+  const episode = episodes.find(ep => ep.id === currentEpisodeId);
+  if (episode) {
+    episode.takes.push({ id: last.id, duration: last.duration, name: last.name });
+    localStorage.setItem('podcast_episodes', JSON.stringify(episodes));
+  }
+  toast('Take arquivado no episódio', 'success');
+  document.getElementById('saveTakeBtn').disabled = true;
+}
+
+function updateTimerDisplay() {
+  let h = Math.floor(recordingSeconds/3600);
+  let m = Math.floor((recordingSeconds%3600)/60);
+  let s = recordingSeconds%60;
+  document.getElementById('timerDisplay').innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+}
+
+// Render takes na UI
 function renderTakes() {
-  const el = document.getElementById('takesList');
-  const countEl = document.getElementById('takesCount');
-  if (!state.takes.length) {
-    el.innerHTML = '<div class="empty-state" style="padding:16px 0;"><div class="empty-icon" style="font-size:28px;">🎤</div><div class="empty-text">Nenhum take ainda.</div></div>';
-    countEl.textContent = '0';
-    return;
-  }
-  countEl.textContent = state.takes.length;
-  el.innerHTML = state.takes.map((tk, i) => {
-    const displayName = tk.name || `Take ${i + 1}`;
-    return `
-    <div class="take-card" id="take_${i}">
-      <div class="take-stripe"></div>
-      <div class="take-info">
-        <div class="take-name" id="take-name-display-${i}" style="display:flex;align-items:center;gap:6px;">
-          <span id="take-name-text-${i}" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${displayName}</span>
-          <button class="icon-btn" style="width:22px;height:22px;font-size:11px;flex-shrink:0;" onclick="startRenameTake(${i})" title="Renomear">✏️</button>
-        </div>
-        <div id="take-rename-row-${i}" style="display:none;align-items:center;gap:6px;margin-top:4px;">
-          <input id="take-rename-input-${i}" type="text" value="${displayName}" 
-            style="flex:1;background:var(--bg4);border:1px solid var(--accent);border-radius:6px;padding:4px 8px;color:var(--text);font-size:12px;font-family:var(--sans);outline:none;"
-            onkeydown="if(event.key==='Enter')confirmRenameTake(${i});if(event.key==='Escape')cancelRenameTake(${i});">
-          <button class="icon-btn" style="width:26px;height:26px;font-size:13px;background:rgba(45,202,115,0.15);border-color:var(--green);color:var(--green);" onclick="confirmRenameTake(${i})">✓</button>
-          <button class="icon-btn" style="width:26px;height:26px;font-size:11px;" onclick="cancelRenameTake(${i})">✕</button>
-        </div>
-        <div class="take-meta">${formatTime2(tk.duration || 0)} · ${(tk.size / 1024 / 1024).toFixed(1)} MB</div>
-      </div>
-      <canvas class="take-waveform" id="waveform_${i}" width="80" height="32"></canvas>
+  const container = document.getElementById('takesContainer');
+  if (!takes.length) { container.innerHTML = '<div style="color:var(--text3); text-align:center;">Nenhum take ainda</div>'; return; }
+  container.innerHTML = takes.map((tk, idx) => `
+    <div class="take-item">
+      <div class="take-name">${tk.name}</div>
+      <div>${Math.floor(tk.duration/60)}:${(tk.duration%60).toString().padStart(2,'0')}</div>
       <div class="take-actions">
-        <button class="icon-btn" onclick="playTake(${i})">▶</button>
-        <button class="icon-btn" onclick="downloadTake(${i})">⬇</button>
-        <button class="icon-btn del" onclick="deleteTake(${i})">✕</button>
+        <button class="playTakeBtn" data-url="${tk.blobURL}">▶</button>
+        <button class="deleteTakeBtn" data-idx="${idx}">🗑</button>
       </div>
-    </div>`;
-  }).join('');
-  state.takes.forEach((tk, i) => drawMiniWaveform(i, tk));
-}
-
-function startRenameTake(i) {
-  document.getElementById('take-name-display-' + i).style.display = 'none';
-  const row = document.getElementById('take-rename-row-' + i);
-  row.style.display = 'flex';
-  const input = document.getElementById('take-rename-input-' + i);
-  input.focus();
-  input.select();
-}
-
-function cancelRenameTake(i) {
-  document.getElementById('take-rename-row-' + i).style.display = 'none';
-  document.getElementById('take-name-display-' + i).style.display = 'flex';
-}
-
-async function confirmRenameTake(i) {
-  const input = document.getElementById('take-rename-input-' + i);
-  const newName = input.value.trim();
-  if (!newName) { cancelRenameTake(i); return; }
-  const tk = state.takes[i];
-  if (!tk) return;
-  tk.name = newName;
-  // Persist in IndexedDB — read full record first to preserve audioData
-  if (tk.id) {
-    try {
-      const full = await dbGet('recordings', tk.id);
-      if (full) {
-        full.name = newName;
-        await dbUpdate('recordings', full);
-      }
-    } catch(e) {
-      console.warn('Rename persist error:', e);
-    }
-  }
-  document.getElementById('take-name-text-' + i).textContent = newName;
-  cancelRenameTake(i);
-  toast(`✏️ Take renomeado para "${newName}"`, 'success');
-}
-
-function drawMiniWaveform(idx, tk) {
-  const canvas = document.getElementById('waveform_' + idx);
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-  ctx.clearRect(0, 0, W, H);
-  const bars = 20;
-  for (let i = 0; i < bars; i++) {
-    const h = Math.random() * (H * 0.75) + H * 0.1;
-    const x = (i / bars) * W;
-    ctx.fillStyle = `rgba(255,92,53,${0.3 + Math.random() * 0.4})`;
-    ctx.fillRect(x, (H - h) / 2, W / bars - 1, h);
-  }
-}
-
-function renderChecklist() {
-  const ep = state.episodes.find(e => e.id === state.currentEpisodeId);
-  const items = [
-    { label: 'Episódio criado', ok: !!ep },
-    { label: '1+ take gravado', ok: state.takes.length > 0 },
-    { label: 'Título definido', ok: ep && ep.title && ep.title !== 'Sem título' },
-    { label: 'Transcrição gerada', ok: state.transcript.length > 20 },
-    { label: 'Música configurada', ok: !!state.activeBgMusic },
-  ];
-  document.getElementById('checklist').innerHTML = items.map(it => `
-    <div class="check-item ${it.ok ? 'done' : 'pending'}">
-      <div class="check-dot">${it.ok ? '✓' : '○'}</div>
-      <span>${it.label}</span>
     </div>
   `).join('');
-}
-
-function renderTips() {
-  const tips = [
-    '🎙 Fique a 15–30 cm do microfone',
-    '🔇 Grave em ambiente silencioso',
-    '📈 Mantenha o nível entre -18 e -12 dBFS',
-    '⏱ Episódios de 20–45 min têm maior retenção',
-    '✂️ Edite pausas longas e hesitações',
-    '🎵 Fundo musical abaixo de 30% do volume',
-  ];
-  document.getElementById('tipsBox').textContent = tips[Math.floor(Math.random() * tips.length)];
-  setInterval(() => {
-    document.getElementById('tipsBox').textContent = tips[Math.floor(Math.random() * tips.length)];
-  }, 8000);
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// DEVICES
-// ═══════════════════════════════════════════════════════════════════
-async function enumerateDevices() {
-  try {
-    await navigator.mediaDevices.getUserMedia({ audio: true });
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    const mics = devices.filter(d => d.kind === 'audioinput');
-    const cams = devices.filter(d => d.kind === 'videoinput');
-    const micSel = document.getElementById('micSelect');
-    const camSel = document.getElementById('camSelect');
-    micSel.innerHTML = mics.map((d, i) => `<option value="${d.deviceId}">${d.label || 'Microfone ' + (i+1)}</option>`).join('');
-    camSel.innerHTML = '<option value="">Sem câmera</option>' + cams.map((d, i) => `<option value="${d.deviceId}">${d.label || 'Câmera ' + (i+1)}</option>`).join('');
-  } catch(e) { console.warn('Permissão negada ou sem dispositivos'); }
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// RECORDING
-// ═══════════════════════════════════════════════════════════════════
-function setMode(m) {
-  state.mode = m;
-  document.getElementById('modeAudio').classList.toggle('active', m === 'audio');
-  document.getElementById('modeVideo').classList.toggle('active', m === 'video');
-  document.getElementById('videoPreview').classList.toggle('active', m === 'video');
-}
-
-async function toggleRecord() {
-  if (state.isRecording) {
-    stopRecord();   // FAB e botão REC agora PARAM (não pausam)
-  } else {
-    await startRecord();
-  }
-}
-
-async function startRecord() {
-  try {
-    const micId = document.getElementById('micSelect').value;
-    const camId = document.getElementById('camSelect').value;
-    const constraints = {
-      audio: {
-        deviceId: micId ? { exact: micId } : undefined,
-        noiseSuppression: document.getElementById('togNoiseSuppression').classList.contains('on'),
-        autoGainControl: document.getElementById('togAGC').classList.contains('on'),
-        echoCancellation: true,
-        sampleRate: parseInt(document.getElementById('sampleRate').value) || 48000,
-        channelCount: parseInt(document.getElementById('channels').value) || 2,
-      }
-    };
-    if (state.mode === 'video' && camId) constraints.video = { deviceId: { exact: camId } };
-    state.stream = await navigator.mediaDevices.getUserMedia(constraints);
-    if (state.mode === 'video') document.getElementById('videoEl').srcObject = state.stream;
-
-    state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    state.analyser = state.audioCtx.createAnalyser();
-    state.analyser.fftSize = 1024;
-    state.sourceNode = state.audioCtx.createMediaStreamSource(state.stream);
-
-    // ── Build EQ + Gain chain ──────────────────────────────────────
-    _eqNodes = buildEQChain(state.audioCtx);
-    applyEQValues(_eqNodes);
-    const useLimiter = document.getElementById('togLimiter')?.classList.contains('on');
-    const lastEQNode = _eqNodes.air;
-    if (useLimiter) {
-      lastEQNode.connect(_eqNodes.limiter);
-      _eqNodes.limiter.connect(state.analyser);
-    } else {
-      lastEQNode.connect(state.analyser);
-    }
-    state.sourceNode.connect(_eqNodes.gain);
-    // Also connect to destination so audio monitoring works
-    // (analyser is already connected downstream)
-    state.analyser.connect(state.audioCtx.destination);
-
-
-    const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/webm';
-    state.mediaRecorder = new MediaRecorder(state.stream, { mimeType });
-    state.chunks = [];
-    state.mediaRecorder.ondataavailable = e => { if (e.data.size > 0) state.chunks.push(e.data); };
-    state.mediaRecorder.onstop = null; // reset; set properly in stopRecord
-    state.mediaRecorder.start(100);
-
-    state.isRecording = true;
-    state.isPaused = false;
-    startTimer();
-    updateRecUI();
-    startVisualizer();
-    document.getElementById('recOverlay').classList.add('hidden');
-    toast('Gravação iniciada!', 'success');
-  } catch(e) {
-    toast('Erro ao acessar microfone: ' + e.message, 'error');
-  }
-}
-
-function pauseRecord() {
-  if (!state.isRecording) return;
-  if (state.mediaRecorder.state === 'recording') {
-    state.mediaRecorder.pause();
-    state.isPaused = true;
-    stopTimer();
-    setStatus('paused', 'Pausado');
-    document.getElementById('btnPause').querySelector('.ci').textContent = '▶';
-    document.getElementById('btnPause').lastChild.textContent = 'Retomar';
-  } else if (state.mediaRecorder.state === 'paused') {
-    state.mediaRecorder.resume();
-    state.isPaused = false;
-    startTimer();
-    setStatus('recording', 'Gravando');
-    document.getElementById('btnPause').querySelector('.ci').textContent = '⏸';
-    document.getElementById('btnPause').lastChild.textContent = 'Pausar';
-  }
-}
-
-function stopRecord() {
-  if (!state.isRecording) return;
-  // Disable save until onstop fires and chunks are fully collected
-  document.getElementById('btnSave').disabled = true;
-  state.isRecording = false;
-  state.isPaused = false;
-  stopTimer();
-  updateRecUI();
-  setStatus('', 'Finalizando...');
-
-  state.mediaRecorder.onstop = () => {
-    state.stream.getTracks().forEach(t => t.stop());
-    if (state.audioCtx) { state.audioCtx.close(); state.audioCtx = null; }
-    setStatus('', 'Pronto');
-    document.getElementById('btnSave').disabled = (state.chunks.length === 0);
-    document.getElementById('recOverlay').classList.remove('hidden');
-    toast('Gravação finalizada! Clique em Salvar.', 'success');
-  };
-
-  state.mediaRecorder.stop();
-}
-
-async function saveRecording() {
-  if (!state.chunks.length) { toast('Nada para salvar', 'error'); return; }
-  const blob = new Blob(state.chunks, { type: 'audio/webm' });
-  // Convert blob to ArrayBuffer for reliable IndexedDB storage (Blob not supported in all browsers)
-  const arrayBuffer = await blob.arrayBuffer();
-  const takeData = {
-    episodeId: state.currentEpisodeId,
-    audioData: arrayBuffer,
-    mimeType: 'audio/webm',
-    duration: state.timerSecs,
-    size: blob.size, createdAt: Date.now(),
-    transcript: state.transcript
-  };
-  const id = await dbAdd('recordings', takeData);
-  // Reconstruct blob for in-memory use this session
-  takeData.id = id;
-  takeData.blob = blob;
-  state.takes.push(takeData);
-  state.chunks = [];
-  state.timerSecs = 0;
-  updateTimer();
-  document.getElementById('btnSave').disabled = true;
-  const ep = state.episodes.find(e => e.id === state.currentEpisodeId);
-  if (ep) {
-    ep.takes = state.takes.map(t => t.id);
-    ep.duration = state.takes.reduce((a, t) => a + (t.duration || 0), 0);
-    ep.status = 'draft';
-    await dbUpdate('episodes', ep);
-  }
-  renderTakes();
-  renderChecklist();
-  updateStats();
-  toast('Take salvo!', 'success');
-}
-
-function updateRecUI() {
-  const rec = state.isRecording;
-  const btn = document.getElementById('btnRec');
-  const fab = document.getElementById('recFab');
-  const fabIcon = document.getElementById('recFabIcon');
-  if (rec) {
-    btn.querySelector('.ci').textContent = '⏸';
-    btn.lastChild.nodeValue = null;
-    btn.innerHTML = '<span class="ci">⏸</span>Pausar';
-    fab.classList.add('recording');
-    fabIcon.innerHTML = '<rect x="7" y="7" width="10" height="10" rx="2"/>';
-  } else {
-    btn.innerHTML = '<span class="ci">⏺</span>REC';
-    fab.classList.remove('recording');
-    fabIcon.innerHTML = '<circle cx="12" cy="12" r="8"/>';
-  }
-  document.getElementById('btnPause').disabled = !rec;
-  document.getElementById('btnStop').disabled = !rec;
-  if (rec) setStatus('recording', 'Gravando');
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// TIMER
-// ═══════════════════════════════════════════════════════════════════
-function startTimer() {
-  clearInterval(state.timerInterval);
-  state.timerInterval = setInterval(() => { state.timerSecs++; updateTimer(); }, 1000);
-}
-function stopTimer() { clearInterval(state.timerInterval); }
-function updateTimer() {
-  const h = Math.floor(state.timerSecs / 3600);
-  const m = Math.floor((state.timerSecs % 3600) / 60);
-  const s = state.timerSecs % 60;
-  document.getElementById('timerDisplay').textContent = `${pad(h)}:${pad(m)}:${pad(s)}`;
-  document.getElementById('timerDisplay').className = 'timer-display' + (state.isRecording && !state.isPaused ? ' recording' : '');
-  document.getElementById('statDuration').textContent = `${pad(m)}:${pad(s)}`;
-}
-function pad(n) { return String(n).padStart(2, '0'); }
-function formatTime2(secs) {
-  const m = Math.floor(secs / 60), s = Math.floor(secs % 60);
-  return `${pad(m)}:${pad(s)}`;
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// VISUALIZER
-// ═══════════════════════════════════════════════════════════════════
-let vizAF;
-function startVisualizer() {
-  const canvas = document.getElementById('vizCanvas');
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width = canvas.offsetWidth;
-  const H = canvas.height = canvas.offsetHeight;
-
-  function draw() {
-    if (!state.isRecording || state.isPaused) return;
-    vizAF = requestAnimationFrame(draw);
-    const buf = new Uint8Array(state.analyser.frequencyBinCount);
-    state.analyser.getByteTimeDomainData(buf);
-    ctx.fillStyle = '#141c26';
-    ctx.fillRect(0, 0, W, H);
-
-    // Waveform
-    ctx.lineWidth = 2;
-    const grad = ctx.createLinearGradient(0, 0, W, 0);
-    grad.addColorStop(0, '#ff5c35');
-    grad.addColorStop(0.5, '#ff8060');
-    grad.addColorStop(1, '#ff5c35');
-    ctx.strokeStyle = grad;
-    ctx.beginPath();
-    const sliceW = W / buf.length;
-    let x = 0;
-    for (let i = 0; i < buf.length; i++) {
-      const v = buf[i] / 128;
-      const y = (v * H) / 2;
-      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-      x += sliceW;
-    }
-    ctx.stroke();
-
-    // Freq bars
-    const freqBuf = new Uint8Array(state.analyser.frequencyBinCount);
-    state.analyser.getByteFrequencyData(freqBuf);
-    const bars = 48;
-    const barW = W / bars;
-    for (let i = 0; i < bars; i++) {
-      const val = freqBuf[Math.floor(i * freqBuf.length / bars)] / 255;
-      const bH = val * H * 0.45;
-      ctx.fillStyle = `rgba(255,${80 + val * 80},${53 + val * 40},${0.15 + val * 0.25})`;
-      ctx.fillRect(i * barW, H - bH, barW - 1, bH);
-    }
-
-    // Level
-    const sum = freqBuf.reduce((a, v) => a + v, 0) / freqBuf.length;
-    const lvl = sum / 255 * 100;
-    document.getElementById('meterL').style.width = Math.min(100, lvl * 1.1) + '%';
-    document.getElementById('meterR').style.width = Math.min(100, lvl * 0.9) + '%';
-    const db = lvl > 0 ? (20 * Math.log10(lvl / 100)).toFixed(0) : '-∞';
-    document.getElementById('meterLVal').textContent = db;
-    document.getElementById('meterRVal').textContent = db;
-  }
-  draw();
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// TRANSPORT
-// ═══════════════════════════════════════════════════════════════════
-function playTake(idx) {
-  const tk = state.takes[idx];
-  if (!tk || !tk.blob) { toast('Take não disponível', 'error'); return; }
-  // Revoke previous URL to avoid memory leaks
-  if (state._playerUrl) { URL.revokeObjectURL(state._playerUrl); state._playerUrl = null; }
-  const url = URL.createObjectURL(tk.blob);
-  state._playerUrl = url;
-  state.playerAudio.src = url;
-  state.playerAudio.volume = document.getElementById('masterVol').value / 100;
-  state.isPlaying = true;
-  state.currentTake = idx;
-  document.getElementById('tPlayPause').textContent = '⏸';
-  document.getElementById('transportTrackName').textContent = `Take ${idx + 1}`;
-
-  // ── Connect player through EQ chain ──────────────────────────────
-  try {
-    if (_playerEqCtx) { try { _playerEqCtx.close(); } catch(e){} }
-    _playerEqCtx   = new (window.AudioContext || window.webkitAudioContext)();
-    _playerEqNodes = buildEQChain(_playerEqCtx);
-    applyEQValues(_playerEqNodes);
-    const useLimiter = document.getElementById('togLimiter')?.classList.contains('on');
-    const lastNode = _playerEqNodes.air;
-    if (useLimiter) {
-      lastNode.connect(_playerEqNodes.limiter);
-      _playerEqNodes.limiter.connect(_playerEqCtx.destination);
-    } else {
-      lastNode.connect(_playerEqCtx.destination);
-    }
-    const srcNode = _playerEqCtx.createMediaElementSource(state.playerAudio);
-    srcNode.connect(_playerEqNodes.gain);
-  } catch(eqErr) {
-    // EQ setup failed (e.g., already connected) — fallback to direct play
-    console.warn('Player EQ setup failed, playing without EQ:', eqErr);
-  }
-
-  // Use real audio duration once metadata loads
-  state.playerAudio.onloadedmetadata = () => {
-    const realDur = isFinite(state.playerAudio.duration) ? state.playerAudio.duration : (tk.duration || 0);
-    document.getElementById('transportDur').textContent = formatTime2(realDur);
-    state.playerAudio.play().catch(e => { toast('Erro ao reproduzir: ' + e.message, 'error'); });
-  };
-  state.playerAudio.ontimeupdate = () => {
-    const dur = state.playerAudio.duration;
-    if (!dur || !isFinite(dur)) return;
-    const p = (state.playerAudio.currentTime / dur) * 100;
-    document.getElementById('progressFill').style.width = p + '%';
-    document.getElementById('transportPos').textContent = formatTime2(state.playerAudio.currentTime);
-    document.getElementById('transportDur').textContent = formatTime2(dur);
-  };
-  state.playerAudio.onended = () => {
-    state.isPlaying = false;
-    document.getElementById('tPlayPause').textContent = '▶';
-    document.getElementById('progressFill').style.width = '100%';
-  };
-  state.playerAudio.onerror = (e) => {
-    toast('Erro ao carregar áudio', 'error');
-    state.isPlaying = false;
-    document.getElementById('tPlayPause').textContent = '▶';
-  };
-}
-function transportPlayPause() {
-  if (!state.playerAudio.src) { if (state.takes.length) playTake(0); return; }
-  if (state.playerAudio.paused) {
-    state.playerAudio.play();
-    document.getElementById('tPlayPause').textContent = '⏸';
-  } else {
-    state.playerAudio.pause();
-    document.getElementById('tPlayPause').textContent = '▶';
-  }
-}
-function transportStop() {
-  state.playerAudio.pause();
-  state.playerAudio.currentTime = 0;
-  document.getElementById('tPlayPause').textContent = '▶';
-  document.getElementById('progressFill').style.width = '0%';
-  document.getElementById('transportPos').textContent = '0:00';
-}
-function transportSkip(secs) {
-  state.playerAudio.currentTime = Math.max(0, state.playerAudio.currentTime + secs);
-}
-function seekTransport(e) {
-  const bar = document.getElementById('progressBar');
-  const rect = bar.getBoundingClientRect();
-  const clickX = (e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : rect.left)) - rect.left;
-  const ratio = Math.max(0, Math.min(1, clickX / bar.offsetWidth));
-  if (state.playerAudio.duration && isFinite(state.playerAudio.duration)) {
-    state.playerAudio.currentTime = ratio * state.playerAudio.duration;
-  }
-}
-function updateMasterVol() {
-  const v = document.getElementById('masterVol').value;
-  state.playerAudio.volume = v / 100;
-  document.getElementById('masterVolVal').textContent = v + '%';
-}
-function getTakeFileName(idx) {
-  const tk = state.takes[idx];
-  if (!tk) return `take_${idx+1}`;
-  if (tk.name) return tk.name.replace(/[^a-z0-9çãáàâéêíóôõúü\s_-]/gi, '').trim().replace(/\s+/g, '_') || `take_${idx+1}`;
-  return `take_${idx+1}`;
-}
-
-function downloadTake(idx, fmt) {
-  const tk = state.takes[idx];
-  if (!tk || !tk.blob) { toast('Take não disponível', 'error'); return; }
-  if (!fmt) { showDownloadMenu(idx); return; }
-  const baseName = getTakeFileName(idx);
-
-  if (fmt === 'wav') {
-    toast('Convertendo para WAV...', '');
-    blobToWav(tk.blob).then(wavBlob => {
-      const wu = URL.createObjectURL(wavBlob);
-      const wa = document.createElement('a');
-      wa.href = wu; wa.download = `${baseName}.wav`;
-      document.body.appendChild(wa); wa.click(); document.body.removeChild(wa);
-      setTimeout(() => URL.revokeObjectURL(wu), 5000);
-      toast('Download WAV iniciado!', 'success');
-    }).catch(err => {
-      console.error('WAV conversion error:', err);
-      // fallback: download original webm
-      const url = URL.createObjectURL(tk.blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = `${baseName}.webm`;
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 5000);
-      toast('Erro na conversão WAV — baixando WebM', 'error');
-    });
-    return;
-  }
-
-  if (fmt === 'mp3') {
-    // Browsers record as WebM/Opus — true MP3 encoding requires a JS library not loaded here.
-    // Best cross-device approach: convert to WAV (universal) or download as WebM with correct extension.
-    // We convert to WAV for maximum compatibility on mobile (iOS + Android).
-    toast('Convertendo para WAV (compatível com celular)...', '');
-    blobToWav(tk.blob).then(wavBlob => {
-      const wu = URL.createObjectURL(wavBlob);
-      const wa = document.createElement('a');
-      wa.href = wu; wa.download = `${baseName}.wav`;
-      document.body.appendChild(wa); wa.click(); document.body.removeChild(wa);
-      setTimeout(() => URL.revokeObjectURL(wu), 5000);
-      toast('✅ Áudio WAV baixado — compatível com todos os celulares!', 'success');
-    }).catch(err => {
-      console.error('WAV conversion error for mp3 request:', err);
-      // fallback: webm — at least works on Android
-      const url = URL.createObjectURL(tk.blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = `${baseName}.webm`;
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 5000);
-      toast('Baixado como WebM (Android) — use conversor online para iOS', 'error');
-    });
-    return;
-  }
-
-  // WebM (formato nativo da gravação)
-  const url = URL.createObjectURL(tk.blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = `${baseName}.webm`;
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 5000);
-  toast('Download WebM iniciado!', 'success');
-}
-
-async function blobToWav(blob) {
-  const ctx = new (window.AudioContext || window.webkitAudioContext)();
-  const ab = await blob.arrayBuffer();
-  const decoded = await ctx.decodeAudioData(ab);
-  ctx.close();
-  const numCh = decoded.numberOfChannels;
-  const sr = decoded.sampleRate;
-  const len = decoded.length;
-  const buf = new ArrayBuffer(44 + len * numCh * 2);
-  const view = new DataView(buf);
-  function writeStr(off, s) { for(let i=0;i<s.length;i++) view.setUint8(off+i, s.charCodeAt(i)); }
-  writeStr(0,'RIFF'); view.setUint32(4, 36+len*numCh*2, true);
-  writeStr(8,'WAVE'); writeStr(12,'fmt '); view.setUint32(16,16,true);
-  view.setUint16(20,1,true); view.setUint16(22,numCh,true);
-  view.setUint32(24,sr,true); view.setUint32(28,sr*numCh*2,true);
-  view.setUint16(32,numCh*2,true); view.setUint16(34,16,true);
-  writeStr(36,'data'); view.setUint32(40,len*numCh*2,true);
-  let offset = 44;
-  for (let i=0; i<len; i++) {
-    for (let ch=0; ch<numCh; ch++) {
-      const s = Math.max(-1, Math.min(1, decoded.getChannelData(ch)[i]));
-      view.setInt16(offset, s<0 ? s*0x8000 : s*0x7FFF, true); offset += 2;
-    }
-  }
-  return new Blob([buf], { type: 'audio/wav' });
-}
-
-function showDownloadMenu(idx) {
-  // Remove menu anterior se existir
-  const prev = document.getElementById('dlMenu_' + idx);
-  if (prev) { prev.remove(); return; }
-  const card = document.getElementById('take_' + idx);
-  if (!card) return;
-  const menu = document.createElement('div');
-  menu.id = 'dlMenu_' + idx;
-  menu.style.cssText = `position:absolute;right:0;top:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:6px;z-index:50;display:flex;flex-direction:column;gap:4px;min-width:160px;box-shadow:0 8px 24px rgba(0,0,0,0.4);`;
-
-  const options = [
-    { fmt: 'mp3',  label: '⬇ WAV/MP3 (Celular ✅)' },
-    { fmt: 'wav',  label: '⬇ WAV (Alta qualidade)' },
-    { fmt: 'webm', label: '⬇ WebM (Nativo)' },
-  ];
-
-  options.forEach(({ fmt, label }) => {
-    const b = document.createElement('button');
-    b.className = 'btn btn-ghost btn-sm';
-    b.style.cssText = 'justify-content:flex-start;font-size:12px;';
-    b.textContent = label;
-    b.onclick = (e) => { e.stopPropagation(); menu.remove(); downloadTake(idx, fmt); };
-    menu.appendChild(b);
+  document.querySelectorAll('.playTakeBtn').forEach(btn => {
+    btn.addEventListener('click', () => { new Audio(btn.dataset.url).play(); });
   });
-
-  card.style.position = 'relative';
-  card.appendChild(menu);
-  setTimeout(() => document.addEventListener('click', function rm() {
-    menu.remove(); document.removeEventListener('click', rm);
-  }), 100);
-}
-function deleteTake(idx) {
-  const tk = state.takes[idx];
-  if (!tk) return;
-  if (!confirm('Excluir este take?')) return;
-  dbDelete('recordings', tk.id);
-  state.takes.splice(idx, 1);
-  renderTakes();
-  updateStats();
-  toast('Take removido', 'success');
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// FX CONTROLS
-// ═══════════════════════════════════════════════════════════════════
-function updateFX() {
-  const v = id => document.getElementById(id) ? document.getElementById(id).value : 0;
-  const fmt = (n) => n > 0 ? '+' + n : String(n);
-  if (document.getElementById('eqSubBassVal')) document.getElementById('eqSubBassVal').textContent = fmt(v('eqSubBass'));
-  if (document.getElementById('eqBassVal'))    document.getElementById('eqBassVal').textContent    = fmt(v('eqBass'));
-  if (document.getElementById('eqMidVal'))     document.getElementById('eqMidVal').textContent     = fmt(v('eqMid'));
-  if (document.getElementById('eqPresenceVal'))document.getElementById('eqPresenceVal').textContent= fmt(v('eqPresence'));
-  if (document.getElementById('eqTrebleVal'))  document.getElementById('eqTrebleVal').textContent  = fmt(v('eqTreble'));
-  if (document.getElementById('eqAirVal'))     document.getElementById('eqAirVal').textContent     = fmt(v('eqAir'));
-  if (document.getElementById('inputGainVal')) {
-    const g = parseInt(v('inputGain'));
-    document.getElementById('inputGainVal').textContent = g > 0 ? '+' + g + ' dB' : g + ' dB';
-  }
-  if (document.getElementById('compThreshVal'))   document.getElementById('compThreshVal').textContent  = v('compThresh');
-  if (document.getElementById('compRatioVal'))    document.getElementById('compRatioVal').textContent   = v('compRatio') + ':1';
-  if (document.getElementById('gateThreshVal'))   document.getElementById('gateThreshVal').textContent  = v('gateThresh');
-  if (document.getElementById('reverbSizeVal'))   document.getElementById('reverbSizeVal').textContent  = v('reverbSize') + '%';
-  if (document.getElementById('reverbWetVal'))    document.getElementById('reverbWetVal').textContent   = v('reverbWet') + '%';
-  if (document.getElementById('delayTimeVal'))    document.getElementById('delayTimeVal').textContent   = v('delayTime');
-  if (document.getElementById('pitchShiftVal'))   document.getElementById('pitchShiftVal').textContent  = v('pitchShift');
-  if (document.getElementById('enhanceAmtVal'))   document.getElementById('enhanceAmtVal').textContent  = v('enhanceAmt') + '%';
-}
-function toggleFX(btn) { btn.classList.toggle('on'); }
-
-// ═══════════════════════════════════════════════════════════════════
-// EQ + GAIN CHAIN — Web Audio API (aplicado em tempo real)
-// ═══════════════════════════════════════════════════════════════════
-// Nós de EQ globais (recriados a cada gravação)
-let _eqNodes = null;    // {gain, subBass, bass, mid, presence, treble, air, limiter}
-
-function buildEQChain(ctx) {
-  const gain    = ctx.createGain();
-  const subBass = ctx.createBiquadFilter();
-  const bass    = ctx.createBiquadFilter();
-  const mid     = ctx.createBiquadFilter();
-  const presence= ctx.createBiquadFilter();
-  const treble  = ctx.createBiquadFilter();
-  const air     = ctx.createBiquadFilter();
-  const limiter = ctx.createDynamicsCompressor();
-
-  subBass.type    = 'lowshelf';   subBass.frequency.value = 80;
-  bass.type       = 'peaking';    bass.frequency.value    = 250;  bass.Q.value = 0.8;
-  mid.type        = 'peaking';    mid.frequency.value     = 1000; mid.Q.value = 0.8;
-  presence.type   = 'peaking';    presence.frequency.value= 3000; presence.Q.value = 1.0;
-  treble.type     = 'peaking';    treble.frequency.value  = 8000; treble.Q.value = 0.8;
-  air.type        = 'highshelf';  air.frequency.value     = 12000;
-
-  limiter.threshold.value = -0.5;
-  limiter.knee.value      = 0;
-  limiter.ratio.value     = 20;
-  limiter.attack.value    = 0.001;
-  limiter.release.value   = 0.1;
-
-  // Connect chain: gain → subBass → bass → mid → presence → treble → air → (limiter) → dest
-  gain.connect(subBass);
-  subBass.connect(bass);
-  bass.connect(mid);
-  mid.connect(presence);
-  presence.connect(treble);
-  treble.connect(air);
-  // limiter will be connected to destination conditionally
-
-  return { gain, subBass, bass, mid, presence, treble, air, limiter };
-}
-
-function applyEQValues(nodes) {
-  if (!nodes) return;
-  const eqOn = document.getElementById('togEQ') ? document.getElementById('togEQ').classList.contains('on') : false;
-  const gainDb  = parseFloat(document.getElementById('inputGain')?.value || 0);
-  // Convert dB gain to linear
-  nodes.gain.gain.value = Math.pow(10, gainDb / 20);
-
-  // EQ bands — only if EQ toggle is on
-  const factor = eqOn ? 1 : 0;
-  nodes.subBass.gain.value = factor * parseFloat(document.getElementById('eqSubBass')?.value || 0);
-  nodes.bass.gain.value    = factor * parseFloat(document.getElementById('eqBass')?.value    || 0);
-  nodes.mid.gain.value     = factor * parseFloat(document.getElementById('eqMid')?.value     || 0);
-  nodes.presence.gain.value= factor * parseFloat(document.getElementById('eqPresence')?.value|| 0);
-  nodes.treble.gain.value  = factor * parseFloat(document.getElementById('eqTreble')?.value  || 0);
-  nodes.air.gain.value     = factor * parseFloat(document.getElementById('eqAir')?.value     || 0);
-
-  // Show EQ active label
-  const lbl = document.getElementById('eqActiveLabel');
-  if (lbl) lbl.style.display = eqOn ? 'inline' : 'none';
-}
-
-function applyLiveEQ() {
-  applyEQValues(_eqNodes);
-  // also apply to player if active
-  if (_playerEqNodes) applyEQValues(_playerEqNodes);
-}
-
-// ── EQ presets ────────────────────────────────────────────────────
-function applyEQPreset(name) {
-  const set = (id, val) => { const el = document.getElementById(id); if(el) el.value = val; };
-  if (name === 'podcast') {
-    set('eqSubBass', -4); set('eqBass', 3); set('eqMid', 1);
-    set('eqPresence', 4); set('eqTreble', 2); set('eqAir', 1);
-    toast('🎙 Preset Podcast aplicado', 'success');
-  } else if (name === 'voz') {
-    set('eqSubBass', -6); set('eqBass', 4); set('eqMid', 2);
-    set('eqPresence', 5); set('eqTreble', 3); set('eqAir', 2);
-    toast('🗣 Preset Voz Quente aplicado', 'success');
-  } else {
-    set('eqSubBass', 0); set('eqBass', 0); set('eqMid', 0);
-    set('eqPresence', 0); set('eqTreble', 0); set('eqAir', 0);
-    toast('⬜ EQ Flat (neutro)', 'success');
-  }
-  updateFX();
-  applyLiveEQ();
-}
-
-// ─────────────────────────────────────────────────────────────────
-// Player EQ nodes (for playback)
-let _playerEqNodes = null;
-let _playerEqCtx   = null;
-
-function buildPlayerEQ() {
-  if (_playerEqCtx) { try { _playerEqCtx.close(); } catch(e){} }
-  _playerEqCtx   = new (window.AudioContext || window.webkitAudioContext)();
-  _playerEqNodes = buildEQChain(_playerEqCtx);
-  applyEQValues(_playerEqNodes);
-  const useLimiter = document.getElementById('togLimiter')?.classList.contains('on');
-  const lastNode = _playerEqNodes.air;
-  if (useLimiter) {
-    lastNode.connect(_playerEqNodes.limiter);
-    _playerEqNodes.limiter.connect(_playerEqCtx.destination);
-  } else {
-    lastNode.connect(_playerEqCtx.destination);
-  }
-  return { ctx: _playerEqCtx, nodes: _playerEqNodes };
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// 6 TRILHAS INSTRUMENTAIS EMBUTIDAS — Síntese Web Audio
-// Estilos: Lo-fi Chill, Bossa Nova, Jazz Suave, Ambient, Folk, Cinematic
-// ═══════════════════════════════════════════════════════════════════
-const BUILTIN_TRACKS = [
-  {
-    id: 'bi_lofi',
-    name: '☕ Lo-fi Chill',
-    desc: 'Batida relaxante · hip-hop lo-fi · ideal para podcasts casuais',
-    color: '#00d4ff',
-    bpm: 80,
-    style: 'lofi'
-  },
-  {
-    id: 'bi_bossa',
-    name: '🌊 Bossa Nova',
-    desc: 'Violão suave · ritmo brasileiro · atmosfera aconchegante',
-    color: '#2dca73',
-    bpm: 110,
-    style: 'bossa'
-  },
-  {
-    id: 'bi_jazz',
-    name: '🎷 Jazz Suave',
-    desc: 'Piano e contrabaixo · Jazz trio · elegante e sofisticado',
-    color: '#ffbb00',
-    bpm: 95,
-    style: 'jazz'
-  },
-  {
-    id: 'bi_ambient',
-    name: '🌌 Ambient Podcast',
-    desc: 'Pads atmosféricos · drones suaves · foco total na voz',
-    color: '#4d8dff',
-    bpm: 60,
-    style: 'ambient'
-  },
-  {
-    id: 'bi_folk',
-    name: '🪕 Indie Folk',
-    desc: 'Violão acústico · ritmo orgânico · intimista e autêntico',
-    color: '#ff8060',
-    bpm: 100,
-    style: 'folk'
-  },
-  {
-    id: 'bi_cinematic',
-    name: '🎬 Cinematic',
-    desc: 'Cordas épicas · orquestral minimalista · impacto emocional',
-    color: '#c084fc',
-    bpm: 70,
-    style: 'cinematic'
-  }
-];
-
-let _builtinCtx      = null;
-let _builtinNodes    = [];   // oscillators/buffers currently playing
-let _activeBuiltinId = null;
-
-function renderBuiltinTracks() {
-  const grid = document.getElementById('builtinTracksGrid');
-  if (!grid) return;
-  grid.innerHTML = BUILTIN_TRACKS.map(tr => {
-    const isActive = _activeBuiltinId === tr.id;
-    return `
-    <div class="music-track-row ${isActive ? 'active' : ''}" id="btr_${tr.id}" style="border-left:3px solid ${tr.color}22;">
-      <button class="music-play-btn ${isActive ? 'playing' : ''}" onclick="toggleBuiltinTrack('${tr.id}')" title="${isActive ? 'Parar' : 'Tocar'}">
-        ${isActive ? '⏸' : '▶'}
-      </button>
-      <div class="music-track-info">
-        <div class="music-track-name" style="color:${isActive ? tr.color : 'var(--text)'};">${tr.name}</div>
-        <div class="music-track-meta">${tr.desc}</div>
-      </div>
-      ${isActive ? `<div class="music-playing-badge" style="background:${tr.color}22;color:${tr.color};">▶ AO VIVO</div>` : ''}
-    </div>`;
-  }).join('');
-}
-
-function toggleBuiltinTrack(id) {
-  if (_activeBuiltinId === id) {
-    stopBuiltinTrack();
-    toast('🔇 Trilha parada', '');
-    return;
-  }
-  stopBuiltinTrack();
-  _activeBuiltinId = id;
-  const tr = BUILTIN_TRACKS.find(t => t.id === id);
-  playBuiltinTrack(tr);
-  renderBuiltinTracks();
-  toast('🎵 ' + tr.name + ' tocando...', 'success');
-}
-
-function stopBuiltinTrack() {
-  if (_builtinCtx) {
-    _builtinNodes.forEach(n => { try { n.stop && n.stop(); n.disconnect && n.disconnect(); } catch(e){} });
-    _builtinNodes = [];
-    try { _builtinCtx.close(); } catch(e) {}
-    _builtinCtx = null;
-  }
-  _activeBuiltinId = null;
-  renderBuiltinTracks();
-}
-
-function getBuiltinVolume() {
-  return parseInt(document.getElementById('bgVolSlider')?.value || 25) / 100 * 0.18;
-}
-
-// ── Note frequency helper ──────────────────────────────────────────
-function noteHz(midi) { return 440 * Math.pow(2, (midi - 69) / 12); }
-
-function playBuiltinTrack(tr) {
-  const ctx = new (window.AudioContext || window.webkitAudioContext)();
-  _builtinCtx = ctx;
-  _builtinNodes = [];
-
-  const masterGain = ctx.createGain();
-  masterGain.gain.value = getBuiltinVolume();
-  // gentle EQ for bg music
-  const hiPass = ctx.createBiquadFilter();
-  hiPass.type = 'highpass'; hiPass.frequency.value = 60;
-  const shelf = ctx.createBiquadFilter();
-  shelf.type = 'highshelf'; shelf.frequency.value = 8000; shelf.gain.value = -3;
-  masterGain.connect(hiPass); hiPass.connect(shelf); shelf.connect(ctx.destination);
-
-  // Store master for volume updates
-  _builtinCtx._masterGain = masterGain;
-
-  const beat = 60 / tr.bpm; // seconds per beat
-
-  if (tr.style === 'lofi') synthLofi(ctx, masterGain, beat);
-  else if (tr.style === 'bossa') synthBossa(ctx, masterGain, beat);
-  else if (tr.style === 'jazz') synthJazz(ctx, masterGain, beat);
-  else if (tr.style === 'ambient') synthAmbient(ctx, masterGain, beat);
-  else if (tr.style === 'folk') synthFolk(ctx, masterGain, beat);
-  else if (tr.style === 'cinematic') synthCinematic(ctx, masterGain, beat);
-}
-
-// ── LO-FI CHILL ─────────────────────────────────────────────────
-function synthLofi(ctx, dest, beat) {
-  const now = ctx.currentTime;
-  const loop = 8 * beat; // 2 bars at 80bpm
-
-  function schedBeat(time, freq, dur, vol, type='sine') {
-    const osc = ctx.createOscillator();
-    const g   = ctx.createGain();
-    osc.type = type;
-    osc.frequency.value = freq;
-    g.gain.setValueAtTime(0, time);
-    g.gain.linearRampToValueAtTime(vol, time + 0.01);
-    g.gain.exponentialRampToValueAtTime(0.0001, time + dur);
-    osc.connect(g); g.connect(dest);
-    osc.start(time); osc.stop(time + dur + 0.1);
-    _builtinNodes.push(osc, g);
-  }
-
-  function makeKick(t) {
-    const osc = ctx.createOscillator();
-    const g   = ctx.createGain();
-    osc.frequency.setValueAtTime(150, t);
-    osc.frequency.exponentialRampToValueAtTime(40, t + 0.12);
-    g.gain.setValueAtTime(0.6, t);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
-    osc.connect(g); g.connect(dest);
-    osc.start(t); osc.stop(t + 0.25);
-    _builtinNodes.push(osc, g);
-  }
-
-  function makeSnare(t) {
-    const buf = ctx.createBuffer(1, ctx.sampleRate * 0.15, ctx.sampleRate);
-    const d   = buf.getChannelData(0);
-    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.04));
-    const src = ctx.createBufferSource();
-    const g   = ctx.createGain();
-    const flt = ctx.createBiquadFilter();
-    src.buffer = buf;
-    flt.type = 'bandpass'; flt.frequency.value = 2000; flt.Q.value = 0.5;
-    g.gain.value = 0.35;
-    src.connect(flt); flt.connect(g); g.connect(dest);
-    src.start(t); src.stop(t + 0.2);
-    _builtinNodes.push(src, g, flt);
-  }
-
-  // Chord progression: Cm7 / Fm7 / Gm7 / Fm7
-  const chords = [
-    [60,63,67,70],[65,68,72,75],[67,70,74,77],[65,68,72,75]
-  ];
-
-  function scheduleLoop(startTime) {
-    if (!_builtinCtx || ctx !== _builtinCtx) return;
-    const t0 = startTime;
-    // Beats: kick on 1,3, snare on 2,4
-    for (let b = 0; b < 8; b++) {
-      const t = t0 + b * beat;
-      if (b % 4 === 0 || b % 4 === 2) makeKick(t);
-      if (b % 4 === 1 || b % 4 === 3) makeSnare(t + beat * 0.5);
-      // hi-hat 8th notes
-      const hBuf = ctx.createBuffer(1, ctx.sampleRate * 0.05, ctx.sampleRate);
-      const hd = hBuf.getChannelData(0);
-      for (let i = 0; i < hd.length; i++) hd[i] = (Math.random()*2-1)*Math.exp(-i/(ctx.sampleRate*0.015));
-      const hs = ctx.createBufferSource(); hs.buffer = hBuf;
-      const hg = ctx.createGain(); hg.gain.value = 0.12;
-      const hf = ctx.createBiquadFilter(); hf.type='highpass'; hf.frequency.value=8000;
-      hs.connect(hf); hf.connect(hg); hg.connect(dest);
-      hs.start(t); hs.stop(t+0.08);
-      _builtinNodes.push(hs, hg, hf);
-    }
-    // Chords - one chord per 2 beats
-    chords.forEach((chord, ci) => {
-      const ct = t0 + ci * beat * 2;
-      chord.forEach(midi => {
-        schedBeat(ct, noteHz(midi - 12), beat * 2 * 0.9, 0.09, 'triangle');
-      });
+  document.querySelectorAll('.deleteTakeBtn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.idx);
+      const removed = takes[idx];
+      URL.revokeObjectURL(removed.blobURL);
+      takes.splice(idx,1);
+      renderTakes();
     });
-    // Bass line
-    const bassNotes = [36,36,38,36, 41,41,43,41];
-    bassNotes.forEach((midi, i) => {
-      schedBeat(t0 + i * beat, noteHz(midi), beat * 0.85, 0.18, 'sawtooth');
-    });
-    setTimeout(() => scheduleLoop(startTime + loop), (loop - 0.1) * 1000);
-  }
-  scheduleLoop(now + 0.1);
-}
-
-// ── BOSSA NOVA ──────────────────────────────────────────────────
-function synthBossa(ctx, dest, beat) {
-  const now = ctx.currentTime;
-  const loop = 8 * beat;
-
-  function pluck(t, midi, dur, vol) {
-    const osc1 = ctx.createOscillator();
-    const osc2 = ctx.createOscillator();
-    const g    = ctx.createGain();
-    osc1.type = 'triangle'; osc1.frequency.value = noteHz(midi);
-    osc2.type = 'sawtooth'; osc2.frequency.value = noteHz(midi) * 1.003;
-    osc2.detune.value = 5;
-    g.gain.setValueAtTime(vol, t);
-    g.gain.exponentialRampToValueAtTime(vol * 0.3, t + 0.08);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    osc1.connect(g); osc2.connect(g); g.connect(dest);
-    osc1.start(t); osc1.stop(t + dur + 0.1);
-    osc2.start(t); osc2.stop(t + dur + 0.1);
-    _builtinNodes.push(osc1, osc2, g);
-  }
-
-  // Bossa rhythm: 1 - -  - 4 - 6 - (in 8th notes)
-  const rhythmPattern = [1,0,0,1,0,1,0,1]; // 8th notes
-  // Am7 D7 Gmaj7 Cmaj7
-  const chords = [[57,60,64,67],[50,54,57,60],[55,59,62,66],[48,52,55,59]];
-  const bassNotes = [45,50,43,48];
-
-  function scheduleLoop(startTime) {
-    if (!_builtinCtx || ctx !== _builtinCtx) return;
-    const halfBeat = beat / 2;
-    chords.forEach((chord, ci) => {
-      rhythmPattern.forEach((hit, ri) => {
-        if (!hit) return;
-        const t = startTime + ci * beat * 2 + ri * halfBeat;
-        chord.forEach(midi => pluck(t, midi, halfBeat * 1.8, 0.07));
-      });
-    });
-    // Bass: on beats 1 and 3
-    bassNotes.forEach((midi, i) => {
-      pluck(startTime + i * beat * 2, midi, beat * 1.8, 0.2);
-      pluck(startTime + i * beat * 2 + beat, midi + 5, beat * 0.9, 0.12);
-    });
-    setTimeout(() => scheduleLoop(startTime + loop), (loop - 0.1) * 1000);
-  }
-  scheduleLoop(now + 0.1);
-}
-
-// ── JAZZ SUAVE ──────────────────────────────────────────────────
-function synthJazz(ctx, dest, beat) {
-  const now = ctx.currentTime;
-  const loop = 8 * beat;
-
-  function note(t, midi, dur, vol, type='sine') {
-    const osc = ctx.createOscillator();
-    const g   = ctx.createGain();
-    osc.type = type; osc.frequency.value = noteHz(midi);
-    g.gain.setValueAtTime(0, t);
-    g.gain.linearRampToValueAtTime(vol, t + 0.02);
-    g.gain.setValueAtTime(vol, t + dur - 0.05);
-    g.gain.linearRampToValueAtTime(0, t + dur);
-    osc.connect(g); g.connect(dest);
-    osc.start(t); osc.stop(t + dur + 0.05);
-    _builtinNodes.push(osc, g);
-  }
-
-  // Cmaj9 / Am9 / Dm9 / G13 jazz chords
-  const chords = [
-    [60,64,67,71,74],[57,60,64,67,71],[50,53,57,60,64],[55,59,62,65,69]
-  ];
-  const swing = beat * 0.65; // swing feel
-
-  function scheduleLoop(startTime) {
-    if (!_builtinCtx || ctx !== _builtinCtx) return;
-    // Piano comping - swing 8ths
-    chords.forEach((chord, ci) => {
-      const base = startTime + ci * beat * 2;
-      // beat 1
-      chord.slice(0,3).forEach(m => note(base, m, beat * 0.45, 0.08, 'sine'));
-      // beat 2 (swing)
-      chord.slice(1,4).forEach(m => note(base + swing, m, beat * 0.4, 0.06, 'triangle'));
-      // beat 3
-      chord.slice(0,3).forEach(m => note(base + beat, m, beat * 0.45, 0.07, 'sine'));
-      // beat 4 (swing)
-      chord.slice(2,5).forEach(m => note(base + beat + swing, m, beat * 0.35, 0.05, 'triangle'));
-    });
-    // Walking bass
-    const walkNotes = [36,38,40,41, 45,43,41,40];
-    walkNotes.forEach((m, i) => note(startTime + i * beat, m, beat * 0.85, 0.18, 'sawtooth'));
-    // Ride cymbal (filtered noise)
-    for (let i = 0; i < 8; i++) {
-      const t = startTime + i * beat;
-      const buf = ctx.createBuffer(1, ctx.sampleRate * 0.08, ctx.sampleRate);
-      const d = buf.getChannelData(0);
-      for (let j = 0; j < d.length; j++) d[j] = (Math.random()*2-1)*Math.exp(-j/(ctx.sampleRate*0.025));
-      const s = ctx.createBufferSource(); s.buffer = buf;
-      const f = ctx.createBiquadFilter(); f.type='bandpass'; f.frequency.value=6000; f.Q.value=2;
-      const g = ctx.createGain(); g.gain.value = 0.08;
-      s.connect(f); f.connect(g); g.connect(dest);
-      s.start(t); s.stop(t + 0.1);
-      _builtinNodes.push(s, f, g);
-    }
-    setTimeout(() => scheduleLoop(startTime + loop), (loop - 0.1) * 1000);
-  }
-  scheduleLoop(now + 0.1);
-}
-
-// ── AMBIENT PODCAST ─────────────────────────────────────────────
-function synthAmbient(ctx, dest, beat) {
-  const now = ctx.currentTime;
-  const loop = 16 * beat;
-
-  function pad(t, midi, dur, vol) {
-    const osc1 = ctx.createOscillator();
-    const osc2 = ctx.createOscillator();
-    const osc3 = ctx.createOscillator();
-    const g    = ctx.createGain();
-    const rev  = ctx.createConvolver();
-    // simple reverb buffer
-    const rvbuf= ctx.createBuffer(2, ctx.sampleRate*1.5, ctx.sampleRate);
-    for (let ch=0;ch<2;ch++){
-      const d=rvbuf.getChannelData(ch);
-      for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/(ctx.sampleRate*0.5));
-    }
-    rev.buffer = rvbuf;
-
-    osc1.type='sine'; osc1.frequency.value = noteHz(midi);
-    osc2.type='sine'; osc2.frequency.value = noteHz(midi+12);
-    osc3.type='sine'; osc3.frequency.value = noteHz(midi+19);
-    osc2.detune.value = 8; osc3.detune.value = -5;
-    g.gain.setValueAtTime(0, t);
-    g.gain.linearRampToValueAtTime(vol, t + 2.0);
-    g.gain.setValueAtTime(vol, t + dur - 2.0);
-    g.gain.linearRampToValueAtTime(0, t + dur);
-    [osc1,osc2,osc3].forEach(o => { o.connect(g); o.start(t); o.stop(t+dur+0.1); _builtinNodes.push(o); });
-    g.connect(rev); g.connect(dest); rev.connect(dest);
-    _builtinNodes.push(g, rev);
-  }
-
-  // C major pentatonic drones
-  const pads = [60,67,64,67];
-  function scheduleLoop(startTime) {
-    if (!_builtinCtx || ctx !== _builtinCtx) return;
-    pads.forEach((midi, i) => {
-      pad(startTime + i * beat * 4, midi, beat * 5, 0.07);
-    });
-    setTimeout(() => scheduleLoop(startTime + loop), (loop - 0.5) * 1000);
-  }
-  scheduleLoop(now + 0.1);
-}
-
-// ── INDIE FOLK ──────────────────────────────────────────────────
-function synthFolk(ctx, dest, beat) {
-  const now = ctx.currentTime;
-  const loop = 8 * beat;
-
-  function strum(t, chord, dir, vol) {
-    chord.forEach((midi, i) => {
-      const delay = dir === 'down' ? i * 0.018 : (chord.length - 1 - i) * 0.018;
-      const osc1  = ctx.createOscillator();
-      const osc2  = ctx.createOscillator();
-      const g     = ctx.createGain();
-      osc1.type='triangle'; osc1.frequency.value = noteHz(midi);
-      osc2.type='sine';     osc2.frequency.value = noteHz(midi) * 1.002;
-      const at = t + delay;
-      g.gain.setValueAtTime(vol, at);
-      g.gain.exponentialRampToValueAtTime(vol * 0.4, at + 0.12);
-      g.gain.exponentialRampToValueAtTime(0.0001, at + beat * 1.8);
-      osc1.connect(g); osc2.connect(g); g.connect(dest);
-      osc1.start(at); osc1.stop(at + beat * 2);
-      osc2.start(at); osc2.stop(at + beat * 2);
-      _builtinNodes.push(osc1, osc2, g);
-    });
-  }
-
-  // G D Em C strumming pattern
-  const chords = [
-    [55,59,62,67], [50,54,57,62], [52,55,59,64], [48,52,55,60]
-  ];
-  const strumPattern = ['down','up','down','down','up','down','up','down'];
-
-  function scheduleLoop(startTime) {
-    if (!_builtinCtx || ctx !== _builtinCtx) return;
-    chords.forEach((chord, ci) => {
-      const base = startTime + ci * beat * 2;
-      strumPattern.slice(0,4).forEach((dir, si) => {
-        strum(base + si * beat * 0.5, chord, dir, 0.06);
-      });
-    });
-    // Fingerpicked melody
-    const melody = [67,69,71,72, 71,69,67,65];
-    melody.forEach((midi, i) => {
-      const osc = ctx.createOscillator();
-      const g   = ctx.createGain();
-      osc.type='sine'; osc.frequency.value = noteHz(midi);
-      const t = startTime + i * beat;
-      g.gain.setValueAtTime(0.12, t);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + beat * 0.8);
-      osc.connect(g); g.connect(dest);
-      osc.start(t); osc.stop(t + beat);
-      _builtinNodes.push(osc, g);
-    });
-    setTimeout(() => scheduleLoop(startTime + loop), (loop - 0.1) * 1000);
-  }
-  scheduleLoop(now + 0.1);
-}
-
-// ── CINEMATIC ───────────────────────────────────────────────────
-function synthCinematic(ctx, dest, beat) {
-  const now = ctx.currentTime;
-  const loop = 16 * beat;
-
-  function strings(t, midi, dur, vol) {
-    const oscs = [];
-    for (let i=0; i<4; i++) {
-      const osc = ctx.createOscillator();
-      osc.type = i < 2 ? 'sawtooth' : 'triangle';
-      osc.frequency.value = noteHz(midi + i * 12) * (1 + (i * 0.002));
-      osc.detune.value = (Math.random() - 0.5) * 8;
-      oscs.push(osc);
-    }
-    const g   = ctx.createGain();
-    const lpf = ctx.createBiquadFilter();
-    lpf.type='lowpass'; lpf.frequency.value = 1800;
-    g.gain.setValueAtTime(0, t);
-    g.gain.linearRampToValueAtTime(vol, t + 1.2);
-    g.gain.setValueAtTime(vol, t + dur - 1.5);
-    g.gain.linearRampToValueAtTime(0, t + dur);
-    oscs.forEach(o => { o.connect(lpf); o.start(t); o.stop(t+dur+0.1); _builtinNodes.push(o); });
-    lpf.connect(g); g.connect(dest);
-    _builtinNodes.push(lpf, g);
-  }
-
-  function timpani(t, midi, vol) {
-    const osc = ctx.createOscillator();
-    const g   = ctx.createGain();
-    osc.frequency.setValueAtTime(noteHz(midi), t);
-    osc.frequency.exponentialRampToValueAtTime(noteHz(midi) * 0.7, t + 0.4);
-    g.gain.setValueAtTime(vol, t);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.8);
-    osc.connect(g); g.connect(dest);
-    osc.start(t); osc.stop(t + 1);
-    _builtinNodes.push(osc, g);
-  }
-
-  // Cm / Fm / Gm / Ab progression
-  const harmony = [
-    [48,51,55], [53,56,60], [55,58,62], [56,59,63]
-  ];
-
-  function scheduleLoop(startTime) {
-    if (!_builtinCtx || ctx !== _builtinCtx) return;
-    harmony.forEach((chord, ci) => {
-      const base = startTime + ci * beat * 4;
-      chord.forEach(midi => strings(base, midi, beat * 4.2, 0.06));
-      timpani(base, chord[0] - 12, 0.2);
-    });
-    setTimeout(() => scheduleLoop(startTime + loop), (loop - 0.5) * 1000);
-  }
-  scheduleLoop(now + 0.1);
-}
-
-// ── Update built-in volume when slider changes ─────────────────────
-function updateBgVolBuiltin() {
-  if (_builtinCtx && _builtinCtx._masterGain) {
-    _builtinCtx._masterGain.gain.value = getBuiltinVolume();
-  }
-}
-
-
-// ═══════════════════════════════════════════════════════════════════
-// BACKGROUND MUSIC — Síntese FM de alta qualidade (estilo podcast real)
-// ═══════════════════════════════════════════════════════════════════
-
-// ═══════════════════════════════════════════════════════════════════
-// MUSIC LIBRARY — Trilhas do usuário salvas no IndexedDB
-// ═══════════════════════════════════════════════════════════════════
-
-// State de músicas carregadas
-let _musicTracks = [];          // [{id, name, size, duration, mimeType, data}]
-let _currentTrackSource = null; // BufferSource em reprodução
-
-function stopBgMusic() {
-  if (state._bgAudioEl) {
-    try { state._bgAudioEl.pause(); state._bgAudioEl.src = ''; } catch(e){}
-    state._bgAudioEl = null;
-  }
-  if (state._bgObjectUrl) {
-    try { URL.revokeObjectURL(state._bgObjectUrl); } catch(e){}
-    state._bgObjectUrl = null;
-  }
-  if (state.bgAudioCtx) {
-    try { state.bgAudioCtx.close(); } catch(e){}
-    state.bgAudioCtx = null;
-  }
-  state.bgGain = null;
-}
-
-// ── IndexedDB helpers para music store ───────────────────────────────
-function musicDbAdd(data) {
-  return new Promise((res, rej) => {
-    const tx  = db.transaction('music', 'readwrite');
-    const req = tx.objectStore('music').add(data);
-    req.onsuccess = () => res(req.result);
-    req.onerror   = e => rej(e);
-  });
-}
-function musicDbGetAll() {
-  return new Promise((res, rej) => {
-    const tx  = db.transaction('music', 'readonly');
-    const req = tx.objectStore('music').getAll();
-    req.onsuccess = () => res(req.result);
-    req.onerror   = e => rej(e);
-  });
-}
-function musicDbDelete(id) {
-  return new Promise((res, rej) => {
-    const tx  = db.transaction('music', 'readwrite');
-    const req = tx.objectStore('music').delete(id);
-    req.onsuccess = () => res();
-    req.onerror   = e => rej(e);
   });
 }
 
-// ── Carrega trilhas salvas do DB ─────────────────────────────────────
-async function loadSavedTracks() {
-  _musicTracks = await musicDbGetAll();
-  renderMusicGrid();
+// Carregar dispositivos de áudio externos
+async function loadAudioDevices() {
+  await navigator.mediaDevices.getUserMedia({ audio: true });
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  const mics = devices.filter(d => d.kind === 'audioinput');
+  const select = document.getElementById('micDeviceSelect');
+  select.innerHTML = mics.map(m => `<option value="${m.deviceId}">${m.label || 'Microfone'}</option>`).join('');
+  if (mics.length) select.value = mics[0].deviceId;
+  select.onchange = () => connectMicrophone(select.value);
+  await connectMicrophone(select.value);
 }
 
-// ── Renderiza a lista de trilhas ─────────────────────────────────────
-function renderMusicGrid() {
-  const grid    = document.getElementById('musicGrid');
-  const empty   = document.getElementById('musicEmptyState');
-  const badge   = document.getElementById('musicCountBadge');
-  if (!grid) return;
-  badge.textContent = _musicTracks.length + ' salva' + (_musicTracks.length !== 1 ? 's' : '');
-  if (!_musicTracks.length) {
-    grid.innerHTML = '';
-    empty.style.display = 'block';
-    return;
+// Importar música
+document.getElementById('musicFileInput').addEventListener('change', async (e) => {
+  if (e.target.files.length) {
+    await initMixer();
+    await loadAndPlayMusic(e.target.files[0]);
   }
-  empty.style.display = 'none';
-  grid.innerHTML = _musicTracks.map((tr, i) => {
-    const isActive = state.activeBgMusic === tr.id;
-    const mb  = ((tr.blob ? tr.blob.size : (tr.size || 0)) / 1024 / 1024).toFixed(1);
-    const dur = tr.duration ? formatTime2(tr.duration) : '--:--';
-    const origMB = tr.origSize ? (tr.origSize / 1024 / 1024).toFixed(1) : null;
-    const typeLabel = tr.sourceType === 'video' ? 'VÍDEO→ÁUDIO' : 'ÁUDIO';
-    const typeClass = tr.sourceType === 'video' ? 'video' : 'audio';
-    return `
-    <div class="music-track-row ${isActive ? 'active' : ''}" id="mtr_${tr.id}">
-      <button class="music-play-btn ${isActive ? 'playing' : ''}" onclick="selectBgMusic(${tr.id})" title="${isActive ? 'Pausar' : 'Reproduzir'}">
-        ${isActive ? '⏸' : '▶'}
-      </button>
-      <div class="music-track-info">
-        <div class="music-track-name">${escHtml(tr.name)}</div>
-        <div class="music-track-meta">${dur} · ${mb}MB convertido${origMB ? ' (era '+origMB+'MB)' : ''}</div>
-      </div>
-      <span class="music-fmt-badge ${typeClass}">${typeLabel}</span>
-      ${isActive ? '<div class="music-playing-badge">▶</div>' : ''}
-      <button class="icon-btn del" onclick="deleteTrack(${tr.id})" title="Excluir">🗑</button>
-    </div>`;
-  }).join('');
-}
+});
+document.getElementById('stopMusicBtn').onclick = () => stopBackgroundMusic();
+document.getElementById('musicVolume').oninput = (e) => {
+  let val = e.target.value/100;
+  if (musicGainNode) musicGainNode.gain.value = val;
+  document.getElementById('musicVolVal').innerText = e.target.value+'%';
+};
+// Botões de gravação
+document.getElementById('recBtn').onclick = startRecording;
+document.getElementById('pauseRecBtn').onclick = pauseRecording;
+document.getElementById('stopRecBtn').onclick = stopRecording;
+document.getElementById('saveTakeBtn').onclick = saveCurrentTakePermanently;
+// EQ listeners
+['eqBass','eqMid','eqTreble'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updateMicEQ);
+});
+// Compressor toggle
+let compEnabled = true;
+document.getElementById('compToggleBtn').onclick = () => {
+  compEnabled = !compEnabled;
+  compressorNode.enabled = compEnabled;
+  document.getElementById('compToggleBtn').innerText = compEnabled ? 'ON' : 'OFF';
+  if(!compEnabled) compressorNode.ratio.value = 1;
+  else compressorNode.ratio.value = 4;
+};
+// Gate simulado
+let gateEnabled = true;
+document.getElementById('gateToggleBtn').onclick = () => {
+  gateEnabled = !gateEnabled;
+  document.getElementById('gateToggleBtn').innerText = gateEnabled ? 'ON' : 'OFF';
+};
+// Noise supress / auto gain
+document.getElementById('noiseSuppressBtn').onclick = () => { noiseSuppression = !noiseSuppression; connectMicrophone(document.getElementById('micDeviceSelect').value); document.getElementById('noiseSuppressBtn').innerText = noiseSuppression ? 'ON' : 'OFF'; };
+document.getElementById('autoGainBtn').onclick = () => { autoGain = !autoGain; connectMicrophone(document.getElementById('micDeviceSelect').value); document.getElementById('autoGainBtn').innerText = autoGain ? 'ON' : 'OFF'; };
 
-function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-// ── Seleciona / pausa trilha ─────────────────────────────────────────
-async function selectBgMusic(id) {
-  if (state.activeBgMusic === id) {
-    state.activeBgMusic = null;
-    stopBgMusic();
-    renderMusicGrid();
-    toast('🔇 Música pausada', '');
-    return;
-  }
-  const track = _musicTracks.find(t => t.id === id);
-  if (!track) return;
-  state.activeBgMusic = id;
-  renderMusicGrid();
-  await playStoredTrack(track);
-  toast('🎵 ' + track.name + ' tocando', 'success');
-}
-
-// ── Reprodução via streaming nativo — zero carga na RAM ─────────────
-// O browser faz seeking/buffering sozinho, igual ao Spotify Web Player.
-function playStoredTrack(track) {
-  stopBgMusic();
-
-  // track.blob é um Blob real salvo no IndexedDB — createObjectURL é instantâneo
-  const url   = URL.createObjectURL(track.blob);
-  const audio = new Audio();
-  audio.preload = 'none';          // não pré-carrega nada até o play
-  audio.src     = url;
-  audio.loop    = true;
-
-  state._bgAudioEl   = audio;
-  state._bgObjectUrl = url;
-
-  // AudioContext só para controle de volume (gain node)
-  const ctx    = new (window.AudioContext || window.webkitAudioContext)();
-  state.bgAudioCtx   = ctx;
-  const master = ctx.createGain();
-  const volPct = parseInt(document.getElementById('bgVolSlider').value) / 100;
-  master.gain.value  = volPct * 0.15;
-  master.connect(ctx.destination);
-  state.bgGain = master;
-
-  const srcNode = ctx.createMediaElementSource(audio);
-  srcNode.connect(master);
-
-  return audio.play().catch(e => {
-    URL.revokeObjectURL(url);
-    toast('Erro ao reproduzir: ' + e.message, 'error');
-    stopBgMusic();
-    state.activeBgMusic = null;
-    renderMusicGrid();
-  });
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// IMPORTAÇÃO — RÁPIDA, SEM CARREGAR O ARQUIVO NA RAM
-// Salva o Blob original no IndexedDB. O browser faz streaming nativo.
-// Transcodificação zero — funciona com qualquer formato reproduzível.
-// ═══════════════════════════════════════════════════════════════════
-
-function bestAudioMime() {
-  return ['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/ogg']
-    .find(t => { try { return MediaRecorder.isTypeSupported(t); } catch(e){ return false; } })
-    || 'audio/webm';
-}
-
-function isVideoFile(file) {
-  if (file.type && file.type.startsWith('video/')) return true;
-  const ext = (file.name.split('.').pop() || '').toLowerCase();
-  return ['mp4','mkv','avi','mov','m4v','flv','wmv','ts','3gp','ogv','divx'].includes(ext);
-}
-
-function guessMime(filename) {
-  const ext = (filename.split('.').pop() || '').toLowerCase();
-  return { mp3:'audio/mpeg', mp4:'video/mp4', m4a:'audio/mp4', aac:'audio/aac',
-    ogg:'audio/ogg', oga:'audio/ogg', wav:'audio/wav', wave:'audio/wav',
-    webm:'audio/webm', opus:'audio/ogg', flac:'audio/flac',
-    mkv:'video/webm', mov:'video/mp4' }[ext] || 'audio/mpeg';
-}
-
-function handleMusicDrop(event) {
-  event.preventDefault();
-  document.getElementById('musicDropZone').classList.remove('drag-over');
-  const files = Array.from(event.dataTransfer.files);
-  if (files.length) processMediaFiles(files);
-}
-function importMedia(input) {
-  const files = Array.from(input.files);
-  if (files.length) processMediaFiles(files);
-  input.value = '';
-}
-
-// ── Verifica se o browser consegue reproduzir o arquivo ──────────────
-function probeCanPlay(file) {
-  return new Promise(resolve => {
-    const mime = file.type || guessMime(file.name);
-    const url  = URL.createObjectURL(file);
-    const a    = new Audio();
-    a.preload  = 'metadata';
-    a.src      = url;
-    // canplay = browser consegue decodificar pelo menos um frame
-    const done = (ok) => { a.src = ''; URL.revokeObjectURL(url); resolve(ok); };
-    a.oncanplay     = () => done(true);
-    a.onloadeddata  = () => done(true);
-    a.onerror       = () => done(false);
-    // Timeout de 4s — se não respondeu, assume suportado e tenta mesmo assim
-    setTimeout(() => done(true), 4000);
-  });
-}
-
-// ── Obtém duração lendo apenas metadados (< 1s) ───────────────────────
-function getMetaDuration(file) {
-  return new Promise(resolve => {
-    const url = URL.createObjectURL(file);
-    const a   = new Audio();
-    a.preload  = 'metadata';
-    a.src      = url;
-    a.onloadedmetadata = () => { URL.revokeObjectURL(url); resolve(isFinite(a.duration) ? a.duration : 0); };
-    a.onerror          = () => { URL.revokeObjectURL(url); resolve(0); };
-    setTimeout(() => { URL.revokeObjectURL(url); resolve(0); }, 5000);
-  });
-}
-
-// ── Pipeline principal ────────────────────────────────────────────────
-async function processMediaFiles(files) {
-  const statusDiv = document.getElementById('musicConvertStatus');
-  const bar       = document.getElementById('musicConvertBar');
-  const label     = document.getElementById('musicConvertLabel');
-  const detail    = document.getElementById('musicConvertDetail');
-  statusDiv.style.display = 'block';
-
-  for (let fi = 0; fi < files.length; fi++) {
-    const file   = files[fi];
-    const name   = file.name.replace(/\.[^.]+$/, '');
-    const origMB = (file.size / 1024 / 1024).toFixed(1);
-
-    label.textContent  = `[${fi+1}/${files.length}] "${name}"`;
-    bar.style.width    = '10%';
-    detail.textContent = `${origMB} MB — verificando compatibilidade...`;
-
-    try {
-      // 1. Verificar se o browser reproduz (rápido, só metadados)
-      bar.style.width = '20%';
-      const canPlay = await probeCanPlay(file);
-
-      if (!canPlay) {
-        throw new Error('Formato não suportado pelo navegador. Use MP3, AAC, OGG, WAV, MP4 ou WebM.');
-      }
-
-      // 2. Ler duração dos metadados (sem carregar o áudio)
-      bar.style.width    = '40%';
-      detail.textContent = 'Lendo metadados...';
-      const duration = await getMetaDuration(file);
-
-      // 3. Salvar o Blob ORIGINAL no IndexedDB — sem copiar na RAM
-      bar.style.width    = '65%';
-      detail.textContent = 'Salvando no banco de dados...';
-
-      const mimeType  = file.type || guessMime(file.name);
-      const blob      = file.slice(0, file.size, mimeType); // Blob sem cópia
-      const trackData = {
-        name,
-        blob,                                       // Blob nativo — IndexedDB suporta
-        mimeType,
-        duration,
-        sourceType: isVideoFile(file) ? 'video' : 'audio',
-        origSize:   file.size,
-        size:       file.size,
-        createdAt:  Date.now(),
-      };
-
-      bar.style.width    = '85%';
-      const id = await musicDbAdd(trackData);
-      trackData.id = id;
-      _musicTracks.push(trackData);
-
-      bar.style.width    = '100%';
-      detail.textContent = `✓ Pronto — ${origMB} MB`;
-      toast(`✓ "${name}" importado (${origMB} MB)`, 'success');
-      await new Promise(r => setTimeout(r, 400));
-
-    } catch(err) {
-      bar.style.width    = '0%';
-      detail.textContent = '✗ ' + err.message;
-      toast(`Erro: "${name}" — ${err.message}`, 'error');
-      console.error('[import]', err);
-      await new Promise(r => setTimeout(r, 1500));
-    }
-  }
-
-  statusDiv.style.display = 'none';
-  renderMusicGrid();
-}
-
-// ── Limpar todas ──────────────────────────────────────────────────────
-async function clearAllTracks() {
-  if (!_musicTracks.length) return;
-  if (!confirm('Excluir TODAS as trilhas permanentemente?')) return;
-  stopBgMusic(); state.activeBgMusic = null;
-  for (const t of _musicTracks) await musicDbDelete(t.id);
-  _musicTracks = [];
-  renderMusicGrid();
-  toast('Todas as trilhas removidas', 'success');
-}
-
-// ── Volume slider handler (user uploads + builtins) ───────────────────
-function updateBgVol() {
-  const pct = parseInt(document.getElementById('bgVolSlider').value);
-  document.getElementById('bgVolVal').textContent = pct + '%';
-  // Uploaded track volume
-  if (state.bgGain) {
-    state.bgGain.gain.value = (pct / 100) * 0.15;
-  }
-  // Built-in synth volume
-  updateBgVolBuiltin();
-}
-
-// ── Delete single uploaded track ──────────────────────────────────────
-async function deleteTrack(id) {
-  if (!confirm('Excluir esta trilha?')) return;
-  const tr = _musicTracks.find(t => t.id === id);
-  if (!tr) return;
-  if (state.activeBgMusic === id) { stopBgMusic(); state.activeBgMusic = null; }
-  await musicDbDelete(id);
-  _musicTracks = _musicTracks.filter(t => t.id !== id);
-  renderMusicGrid();
-  toast('Trilha removida', 'success');
-}
-
-
-
-
-
-// ═══════════════════════════════════════════════════════════════════
-// TRANSCRIPTION
-// ═══════════════════════════════════════════════════════════════════
-function toggleTranscription() {
-  state.isTranscribing ? stopTranscription() : startTranscription();
-}
-function startTranscription() {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { toast('Reconhecimento de voz não suportado', 'error'); return; }
-  state.recognition = new SR();
-  state.recognition.lang = 'pt-BR';
-  state.recognition.continuous = true;
-  state.recognition.interimResults = true;
-  state.recognition.onresult = e => {
-    let interim = '';
-    for (let i = e.resultIndex; i < e.results.length; i++) {
-      const t = e.results[i][0].transcript;
-      if (e.results[i].isFinal) { state.transcript += t + ' '; updateTranscriptUI(); updateWordCount(); }
-      else interim = t;
-    }
-    document.getElementById('transcriptHint').textContent = interim ? `"${interim}"` : 'Ouvindo...';
-  };
-  state.recognition.onerror = e => { if (e.error !== 'no-speech') toast('Erro: ' + e.error, 'error'); };
-  state.recognition.onend = () => { if (state.isTranscribing) state.recognition.start(); };
-  state.recognition.start();
-  state.isTranscribing = true;
-  document.getElementById('btnTranscribe').textContent = '⏹ Parar';
-  document.getElementById('btnTranscribe').className = 'btn btn-danger btn-sm';
-  toast('Transcrição iniciada!', 'success');
-}
-function stopTranscription() {
-  if (state.recognition) { state.recognition.stop(); state.recognition = null; }
-  state.isTranscribing = false;
-  document.getElementById('btnTranscribe').textContent = '🎙 Iniciar';
-  document.getElementById('btnTranscribe').className = 'btn btn-primary btn-sm';
-  document.getElementById('transcriptHint').textContent = 'Transcrição parada';
-}
-function updateTranscriptUI() {
-  document.getElementById('transcriptArea').textContent = state.transcript;
-}
-function clearTranscript() {
-  state.transcript = '';
-  document.getElementById('transcriptArea').innerHTML = '<span style="color:var(--text3);font-style:italic;">A transcrição aparecerá aqui...</span>';
-  document.getElementById('statWords').textContent = '0';
-}
-function copyTranscript() {
-  navigator.clipboard.writeText(state.transcript).then(() => toast('Copiado!', 'success'));
-}
-function downloadTranscript() {
-  const blob = new Blob([state.transcript], { type: 'text/plain;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  const ep = state.episodes.find(e => e.id === state.currentEpisodeId);
-  a.href = url; a.download = `${ep ? ep.title : 'transcricao'}.txt`;
-  a.click(); URL.revokeObjectURL(url);
-  toast('Transcrição baixada!', 'success');
-}
-function updateWordCount() {
-  const words = state.transcript.trim().split(/\s+/).filter(w => w).length;
-  document.getElementById('statWords').textContent = words;
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// EXPORT
-// ═══════════════════════════════════════════════════════════════════
-async function exportEpisode() {
-  if (!state.takes.length) { toast('Grave pelo menos um take antes de exportar', 'error'); return; }
-  const take = state.takes[state.takes.length - 1];
-  const format = document.getElementById('exportFormat').value;
-  const url = URL.createObjectURL(take.blob);
-  const a = document.createElement('a');
-  const ep = state.episodes.find(e => e.id === state.currentEpisodeId);
-  const name = ep ? ep.title.replace(/[^a-z0-9]/gi, '_') : 'episodio';
-  a.href = url; a.download = `${name}.${format === 'webm' ? 'webm' : format}`;
-  a.click(); URL.revokeObjectURL(url);
-  if (document.getElementById('expTranscript').checked && state.transcript) downloadTranscript();
-  toast('Exportação iniciada!', 'success');
-}
-function publishToRSS() {
-  const ep = state.episodes.find(e => e.id === state.currentEpisodeId);
-  const podName = document.getElementById('podcastName').value;
-  const author = document.getElementById('podcastAuthor').value;
-  const rss = `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
-  <channel>
-    <title>${podName}</title>
-    <itunes:author>${author}</itunes:author>
-    <description>Podcast gerado pelo PodcastStudio</description>
-    <item>
-      <title>${ep ? ep.title : 'Episódio'}</title>
-      <description>${ep ? ep.desc : ''}</description>
-      <pubDate>${new Date().toUTCString()}</pubDate>
-    </item>
-  </channel>
-</rss>`;
-  const blob = new Blob([rss], { type: 'application/rss+xml' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'feed.rss';
-  a.click(); URL.revokeObjectURL(url);
-  toast('Feed RSS gerado!', 'success');
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// EPISODES
-// ═══════════════════════════════════════════════════════════════════
-async function loadEpisode(id) {
-  state.currentEpisodeId = id;
-  const ep = state.episodes.find(e => e.id === id);
-  if (!ep) return;
-  document.getElementById('epTitle').value = ep.title;
-  document.getElementById('epDesc').value = ep.desc || '';
-  state.transcript = ep.transcript || '';
-  if (state.transcript) updateTranscriptUI();
-  const allRecs = await dbGetAll('recordings');
-  // Reconstruct blobs from stored ArrayBuffers
-  state.takes = allRecs.filter(r => r.episodeId === id).map(r => {
-    if (!r.blob && r.audioData) {
-      r.blob = new Blob([r.audioData], { type: r.mimeType || 'audio/webm' });
-    }
-    return r;
-  });
-  renderTakes();
-  updateStats();
-  renderChecklist();
-  showPage('studio');
-}
-async function deleteEpisode(id) {
-  if (!confirm('Excluir episódio e todas as gravações?')) return;
-  await dbDelete('episodes', id);
-  const allRecs = await dbGetAll('recordings');
-  for (const r of allRecs.filter(r => r.episodeId === id)) await dbDelete('recordings', r.id);
-  state.episodes = state.episodes.filter(e => e.id !== id);
-  if (state.currentEpisodeId === id) { state.currentEpisodeId = null; state.takes = []; renderTakes(); }
-  renderEpisodesPage();
-  toast('Episódio excluído', 'success');
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// STATS & STATUS
-// ═══════════════════════════════════════════════════════════════════
-function updateStats() {
-  const totalSize = state.takes.reduce((a, t) => a + (t.size || 0), 0);
-  document.getElementById('statSize').textContent = (totalSize / 1024 / 1024).toFixed(1) + ' MB';
-  document.getElementById('statTakes').textContent = state.takes.length;
-  estimateDBSize();
-}
-function estimateDBSize() {
-  if (navigator.storage && navigator.storage.estimate) {
-    navigator.storage.estimate().then(est => {
-      const used = (est.usage / 1024 / 1024).toFixed(1);
-      const total = (est.quota / 1024 / 1024 / 1024).toFixed(1);
-      document.getElementById('dbSize').textContent = `${used} MB usados de ${total} GB`;
+// Navegação e episódios
+function renderEpisodes() {
+  const container = document.getElementById('episodesList');
+  if (!episodes.length) { container.innerHTML = '<div style="color:var(--text3);">Nenhum episódio</div>'; return; }
+  container.innerHTML = episodes.map(ep => `<div class="take-item" style="flex-direction:column;align-items:flex-start;"><div><strong>${ep.title}</strong></div><div>${ep.takes.length} takes · ${new Date(ep.createdAt).toLocaleDateString()}</div><button class="btn" data-load="${ep.id}" style="margin-top:6px;padding:6px;">Carregar</button></div>`).join('');
+  document.querySelectorAll('[data-load]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      currentEpisodeId = parseInt(btn.dataset.load);
+      const ep = episodes.find(e => e.id === currentEpisodeId);
+      document.getElementById('epTitleInput').value = ep.title;
+      document.getElementById('epDescInput').value = ep.desc || '';
+      takes = ep.takes.map(t => ({ ...t, blobURL: null })); // not stored blob
+      renderTakes();
+      toast(`Episódio "${ep.title}" carregado`, 'success');
+      showPage('studio');
     });
-  }
-}
-function setStatus(type, text) {
-  const dot = document.getElementById('statusDot');
-  const txt = document.getElementById('statusText');
-  dot.className = 'status-dot' + (type ? ' ' + type : '');
-  txt.textContent = text;
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// TOAST
-// ═══════════════════════════════════════════════════════════════════
-function toast(msg, type = '') {
-  const el = document.createElement('div');
-  el.className = 'toast ' + type;
-  const icon = type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ';
-  el.innerHTML = `<div class="toast-icon">${icon}</div><span>${msg}</span>`;
-  const container = document.getElementById('toastContainer');
-  container.appendChild(el);
-  setTimeout(() => {
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(-8px)';
-    el.style.transition = 'all 0.3s';
-    setTimeout(() => el.remove(), 300);
-  }, 3000);
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// DB SETTINGS
-// ═══════════════════════════════════════════════════════════════════
-async function clearDB() {
-  if (!confirm('Excluir TODOS os dados? Esta ação não pode ser desfeita.')) return;
-  await dbClear('episodes');
-  await dbClear('recordings');
-  state.episodes = [];
-  state.takes = [];
-  state.currentEpisodeId = null;
-  renderTakes();
-  toast('Banco de dados limpo', 'success');
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// GRAVAÇÃO DE VÍDEO
-// ═══════════════════════════════════════════════════════════════════
-let videoStream = null, videoRecorder = null, videoChunks = [], isVideoRecording = false;
-let videoTimerInterval = null, videoTimerSecs = 0;
-
-async function initVideoCam() {
-  const sel = document.getElementById('camSelectVideo');
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video:true, audio:false });
-    stream.getTracks().forEach(t => t.stop()); // apenas para listar
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    const cams = devices.filter(d => d.kind === 'videoinput');
-    sel.innerHTML = cams.length
-      ? cams.map((c,i) => `<option value="${c.deviceId}">${c.label || 'Câmera '+(i+1)}</option>`).join('')
-      : '<option value="">Nenhuma câmera</option>';
-    previewVideoCam(cams[0]?.deviceId);
-  } catch(e) { sel.innerHTML = '<option>Permissão negada</option>'; }
-}
-
-async function previewVideoCam(deviceId) {
-  if (videoStream) videoStream.getTracks().forEach(t => t.stop());
-  try {
-    const res = document.getElementById('videoRes')?.value || '1280x720';
-    const [w,h] = res.split('x').map(Number);
-    const constraints = { video:{ width:{ideal:w}, height:{ideal:h}, deviceId: deviceId ? {exact:deviceId} : undefined }, audio:false };
-    videoStream = await navigator.mediaDevices.getUserMedia(constraints);
-    document.getElementById('videoCamPreview').srcObject = videoStream;
-  } catch(e) { console.warn('Câmera:', e.message); }
-}
-
-function updateVideoCam() {
-  const id = document.getElementById('camSelectVideo').value;
-  previewVideoCam(id);
-}
-
-async function toggleVideoRecord() {
-  if (isVideoRecording) {
-    stopVideoRecord();
-  } else {
-    await startVideoRecord();
-  }
-}
-
-async function startVideoRecord() {
-  try {
-    const micId = document.getElementById('micSelect')?.value;
-    const res = document.getElementById('videoRes')?.value || '1280x720';
-    const [w,h] = res.split('x').map(Number);
-    const camId = document.getElementById('camSelectVideo')?.value;
-
-    // Combinar streams de vídeo + áudio
-    const vidStream = await navigator.mediaDevices.getUserMedia({
-      video:{ width:{ideal:w}, height:{ideal:h}, deviceId: camId ? {exact:camId} : undefined },
-      audio:{ deviceId: micId ? {exact:micId} : undefined, echoCancellation:true, noiseSuppression:true }
-    });
-    videoStream = vidStream;
-    document.getElementById('videoCamPreview').srcObject = vidStream;
-
-    const mimeType = ['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'].find(t => MediaRecorder.isTypeSupported(t)) || 'video/webm';
-    videoRecorder = new MediaRecorder(vidStream, { mimeType, videoBitsPerSecond:4000000 });
-    videoChunks = [];
-    videoRecorder.ondataavailable = e => { if(e.data.size>0) videoChunks.push(e.data); };
-    videoRecorder.start(100);
-    isVideoRecording = true;
-    videoTimerSecs = 0;
-    videoTimerInterval = setInterval(() => {
-      videoTimerSecs++;
-      const m = Math.floor(videoTimerSecs/60), s = videoTimerSecs%60;
-      document.getElementById('btnVideoRec').innerHTML = `<span class="ci">⏹</span>${pad(m)}:${pad(s)}`;
-    }, 1000);
-    document.getElementById('videoPanelRecBadge').classList.add('active');
-    document.getElementById('btnVideoRec').innerHTML = '<span class="ci">⏹</span>00:00';
-    document.getElementById('btnVideoRec').className = 'ctrl-btn danger';
-    document.getElementById('btnVideoSave').disabled = true;
-    toast('🎬 Gravação de vídeo iniciada!', 'success');
-  } catch(e) {
-    toast('Erro câmera/mic: ' + e.message, 'error');
-  }
-}
-
-function stopVideoRecord() {
-  if (!isVideoRecording) return;
-  clearInterval(videoTimerInterval);
-  isVideoRecording = false;
-  videoRecorder.onstop = () => {
-    document.getElementById('videoPanelRecBadge').classList.remove('active');
-    document.getElementById('btnVideoRec').innerHTML = '<span class="ci">⏺</span>Gravar Vídeo';
-    document.getElementById('btnVideoRec').className = 'ctrl-btn primary';
-    document.getElementById('btnVideoSave').disabled = videoChunks.length === 0;
-    toast('🎬 Vídeo finalizado! Clique em Salvar.', 'success');
-  };
-  videoRecorder.stop();
-  if (videoStream) videoStream.getTracks().forEach(t => t.stop());
-}
-
-async function saveVideoTake() {
-  if (!videoChunks.length) { toast('Nada para salvar', 'error'); return; }
-  const blob = new Blob(videoChunks, { type: 'video/webm' });
-  const arrayBuffer = await blob.arrayBuffer();
-  const takeData = {
-    episodeId: state.currentEpisodeId,
-    audioData: arrayBuffer, mimeType: 'video/webm',
-    isVideo: true, duration: videoTimerSecs,
-    size: blob.size, createdAt: Date.now()
-  };
-  const id = await dbAdd('recordings', takeData);
-  takeData.id = id; takeData.blob = blob;
-  if (!state.videoTakes) state.videoTakes = [];
-  state.videoTakes.push(takeData);
-  videoChunks = [];
-  document.getElementById('btnVideoSave').disabled = true;
-  renderVideoTakes();
-  toast('🎬 Take de vídeo salvo!', 'success');
-}
-
-function renderVideoTakes() {
-  const el = document.getElementById('videoTakesList');
-  const countEl = document.getElementById('videoTakesCount');
-  const takes = state.videoTakes || [];
-  countEl.textContent = takes.length;
-  if (!takes.length) {
-    el.innerHTML = '<div class="empty-state" style="padding:16px 0;"><div class="empty-icon" style="font-size:28px;">🎬</div><div class="empty-text">Nenhum take de vídeo ainda.</div></div>';
-    return;
-  }
-  el.innerHTML = takes.map((tk, i) => {
-    const url = tk.blob ? URL.createObjectURL(tk.blob) : '';
-    return `
-    <div class="video-take-card">
-      <video class="video-take-thumb" src="${url}" muted></video>
-      <div class="video-take-info">
-        <div class="video-take-name">Vídeo Take ${i+1}</div>
-        <div class="video-take-meta">${formatTime2(tk.duration||0)} · ${(tk.size/1024/1024).toFixed(1)} MB</div>
-      </div>
-      <div class="take-actions">
-        <button class="icon-btn" onclick="playVideoTake(${i})">▶</button>
-        <button class="icon-btn" onclick="downloadVideoTake(${i})">⬇</button>
-        <button class="icon-btn del" onclick="deleteVideoTake(${i})">✕</button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function playVideoTake(idx) {
-  const tk = (state.videoTakes||[])[idx];
-  if (!tk || !tk.blob) return;
-  const url = URL.createObjectURL(tk.blob);
-  const v = window.open('','_blank','width=800,height=500');
-  v.document.write(`<video src="${url}" controls autoplay style="width:100%;height:100%;background:#000;"></video>`);
-  v.document.close();
-}
-
-function downloadVideoTake(idx) {
-  const tk = (state.videoTakes||[])[idx];
-  if (!tk || !tk.blob) return;
-  const url = URL.createObjectURL(tk.blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = `video_take_${idx+1}.webm`;
-  a.click(); URL.revokeObjectURL(url);
-  toast('Download do vídeo iniciado!', 'success');
-}
-
-function deleteVideoTake(idx) {
-  if (!confirm('Excluir take de vídeo?')) return;
-  const tk = (state.videoTakes||[])[idx];
-  if (tk?.id) dbDelete('recordings', tk.id);
-  state.videoTakes.splice(idx,1);
-  renderVideoTakes();
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// CAPÍTULOS
-// ═══════════════════════════════════════════════════════════════════
-if (!window._chapters) window._chapters = [];
-
-function addChapterNow() {
-  const name = document.getElementById('chapterNameInput').value.trim() || `Capítulo ${window._chapters.length + 1}`;
-  const time = state.timerSecs;
-  window._chapters.push({ time, name });
-  document.getElementById('chapterNameInput').value = '';
-  renderChapters();
-  toast(`📖 Capítulo "${name}" em ${formatTime2(time)}`, 'success');
-}
-
-function addChapterManual() {
-  const name = document.getElementById('chapterNameInput').value.trim() || `Capítulo ${window._chapters.length + 1}`;
-  window._chapters.push({ time: state.timerSecs, name });
-  document.getElementById('chapterNameInput').value = '';
-  renderChapters();
-  toast('📖 Capítulo adicionado!', 'success');
-}
-
-function renderChapters() {
-  const el = document.getElementById('chapterList');
-  if (!window._chapters.length) {
-    el.innerHTML = '<div class="empty-state" style="padding:16px 0;"><div class="empty-icon" style="font-size:24px;">📖</div><div class="empty-text">Nenhum capítulo ainda.</div></div>';
-    return;
-  }
-  el.innerHTML = window._chapters.map((c,i) => `
-    <div class="chapter-item">
-      <span class="chapter-time">${formatTime2(c.time)}</span>
-      <span class="chapter-name">${c.name}</span>
-      <button class="chapter-del" onclick="deleteChapter(${i})">✕</button>
-    </div>
-  `).join('');
-}
-
-function deleteChapter(i) {
-  window._chapters.splice(i,1); renderChapters();
-}
-
-function exportChapters() {
-  const txt = window._chapters.map(c => formatTime2(c.time) + ' ' + c.name).join('\n');
-  const blob = new Blob([txt], {type:'text/plain'});
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-  a.download = 'chapters.txt'; a.click();
-  toast('Capítulos exportados!', 'success');
-}
-
-function exportChaptersJson() {
-  const json = JSON.stringify(window._chapters.map(c => ({startTime: c.time, title: c.name})), null, 2);
-  const blob = new Blob([json], {type:'application/json'});
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-  a.download = 'chapters.json'; a.click();
-  toast('JSON exportado!', 'success');
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════════════════════════
-async function init() {
-  initTheme();
-  await openDB();
-  state.episodes = await dbGetAll('episodes');
-  state.videoTakes = [];
-  await loadSavedTracks();
-  renderTips();
-  renderChecklist();
-  updateFX();
-  applyMicPreset();
-  enumerateDevices();
-  initVideoCam();
-  estimateDBSize();
-  renderChapters();
-  renderBuiltinTracks();
-
-  if (state.episodes.length) {
-    await loadEpisode(state.episodes[state.episodes.length - 1].id);
-  }
-
-  document.getElementById('transcriptArea').addEventListener('input', () => {
-    state.transcript = document.getElementById('transcriptArea').textContent;
-    updateWordCount();
-    const ep = state.episodes.find(e => e.id === state.currentEpisodeId);
-    if (ep) { ep.transcript = state.transcript; dbUpdate('episodes', ep); }
-  });
-
-  document.getElementById('epTitle').addEventListener('blur', saveEpMeta);
-  document.getElementById('epDesc').addEventListener('blur', saveEpMeta);
-
-  document.addEventListener('keydown', e => {
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
-    if (e.code === 'Space') { e.preventDefault(); transportPlayPause(); }
-    if (e.code === 'KeyR' && e.ctrlKey) { e.preventDefault(); toggleRecord(); }
-  });
-
-  window.addEventListener('resize', () => {
-    const canvas = document.getElementById('vizCanvas');
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
   });
 }
-
-// ═══════════════════════════════════════════════════════════════════
-// TEMA
-// ═══════════════════════════════════════════════════════════════════
-function toggleTheme() {
-  const isLight = document.body.classList.toggle('theme-light');
-  document.getElementById('themeToggleBtn').textContent = isLight ? '🌙' : '☀️';
-  localStorage.setItem('ps_theme', isLight ? 'light' : 'dark');
+function showPage(page) {
+  document.getElementById('studioPage').style.display = page === 'studio' ? 'block' : 'none';
+  document.getElementById('episodesPage').style.display = page === 'episodes' ? 'block' : 'none';
+  document.getElementById('settingsPage').style.display = page === 'settings' ? 'block' : 'none';
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.nav-btn[data-page="${page}"]`).classList.add('active');
+  if(page === 'episodes') renderEpisodes();
 }
-function initTheme() {
-  const saved = localStorage.getItem('ps_theme');
-  if (saved === 'light') {
-    document.body.classList.add('theme-light');
-    document.getElementById('themeToggleBtn').textContent = '🌙';
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => showPage(btn.dataset.page));
+});
+document.getElementById('fabNewEpBtn').onclick = () => {
+  const title = prompt("Título do novo episódio", "Episódio incrível");
+  if(title){
+    const newEp = { id: Date.now(), title, desc: "", createdAt: Date.now(), takes: [] };
+    episodes.push(newEp);
+    currentEpisodeId = newEp.id;
+    document.getElementById('epTitleInput').value = title;
+    document.getElementById('epDescInput').value = "";
+    takes = [];
+    renderTakes();
+    showPage('studio');
+    toast(`Novo episódio: ${title}`, 'success');
+    localStorage.setItem('podcast_episodes', JSON.stringify(episodes));
   }
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// MICROFONE CONDENSADOR
-// ═══════════════════════════════════════════════════════════════════
-function applyMicPreset() {
-  const type = document.getElementById('micType').value;
-  const phantomRow = document.getElementById('condenserPhantomRow');
-  const togPhantom = document.getElementById('togPhantom');
-  const togNS = document.getElementById('togNoiseSuppression');
-  const togAGC = document.getElementById('togAGC');
-  phantomRow.style.display = type === 'condenser' ? 'flex' : 'none';
-  const setEQ = (sub,bass,mid,pre,tre,air,gain) => {
-    ['eqSubBass','eqBass','eqMid','eqPresence','eqTreble','eqAir','inputGain']
-      .forEach((id,i)=>{ const el=document.getElementById(id); if(el) el.value=[sub,bass,mid,pre,tre,air,gain][i]; });
-  };
-  if (type === 'condenser') {
-    togPhantom.classList.add('on');
-    togNS.classList.add('on');
-    togAGC.classList.remove('on');
-    setEQ(-4, -3, 0, 4, 2, 1, 4);
-    updateFX(); applyLiveEQ();
-    toast('🎤 Preset Condensador aplicado (phantom +48V, EQ otimizado)', 'success');
-  } else if (type === 'dynamic') {
-    togPhantom.classList.remove('on');
-    togNS.classList.add('on');
-    togAGC.classList.add('on');
-    setEQ(-2, 2, 1, 3, 1, 0, 8);
-    updateFX(); applyLiveEQ();
-    toast('🎤 Preset Dinâmico aplicado (+8dB boost)', 'success');
-  } else if (type === 'usb') {
-    togPhantom.classList.remove('on');
-    togNS.classList.add('on');
-    togAGC.classList.add('on');
-    setEQ(-3, 0, 1, 2, 1, 0, 2);
-    updateFX(); applyLiveEQ();
-    toast('🎤 Preset USB aplicado', 'success');
-  } else {
-    togPhantom.classList.remove('on');
-    togNS.classList.add('on');
-    togAGC.classList.add('on');
-    setEQ(-6, 1, 0, 3, 2, 1, 10);
-    updateFX(); applyLiveEQ();
-    toast('🎤 Preset Celular aplicado (+10dB boost)', 'success');
+};
+document.getElementById('newEpisodeBtn').onclick = () => document.getElementById('fabNewEpBtn').click();
+document.getElementById('clearDataBtn').onclick = () => {
+  if(confirm("Apagar todos os episódios e takes?")){
+    localStorage.clear();
+    episodes = [{ id: Date.now(), title: "Episódio #1", desc: "", createdAt: Date.now(), takes: [] }];
+    takes = [];
+    currentEpisodeId = episodes[0].id;
+    renderTakes();
+    renderEpisodes();
+    toast("Dados resetados", 'info');
   }
+};
+// carregar dados salvos
+const saved = localStorage.getItem('podcast_episodes');
+if(saved) {
+  episodes = JSON.parse(saved);
+  currentEpisodeId = episodes[0]?.id || Date.now();
 }
+document.getElementById('epTitleInput').addEventListener('change', () => { let ep = episodes.find(e=>e.id===currentEpisodeId); if(ep) ep.title = document.getElementById('epTitleInput').value; localStorage.setItem('podcast_episodes', JSON.stringify(episodes)); });
+document.getElementById('epDescInput').addEventListener('change', () => { let ep = episodes.find(e=>e.id===currentEpisodeId); if(ep) ep.desc = document.getElementById('epDescInput').value; localStorage.setItem('podcast_episodes', JSON.stringify(episodes)); });
 
-async function saveEpMeta() {
-  const ep = state.episodes.find(e => e.id === state.currentEpisodeId);
-  if (!ep) return;
-  ep.title = document.getElementById('epTitle').value;
-  ep.desc = document.getElementById('epDesc').value;
-  await dbUpdate('episodes', ep);
-}
-
-function addSpeaker(name, color) {
-  const el = document.getElementById('speakersDetected');
-  const badge = document.createElement('span');
-  badge.className = 'badge';
-  badge.style.cssText = `background:${color}22;color:${color};`;
-  badge.textContent = name;
-  el.appendChild(badge);
-}
-
-init();
-
-setTimeout(() => {
-  addSpeaker('Falante 1', '#ff5c35');
-  addSpeaker('Falante 2', '#00d4ff');
-}, 5000);
+// Inicializar microfones + mixer em interação (por causa autoplay)
+document.body.addEventListener('click', async () => { if (!mixerCtx) await initMixer(); if (mixerCtx.state === 'suspended') mixerCtx.resume(); }, { once: true });
+loadAudioDevices();
+setInterval(() => {
+  if (micSource && mixerCtx) {
+    const analyser = mixerCtx.createAnalyser();
+    try { micSource.connect(analyser); const arr = new Uint8Array(analyser.frequencyBinCount); analyser.getByteFrequencyData(arr); let lvl = Math.min(100, (arr.reduce((a,b)=>a+b,0)/arr.length)/2.55); document.getElementById('meterFill').style.width = lvl+'%'; } catch(e){}
+  }
+}, 120);
+toast("🎙️ Conecte fone + microfone externo. Música toca e é mixada na gravação!", "info");
 </script>
 </body>
 </html>
